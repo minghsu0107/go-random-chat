@@ -424,7 +424,7 @@ function getReturnHomeMessage() {
 
 function insertMsg(msg, domObj) {
     domObj.insertAdjacentHTML("beforeend", msg)
-    domObj.scrollTop += 500
+    domObj.scrollTop = domObj.scrollHeight
 }
 
 function urlify(text) {
