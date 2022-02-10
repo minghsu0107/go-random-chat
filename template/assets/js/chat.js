@@ -82,7 +82,7 @@ text.onkeydown = function (e) {
     if (text.value === "\n") {
         text.value = ""
     }
-    if (e.keyCode === 13 && !e.shiftKey) {
+    if (!window.mobileCheck() && e.keyCode === 13 && !e.shiftKey) {
         sendTextMessage()
     }
 }
