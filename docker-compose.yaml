@@ -1,0 +1,109 @@
+version: '3'
+services:
+  reverse-proxy:
+    image: traefik:v2.3
+    command:
+      - "--entryPoints.web.address=:80"
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--providers.docker.exposedbydefault=false"
+      - --accesslog=true # output log to stdout
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  random-talk:
+    build: .
+    restart: always
+    expose:
+      - "80"
+    environment:
+      - 'HTTP_PORT=80'
+      - 'REDIS_PASSWORD=pass.123'
+      - 'REDIS_ADDRS=redis-node1:7000,redis-node2:7001,redis-node3:7002,redis-node4:7003,redis-node5:7004,redis-node6:7005'
+      - 'REDIS_EXPIRATION_HOURS=24'
+      - 'MAX_ALLOWED_CONNS=200'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.random-talk.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.random-talk.entrypoints=web"
+      - "traefik.http.routers.random-talk.service=random-talk"
+      - "traefik.http.services.random-talk.loadbalancer.server.port=80"
+  redis-node1:
+    build:
+      context: redis
+    ports:
+      - 7000:7000
+      - 17000:17000
+    restart: always
+    volumes:
+      - redis-node1-data:/data
+    entrypoint: [redis-server, /etc/redis/rediscluster.conf, --port,"7000", --cluster-announce-ip,"${REDIS_CLUSTER_IP}"]
+  redis-node2:
+    build:
+      context: redis
+    ports:
+      - 7001:7001
+      - 17001:17001
+    restart: always
+    volumes:
+      - redis-node2-data:/data
+    entrypoint: [redis-server, /etc/redis/rediscluster.conf,--port,"7001",--cluster-announce-ip,"${REDIS_CLUSTER_IP}"]
+  redis-node3:
+    build:
+      context: redis
+    ports:
+      - 7002:7002
+      - 17002:17002
+    restart: always
+    volumes:
+      - redis-node3-data:/data
+    entrypoint: [redis-server, /etc/redis/rediscluster.conf,--port,"7002",--cluster-announce-ip,"${REDIS_CLUSTER_IP}"]
+  redis-node4:
+    build:
+      context: redis
+    ports:
+      - 7003:7003
+      - 17003:17003
+    restart: always
+    volumes:
+      - redis-node4-data:/data
+    entrypoint: [redis-server, /etc/redis/rediscluster.conf,--port,"7003",--cluster-announce-ip,"${REDIS_CLUSTER_IP}"]
+  redis-node5:
+    build:
+      context: redis
+    ports:
+      - 7004:7004
+      - 17004:17004
+    restart: always
+    volumes:
+      - redis-node5-data:/data
+    entrypoint: [redis-server, /etc/redis/rediscluster.conf,--port,"7004",--cluster-announce-ip,"${REDIS_CLUSTER_IP}"]
+  redis-node6:
+    build:
+      context: redis
+    ports:
+      - 7005:7005
+      - 17005:17005
+    restart: always
+    volumes:
+      - redis-node6-data:/data
+    entrypoint: [redis-server, /etc/redis/rediscluster.conf,--port,"7005",--cluster-announce-ip,"${REDIS_CLUSTER_IP}"]
+  redis-cluster-creator:
+    image: redis:6.2.6
+    entrypoint: [/bin/sh,-c,'echo "yes" | redis-cli -a ${REDIS_PASSWD} --cluster create ${REDIS_CLUSTER_IP}:7000 ${REDIS_CLUSTER_IP}:7001 ${REDIS_CLUSTER_IP}:7002 ${REDIS_CLUSTER_IP}:7003 ${REDIS_CLUSTER_IP}:7004 ${REDIS_CLUSTER_IP}:7005 --cluster-replicas 1']
+    depends_on:
+      - redis-node1
+      - redis-node2
+      - redis-node3
+      - redis-node4
+      - redis-node5
+      - redis-node6
+volumes:
+  redis-node1-data:
+  redis-node2-data:
+  redis-node3-data:
+  redis-node4-data:
+  redis-node5-data:
+  redis-node6-data:
