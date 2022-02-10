@@ -181,6 +181,7 @@ body {
     border: none;
     background: none;
     cursor: pointer;
+    max-height: 50px;
 }
 
 .msger-send-btn:hover {
