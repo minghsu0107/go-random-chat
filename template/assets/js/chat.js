@@ -63,9 +63,15 @@ text.addEventListener('keypress', function () {
         isTyping = false
     }, 500)
 })
-send.onclick = function (e) {
+
+send.addEventListener("pointerdown", function (e) {
+    send.style.color = "#0a1869"
+})
+send.addEventListener("pointerup", function (e) {
     sendTextMessage()
-}
+    text.setAttribute("rows", 1)
+    send.style.color = "#25A3FF"
+})
 leave.onclick = async function (e) {
     var result = confirm("Are you sure you want to leave?")
     if (result) {
@@ -82,8 +88,17 @@ text.onkeydown = function (e) {
     if (text.value === "\n") {
         text.value = ""
     }
-    if (!window.mobileCheck() && e.keyCode === 13 && !e.shiftKey) {
-        sendTextMessage()
+    if (window.mobileCheck()) {
+        if (e.keyCode === 13) {
+            text.setAttribute("rows", parseInt(text.getAttribute("rows"), 10) + 1)
+        }
+    } else if (e.keyCode === 13) {
+        if (!e.shiftKey) {
+            sendTextMessage()
+            text.setAttribute("rows", 1)
+        } else {
+            text.setAttribute("rows", parseInt(text.getAttribute("rows"), 10) + 1)
+        }
     }
 }
 ws.addEventListener('open', async function (e) {
@@ -419,4 +434,9 @@ function urlify(text) {
     })
     // or alternatively
     // return text.replace(urlRegex, '<a href="$1">$1</a>')
+}
+
+function auto_grow(element) {
+    element.style.height = "5px";
+    element.style.height = (element.scrollHeight) + "px";
 }
