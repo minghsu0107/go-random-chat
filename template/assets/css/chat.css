@@ -8,6 +8,8 @@
 
 html {
     box-sizing: border-box;
+    min-width: 100%;
+    min-height: 100%;
 }
 
 *,
@@ -41,8 +43,10 @@ body {
     justify-content: space-between;
     width: 100%;
     max-width: 867px;
-    margin: 25px 10px;
-    height: calc(85% - 50px);
+    margin-top: 0px;
+    position: fixed;
+    top: 0;
+    height: calc(100%);
     border: var(--border);
     border-radius: 5px;
     background: var(--msger-bg);
