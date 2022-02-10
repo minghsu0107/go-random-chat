@@ -5,7 +5,7 @@ export REDIS_PASSWD=pass.123
 
 case "$1" in
     "run")
-        docker-compose up --scale random-talk=3;;
+        docker-compose up --scale random-chat=3;;
     "stop")
         docker-compose stop;;
     *)

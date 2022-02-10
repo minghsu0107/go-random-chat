@@ -13,7 +13,7 @@ services:
       - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-  random-talk:
+  random-chat:
     build: .
     restart: always
     expose:
@@ -26,10 +26,10 @@ services:
       - 'MAX_ALLOWED_CONNS=200'
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.random-talk.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.random-talk.entrypoints=web"
-      - "traefik.http.routers.random-talk.service=random-talk"
-      - "traefik.http.services.random-talk.loadbalancer.server.port=80"
+      - "traefik.http.routers.random-chat.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.random-chat.entrypoints=web"
+      - "traefik.http.routers.random-chat.service=random-chat"
+      - "traefik.http.services.random-chat.loadbalancer.server.port=80"
   redis-node1:
     build:
       context: redis

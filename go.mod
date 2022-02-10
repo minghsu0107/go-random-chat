@@ -1,4 +1,4 @@
-module github.com/minghsu0107/go-random-talk
+module github.com/minghsu0107/go-random-chat
 
 go 1.15
 
