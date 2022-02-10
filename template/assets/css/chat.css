@@ -42,7 +42,7 @@ body {
     width: 100%;
     max-width: 867px;
     margin: 25px 10px;
-    height: calc(100% - 50px);
+    height: calc(85% - 50px);
     border: var(--border);
     border-radius: 5px;
     background: var(--msger-bg);

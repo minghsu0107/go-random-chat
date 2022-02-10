@@ -229,9 +229,6 @@ async function processMessage(m) {
                     }
                     break
                 case "offline":
-                    if (m.user_id !== USER_ID) {
-                        actionMsg = ID2NAME[m.user_id] + " is offline"
-                    }
                     break
                 case "leaved":
                     if (m.user_id !== USER_ID) {
