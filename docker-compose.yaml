@@ -24,6 +24,7 @@ services:
       - 'REDIS_ADDRS=redis-node1:7000,redis-node2:7001,redis-node3:7002,redis-node4:7003,redis-node5:7004,redis-node6:7005'
       - 'REDIS_EXPIRATION_HOURS=24'
       - 'MAX_ALLOWED_CONNS=200'
+      - 'MAX_MSGS=500'
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.random-chat.rule=PathPrefix(`/`)"

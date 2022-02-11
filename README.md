@@ -19,6 +19,7 @@ Environment variables:
 - `REDIS_ADDRS`: Redis node addresses
 - `REDIS_EXPIRATION_HOURS`: The expiration of all Redis keys (in hour). Default: `24`
 - `MAX_ALLOWED_CONNS`: Max allowed connections to the server. Default: `200`
+- `MAX_MSGS`: Max number of messages in a channel. Default: `500`
 ## Screenshots
 <img src="https://i.imgur.com/4ctofQv.png" alt="" data-canonical-src="https://i.imgur.com/4ctofQv.png" width="60%" height="60%" />
 
