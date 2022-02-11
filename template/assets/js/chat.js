@@ -50,7 +50,7 @@ var isTyping = false
 text.addEventListener('keypress', function () {
     clearTimeout(timeout)
     if (!isTyping) {
-        insertMsg(getTypingMessage(USER_ID, RIGHT, userTypingID), chatroom[0])
+        insertMsg(getTypingMessage(USER_ID, RIGHT, userTypingID), chatroom[0], true)
         sendActionMessage("istyping")
     }
     isTyping = true
@@ -158,9 +158,10 @@ ws.addEventListener('message', async function (e) {
                 sendBrowserNotification("You got a new message")
             }
         }
-        insertMsg(msg, chatroom[0])
+        var isSelf = (m.user_id === USER_ID)
+        insertMsg(msg, chatroom[0], isSelf)
         if (m.event === EVENT_ACTION && m.payload === "leaved") {
-            insertMsg(getReturnHomeMessage(), chatroom[0])
+            insertMsg(getReturnHomeMessage(), chatroom[0], isSelf)
         }
     }
 })
@@ -220,10 +221,10 @@ async function fetchMessages() {
     let result = await response.json()
     for (const message of result.messages) {
         var msg = await processMessage(message)
-        insertMsg(msg, chatroom[0])
+        insertMsg(msg, chatroom[0], true)
     }
     if (result.messages.length === 0) {
-        insertMsg(getActionMessage("Matched!"), chatroom[0])
+        insertMsg(getActionMessage("Matched!"), chatroom[0], true)
     }
 }
 
@@ -422,9 +423,15 @@ function getReturnHomeMessage() {
     `
 }
 
-function insertMsg(msg, domObj) {
+function insertMsg(msg, domObj, isSelf) {
     domObj.insertAdjacentHTML("beforeend", msg)
-    domObj.scrollTop = domObj.scrollHeight
+    if (isSelf) {
+        domObj.scrollTop = domObj.scrollHeight
+    } else {
+        if (domObj.scrollHeight - 2 * domObj.offsetHeight <= domObj.scrollTop) {
+            domObj.scrollTop = domObj.scrollHeight
+        }
+    }
 }
 
 function urlify(text) {
