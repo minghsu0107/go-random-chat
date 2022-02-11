@@ -10,14 +10,14 @@ import (
 
 var maxMessages int64
 var (
-	matchPubSubTopic   = "rt:match:pubsub"
-	messagePubSubTopic = "rt:msg:pubsub"
-	messagesPrefix     = "rt:msgs"
-	channelPrefix      = "rt:chan"
-	userWaitList       = "rt:userwait"
-	userPrefix         = "rt:user"
-	channelUsersPrefix = "rt:chanusers"
-	onlineUsersPrefix  = "rt:onlineusers"
+	matchPubSubTopic   = "rc:match:pubsub"
+	messagePubSubTopic = "rc:msg:pubsub"
+	messagesPrefix     = "rc:msgs"
+	channelPrefix      = "rc:chan"
+	userWaitList       = "rc:userwait"
+	userPrefix         = "rc:user"
+	channelUsersPrefix = "rc:chanusers"
+	onlineUsersPrefix  = "rc:onlineusers"
 )
 
 var (

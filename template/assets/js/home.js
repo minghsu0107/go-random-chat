@@ -1,6 +1,6 @@
-var userIDStoreKey = "rt:userid"
-var userNameStoreKey = "rt:username"
-var channelIDStoreKey = "rt:channelid"
+var userIDStoreKey = "rc:userid"
+var userNameStoreKey = "rc:username"
+var channelIDStoreKey = "rc:channelid"
 
 var questions = [
     { question: "What's your name?", pattern: /^.{1,15}$/ },
