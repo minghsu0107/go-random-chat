@@ -4,7 +4,7 @@ Fast and scalable real-time random chat written in go.
 Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
 - Stateless chat servers with the help of [Redis Pub/Sub](https://redis.io/topics/pubsub).
-  - We are not using Redis Stream here since at-most-once delivery is enough for transient messages. Thus, data loss is possible during matching and chatting stages.
+  - We are not using Redis Stream here since at-most-once delivery is enough for transient messages. Thus, there is chance of data loss during matching and chatting stages.
   - If you want at-least-once delivery, you can consider using brokers such as Redis Stream, NATS or Kafka. The following examples show how to interact with these brokers using go client.
     - https://github.com/minghsu0107/NATS-PubSub
     - https://github.com/minghsu0107/Kafka-PubSub
