@@ -66,7 +66,6 @@ func (r *Router) RegisterRoutes() {
 	})
 
 	r.svr.GET("/api/match", r.Match)
-
 	r.svr.GET("/api/chat", r.StartChat)
 
 	userGroup := r.svr.Group("/api/user")
@@ -74,13 +73,17 @@ func (r *Router) RegisterRoutes() {
 		userGroup.POST("", r.CreateUser)
 		userGroup.GET("/:uid/name", r.GetUserName)
 	}
-	r.svr.GET("/api/users", r.GetChannelUsers)
-	r.svr.GET("/api/users/online", r.GetOnlineUsers)
-
-	channelGroup := r.svr.Group("/api/channel")
+	usersGroup := r.svr.Group("/api/users")
+	usersGroup.Use(JWTAuth())
 	{
-		channelGroup.GET("/:cid/messages", r.ListMessages)
-		channelGroup.DELETE("/:cid", r.DeleteChannel)
+		usersGroup.GET("", r.GetChannelUsers)
+		usersGroup.GET("/online", r.GetOnlineUsers)
+	}
+	channelGroup := r.svr.Group("/api/channel")
+	channelGroup.Use(JWTAuth())
+	{
+		channelGroup.GET("/messages", r.ListMessages)
+		channelGroup.DELETE("", r.DeleteChannel)
 	}
 
 	r.mm.HandleConnect(r.HandleMatchOnConnect)

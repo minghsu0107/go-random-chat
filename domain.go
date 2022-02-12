@@ -39,10 +39,11 @@ type User struct {
 }
 
 type MatchResult struct {
-	Matched   bool
-	UserID    uint64
-	PeerID    uint64
-	ChannelID uint64
+	Matched     bool
+	UserID      uint64
+	PeerID      uint64
+	ChannelID   uint64
+	AccessToken string
 }
 
 func (r *MatchResult) Encode() []byte {
@@ -51,7 +52,7 @@ func (r *MatchResult) Encode() []byte {
 }
 func (r *MatchResult) ToPresenter() *MatchResultPresenter {
 	return &MatchResultPresenter{
-		ChannelID: strconv.FormatUint(r.ChannelID, 10),
+		AccessToken: r.AccessToken,
 	}
 }
 
@@ -62,10 +63,9 @@ func (m *Message) Encode() []byte {
 
 func (m *Message) ToPresenter() *MessagePresenter {
 	return &MessagePresenter{
-		Event:     m.Event,
-		ChannelID: strconv.FormatUint(m.ChannelID, 10),
-		UserID:    strconv.FormatUint(m.UserID, 10),
-		Payload:   m.Payload,
-		Time:      m.Time,
+		Event:   m.Event,
+		UserID:  strconv.FormatUint(m.UserID, 10),
+		Payload: m.Payload,
+		Time:    m.Time,
 	}
 }

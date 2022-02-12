@@ -103,11 +103,16 @@ func (svc *MatchingServiceImpl) Match(ctx context.Context, userID uint64) (*Matc
 		if err != nil {
 			return nil, err
 		}
+		accessToken, err := newJWT(newChannelID)
+		if err != nil {
+			return nil, err
+		}
 		return &MatchResult{
-			Matched:   true,
-			UserID:    userID,
-			PeerID:    peerID,
-			ChannelID: newChannelID,
+			Matched:     true,
+			UserID:      userID,
+			PeerID:      peerID,
+			ChannelID:   newChannelID,
+			AccessToken: accessToken,
 		}, nil
 	}
 	return &MatchResult{

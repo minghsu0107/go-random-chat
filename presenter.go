@@ -9,6 +9,7 @@ import (
 var (
 	ErrInvalidParam = errors.New("invalid parameter")
 	ErrServer       = errors.New("server error")
+	ErrUnauthorized = errors.New("unauthorized")
 )
 
 // ErrResponse is the error response type
@@ -27,11 +28,10 @@ var OkMsg SuccessMessage = SuccessMessage{
 }
 
 type MessagePresenter struct {
-	Event     int    `json:"event"`
-	ChannelID string `json:"channel_id"`
-	UserID    string `json:"user_id"`
-	Payload   string `json:"payload"`
-	Time      string `json:"time"`
+	Event   int    `json:"event"`
+	UserID  string `json:"user_id"`
+	Payload string `json:"payload"`
+	Time    string `json:"time"`
 }
 
 type ChannelPresenter struct {
@@ -56,7 +56,7 @@ type MessagesPresenter struct {
 }
 
 type MatchResultPresenter struct {
-	ChannelID string `json:"channel_id"`
+	AccessToken string `json:"access_token"`
 }
 
 func (m *MatchResultPresenter) Encode() []byte {
@@ -69,11 +69,17 @@ func (m *MessagePresenter) Encode() []byte {
 	return result
 }
 
-func (m *MessagePresenter) ToMessage() (*Message, error) {
-	channelID, err := strconv.ParseUint(m.ChannelID, 10, 64)
+func (m *MessagePresenter) ToMessage(accessToken string) (*Message, error) {
+	authResult, err := Auth(&AuthPayload{
+		AccessToken: accessToken,
+	})
 	if err != nil {
 		return nil, err
 	}
+	if authResult.Expired {
+		return nil, ErrTokenExpired
+	}
+	channelID := authResult.ChannelID
 	userID, err := strconv.ParseUint(m.UserID, 10, 64)
 	if err != nil {
 		return nil, err

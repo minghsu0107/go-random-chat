@@ -1,6 +1,6 @@
 var userIDStoreKey = "rc:userid"
 var userNameStoreKey = "rc:username"
-var channelIDStoreKey = "rc:channelid"
+var accessTokenKey = "rc:accesstoken"
 
 var questions = [
     { question: "What's your name?", pattern: /^.{1,15}$/ },
@@ -22,7 +22,7 @@ if (localStorage.getItem(userIDStoreKey) === null) {
             if (e.keyCode == 13) validate()
         })
     }())
-} else if (localStorage.getItem(channelIDStoreKey) === null) {
+} else if (localStorage.getItem(accessTokenKey) === null) {
     inputContainer.style.opacity = 0
     inputProgress.style.transition = 'none'
     inputProgress.style.width = 0
@@ -89,8 +89,8 @@ function match() {
     ws = new WebSocket(matchUrl)
     ws.addEventListener('message', function (e) {
         var result = JSON.parse(e.data)
-        if (result.channel_id !== "") {
-            localStorage.setItem(channelIDStoreKey, result.channel_id)
+        if (result.channel_id !== "" && result.access_token !== "") {
+            localStorage.setItem(accessTokenKey, result.access_token)
             ws.close()
             window.location.href = '/chat'
         }

@@ -31,19 +31,26 @@ func (r *Router) Match(c *gin.Context) {
 }
 
 func (r *Router) StartChat(c *gin.Context) {
-	cid := c.Query("cid")
-	channelID, err := strconv.ParseUint(cid, 10, 64)
-	if err != nil {
-		response(c, http.StatusBadRequest, ErrInvalidParam)
-		return
-	}
 	uid := c.Query("uid")
 	userID, err := strconv.ParseUint(uid, 10, 64)
 	if err != nil {
 		response(c, http.StatusBadRequest, ErrInvalidParam)
 		return
 	}
-
+	accessToken := c.Query("access_token")
+	authResult, err := Auth(&AuthPayload{
+		AccessToken: accessToken,
+	})
+	if err != nil {
+		log.Error(err)
+		response(c, http.StatusInternalServerError, ErrServer)
+		return
+	}
+	if authResult.Expired {
+		log.Error(ErrTokenExpired)
+		response(c, http.StatusUnauthorized, ErrTokenExpired)
+	}
+	channelID := authResult.ChannelID
 	exist, err := r.userSvc.IsChannelUserExist(c.Request.Context(), channelID, userID)
 	if err != nil {
 		log.Error(err)
@@ -77,10 +84,9 @@ func (r *Router) CreateUser(c *gin.Context) {
 }
 
 func (r *Router) GetChannelUsers(c *gin.Context) {
-	id := c.Query("cid")
-	channelID, err := strconv.ParseUint(id, 10, 64)
-	if err != nil {
-		response(c, http.StatusBadRequest, ErrInvalidParam)
+	channelID, ok := c.Request.Context().Value(ChannelKey).(uint64)
+	if !ok {
+		response(c, http.StatusUnauthorized, ErrUnauthorized)
 		return
 	}
 	userIDs, err := r.userSvc.GetChannelUserIDs(c.Request.Context(), channelID)
@@ -103,10 +109,9 @@ func (r *Router) GetChannelUsers(c *gin.Context) {
 }
 
 func (r *Router) GetOnlineUsers(c *gin.Context) {
-	id := c.Query("cid")
-	channelID, err := strconv.ParseUint(id, 10, 64)
-	if err != nil {
-		response(c, http.StatusBadRequest, ErrInvalidParam)
+	channelID, ok := c.Request.Context().Value(ChannelKey).(uint64)
+	if !ok {
+		response(c, http.StatusUnauthorized, ErrUnauthorized)
 		return
 	}
 	userIDs, err := r.userSvc.GetOnlineUserIDs(c.Request.Context(), channelID)
@@ -152,10 +157,9 @@ func (r *Router) GetUserName(c *gin.Context) {
 }
 
 func (r *Router) ListMessages(c *gin.Context) {
-	id := c.Param("cid")
-	channelID, err := strconv.ParseUint(id, 10, 64)
-	if err != nil {
-		response(c, http.StatusBadRequest, ErrInvalidParam)
+	channelID, ok := c.Request.Context().Value(ChannelKey).(uint64)
+	if !ok {
+		response(c, http.StatusUnauthorized, ErrUnauthorized)
 		return
 	}
 	msgs, err := r.msgSvc.ListMessages(c.Request.Context(), channelID)
@@ -171,11 +175,10 @@ func (r *Router) ListMessages(c *gin.Context) {
 	msgsPresenter := []MessagePresenter{}
 	for _, msg := range msgs {
 		msgsPresenter = append(msgsPresenter, MessagePresenter{
-			Event:     msg.Event,
-			ChannelID: strconv.FormatUint(msg.ChannelID, 10),
-			UserID:    strconv.FormatUint(msg.UserID, 10),
-			Payload:   msg.Payload,
-			Time:      msg.Time,
+			Event:   msg.Event,
+			UserID:  strconv.FormatUint(msg.UserID, 10),
+			Payload: msg.Payload,
+			Time:    msg.Time,
 		})
 	}
 	c.JSON(http.StatusOK, &MessagesPresenter{
@@ -184,16 +187,26 @@ func (r *Router) ListMessages(c *gin.Context) {
 }
 
 func (r *Router) DeleteChannel(c *gin.Context) {
-	cid := c.Param("cid")
-	channelID, err := strconv.ParseUint(cid, 10, 64)
-	if err != nil {
-		response(c, http.StatusBadRequest, ErrInvalidParam)
+	channelID, ok := c.Request.Context().Value(ChannelKey).(uint64)
+	if !ok {
+		response(c, http.StatusUnauthorized, ErrUnauthorized)
 		return
 	}
 	uid := c.Query("delby")
 	userID, err := strconv.ParseUint(uid, 10, 64)
 	if err != nil {
 		response(c, http.StatusBadRequest, ErrInvalidParam)
+		return
+	}
+
+	exist, err := r.userSvc.IsChannelUserExist(c.Request.Context(), channelID, userID)
+	if err != nil {
+		log.Error(err)
+		response(c, http.StatusInternalServerError, ErrServer)
+		return
+	}
+	if !exist {
+		response(c, http.StatusBadRequest, ErrChannelOrUserNotFound)
 		return
 	}
 
@@ -258,11 +271,17 @@ func (r *Router) HandleChatOnConnect(sess *melody.Session) {
 		log.Error(err)
 		return
 	}
-	channelID, err := strconv.ParseUint(sess.Request.URL.Query().Get("cid"), 10, 64)
+	accessToken := sess.Request.URL.Query().Get("access_token")
+	authResult, err := Auth(&AuthPayload{
+		AccessToken: accessToken,
+	})
 	if err != nil {
 		log.Error(err)
-		return
 	}
+	if authResult.Expired {
+		log.Error(ErrTokenExpired)
+	}
+	channelID := authResult.ChannelID
 	err = r.initializeChatSession(sess, channelID, userID)
 	if err != nil {
 		log.Error(err)
@@ -289,7 +308,7 @@ func (r *Router) HandleChatOnMessage(sess *melody.Session, data []byte) {
 		log.Error(err)
 		return
 	}
-	msg, err := msgPresenter.ToMessage()
+	msg, err := msgPresenter.ToMessage(sess.Request.URL.Query().Get("access_token"))
 	if err != nil {
 		log.Error(err)
 		return
@@ -314,11 +333,19 @@ func (r *Router) HandleChatOnClose(sess *melody.Session, i int, s string) error 
 		log.Error(err)
 		return err
 	}
-	channelID, err := strconv.ParseUint(sess.Request.URL.Query().Get("cid"), 10, 64)
+	accessToken := sess.Request.URL.Query().Get("access_token")
+	authResult, err := Auth(&AuthPayload{
+		AccessToken: accessToken,
+	})
 	if err != nil {
 		log.Error(err)
 		return err
 	}
+	if authResult.Expired {
+		log.Error(ErrTokenExpired)
+		return ErrTokenExpired
+	}
+	channelID := authResult.ChannelID
 	err = r.userSvc.DeleteOnlineUser(context.Background(), channelID, userID)
 	if err != nil {
 		log.Error(err)

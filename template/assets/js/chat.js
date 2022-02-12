@@ -5,7 +5,7 @@ window.mobileCheck = function () {
 };
 var userIDStoreKey = "rc:userid"
 var userNameStoreKey = "rc:username"
-var channelIDStoreKey = "rc:channelid"
+var accessTokenKey = "rc:accesstoken"
 const LEFT = "left"
 const RIGHT = "right"
 
@@ -18,9 +18,9 @@ if (localStorage.getItem(userIDStoreKey) !== null) {
 } else {
     window.location.href = '/'
 }
-var CHANNEL_ID = ""
-if (localStorage.getItem(channelIDStoreKey) !== null) {
-    CHANNEL_ID = localStorage.getItem(channelIDStoreKey)
+var ACCESS_TOKEN = ""
+if (localStorage.getItem(accessTokenKey) !== null) {
+    ACCESS_TOKEN = localStorage.getItem(accessTokenKey)
 } else {
     window.location.href = '/'
 }
@@ -34,7 +34,7 @@ if (localStorage.getItem(userNameStoreKey) !== null) {
 }
 var ONLINE_USERS = new Set()
 
-var chatUrl = "ws://" + window.location.host + "/api/chat?uid=" + USER_ID + "&cid=" + CHANNEL_ID
+var chatUrl = "ws://" + window.location.host + "/api/chat?uid=" + USER_ID + "&access_token=" + ACCESS_TOKEN
 ws = new WebSocket(chatUrl)
 
 var chatroom = document.getElementsByClassName("msger-chat")
@@ -77,7 +77,7 @@ leave.onclick = async function (e) {
     if (result) {
         try {
             await deleteChannel()
-            localStorage.removeItem(channelIDStoreKey)
+            localStorage.removeItem(accessTokenKey)
             window.location.reload()
         } catch (err) {
             console.log(`Error: ${err}`)
@@ -142,7 +142,7 @@ ws.addEventListener('message', async function (e) {
                 } catch (err) {
                     console.log(`Error: ${err}`)
                 }
-                localStorage.removeItem(channelIDStoreKey)
+                localStorage.removeItem(accessTokenKey)
                 ws.close()
                 break
         }
@@ -203,7 +203,12 @@ function sendBrowserNotification(msg) {
 }
 
 async function getAllChannelUserNames() {
-    return fetch(`/api/users?cid=${CHANNEL_ID}`)
+    return fetch(`/api/users`, {
+        method: 'GET',
+        headers: new Headers({
+            'Authorization': 'Bearer ' + ACCESS_TOKEN
+        })
+    })
         .then((response) => {
             return response.json()
         })
@@ -217,7 +222,12 @@ async function getAllChannelUserNames() {
 }
 
 async function fetchMessages() {
-    let response = await fetch(`/api/channel/${CHANNEL_ID}/messages`)
+    let response = await fetch(`/api/channel/messages`, {
+        method: 'GET',
+        headers: new Headers({
+            'Authorization': 'Bearer ' + ACCESS_TOKEN
+        })
+    })
     let result = await response.json()
     for (const message of result.messages) {
         var msg = await processMessage(message)
@@ -293,7 +303,12 @@ async function setPeerName(peerID) {
 }
 
 async function updateOnlineUsers() {
-    return fetch(`/api/users/online?cid=${CHANNEL_ID}`)
+    return fetch(`/api/users/online`, {
+        method: 'GET',
+        headers: new Headers({
+            'Authorization': 'Bearer ' + ACCESS_TOKEN
+        })
+    })
         .then((response) => {
             return response.json()
         })
@@ -342,8 +357,11 @@ async function updateOnlineUsers() {
 }
 
 async function deleteChannel() {
-    return fetch(`/api/channel/${CHANNEL_ID}?delby=${USER_ID}`, {
-        method: 'DELETE'
+    return fetch(`/api/channel?delby=${USER_ID}`, {
+        method: 'DELETE',
+        headers: new Headers({
+            'Authorization': 'Bearer ' + ACCESS_TOKEN
+        })
     })
 }
 
@@ -361,7 +379,6 @@ function sendTextMessage() {
         var time = `${d.getFullYear()}/${d.getMonth()}/${d.getDay()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
         ws.send(JSON.stringify({
             "event": EVENT_TEXT,
-            "channel_id": CHANNEL_ID,
             "user_id": USER_ID,
             "payload": text.value,
             "time": time
@@ -373,7 +390,6 @@ function sendTextMessage() {
 function sendActionMessage(action) {
     ws.send(JSON.stringify({
         "event": EVENT_ACTION,
-        "channel_id": CHANNEL_ID,
         "user_id": USER_ID,
         "payload": action,
     }))
