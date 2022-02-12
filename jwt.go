@@ -29,7 +29,7 @@ func init() {
 
 type JWTClaims struct {
 	ChannelID uint64
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 type AuthPayload struct {
@@ -65,11 +65,11 @@ func Auth(authPayload *AuthPayload) (*AuthResponse, error) {
 }
 
 func newJWT(channelID uint64) (string, error) {
-	expiredAt := time.Now().Add(time.Duration(jwtExpirationSeconds) * time.Second).Unix()
+	expiresAt := time.Now().Add(time.Duration(jwtExpirationSeconds) * time.Second)
 	jwtClaims := &JWTClaims{
 		ChannelID: channelID,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expiredAt,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwtClaims)
