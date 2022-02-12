@@ -191,7 +191,7 @@ func (repo *RedisMessageRepo) ListMessages(ctx context.Context, channelID uint64
 		return nil, ErrChannelNotFound
 	}
 	key := constructKey(messagesPrefix, channelID)
-	messagesStr, err := repo.r.LRange(ctx, key, 0, maxMessages)
+	messagesStr, err := repo.r.LRange(ctx, key, -maxMessages, -1)
 	if err != nil {
 		return nil, err
 	}
