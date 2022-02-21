@@ -25,6 +25,7 @@ services:
       - 'REDIS_EXPIRATION_HOURS=24'
       - 'MAX_ALLOWED_CONNS=200'
       - 'MAX_MSGS=500'
+      - 'JWT_SECRET=mysecret'
       - 'JWT_EXPIRATION_SECONDS=86400'
     labels:
       - "traefik.enable=true"
