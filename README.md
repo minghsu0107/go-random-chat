@@ -1,4 +1,4 @@
-# Go Random Chat
+# Go Random Chat (Kafka version)
 Fast and scalable real-time random chat written in go.
 
 Features:
