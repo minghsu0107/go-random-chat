@@ -3,7 +3,7 @@ Fast and scalable real-time random chat written in go.
 
 Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
-- At-least-once delivery for message fan-out with the help of [Kafka](https://kafka.apache.org).
+- At-least-once delivery for message fan-out using [Kafka](https://kafka.apache.org).
 - High performance and linear scalability using Kafka as message broker.
 - User Matching with idempotency.
 - Responsive web design.
