@@ -6,7 +6,7 @@ import (
 )
 
 type MessageService interface {
-	BroadcastTextMessage(ctx context.Context, channelID, userID uint64, payload, time string) error
+	BroadcastTextMessage(ctx context.Context, channelID, userID uint64, payload string) error
 	BroadcastConnectMessage(ctx context.Context, channelID, userID uint64) error
 	BroadcastActionMessage(ctx context.Context, channelID, userID uint64, action Action) error
 	ListMessages(ctx context.Context, channelID uint64) ([]Message, error)
@@ -34,22 +34,20 @@ type ChannelService interface {
 }
 
 type MessageServiceImpl struct {
-	msgRepo    MessageRepo
-	userRepo   UserRepo
-	timeFormat string
+	msgRepo  MessageRepo
+	userRepo UserRepo
 }
 
 func NewMessageService(msgRepo MessageRepo, userRepo UserRepo) MessageService {
-	timeFormat := "2006/01/02 15:04"
-	return &MessageServiceImpl{msgRepo, userRepo, timeFormat}
+	return &MessageServiceImpl{msgRepo, userRepo}
 }
-func (svc *MessageServiceImpl) BroadcastTextMessage(ctx context.Context, channelID, userID uint64, payload, time string) error {
+func (svc *MessageServiceImpl) BroadcastTextMessage(ctx context.Context, channelID, userID uint64, payload string) error {
 	msg := Message{
 		Event:     EventText,
 		ChannelID: channelID,
 		UserID:    userID,
 		Payload:   payload,
-		Time:      time,
+		Time:      time.Now().UnixMilli(),
 	}
 	if err := svc.msgRepo.InsertMessage(ctx, &msg); err != nil {
 		return err
@@ -72,7 +70,7 @@ func (svc *MessageServiceImpl) BroadcastActionMessage(ctx context.Context, chann
 		ChannelID: channelID,
 		UserID:    userID,
 		Payload:   string(action),
-		Time:      time.Now().Local().Format(svc.timeFormat),
+		Time:      time.Now().UnixMilli(),
 	}
 	return svc.msgRepo.PublishMessage(ctx, &msg)
 }
