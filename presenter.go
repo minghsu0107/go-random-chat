@@ -31,7 +31,7 @@ type MessagePresenter struct {
 	Event   int    `json:"event"`
 	UserID  string `json:"user_id"`
 	Payload string `json:"payload"`
-	Time    string `json:"time"`
+	Time    int64  `json:"time"`
 }
 
 type ChannelPresenter struct {
