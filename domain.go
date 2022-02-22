@@ -26,7 +26,7 @@ type Message struct {
 	ChannelID uint64 `json:"channel_id"`
 	UserID    uint64 `json:"user_id"`
 	Payload   string `json:"payload"`
-	Time      string `json:"time"`
+	Time      int64  `json:"time"`
 }
 
 type Channel struct {

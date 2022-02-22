@@ -315,7 +315,7 @@ func (r *Router) HandleChatOnMessage(sess *melody.Session, data []byte) {
 	}
 	switch msg.Event {
 	case EventText:
-		if err := r.msgSvc.BroadcastTextMessage(context.Background(), msg.ChannelID, msg.UserID, msg.Payload, msg.Time); err != nil {
+		if err := r.msgSvc.BroadcastTextMessage(context.Background(), msg.ChannelID, msg.UserID, msg.Payload); err != nil {
 			log.Error(err)
 		}
 	case EventAction:

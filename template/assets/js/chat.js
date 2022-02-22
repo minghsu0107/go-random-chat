@@ -245,10 +245,12 @@ async function processMessage(m) {
     var msg = ""
     switch (m.event) {
         case EVENT_TEXT:
+            const d = new Date(m.time)
+            var time = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
             if (m.user_id === USER_ID) {
-                msg = getTextMessage(USER_ID, RIGHT, m.payload, m.time)
+                msg = getTextMessage(USER_ID, RIGHT, m.payload, time)
             } else {
-                msg = getTextMessage(m.user_id, LEFT, m.payload, m.time)
+                msg = getTextMessage(m.user_id, LEFT, m.payload, time)
             }
             break
         case EVENT_ACTION:
@@ -375,13 +377,10 @@ function onlySpaces(str) {
 
 function sendTextMessage() {
     if (!onlySpaces(text.value)) {
-        const d = new Date()
-        var time = `${d.getFullYear()}/${d.getMonth()}/${d.getDay()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
         ws.send(JSON.stringify({
             "event": EVENT_TEXT,
             "user_id": USER_ID,
             "payload": text.value,
-            "time": time
         }))
         text.value = ""
     }
