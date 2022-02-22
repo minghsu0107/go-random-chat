@@ -24,8 +24,8 @@ type Router struct {
 	mm              *melody.Melody
 	mc              *melody.Melody
 	httpServer      *http.Server
-	matchSubscriber MatchSubscriber
-	msgSubscriber   MessageSubscriber
+	matchSubscriber *MatchSubscriber
+	msgSubscriber   *MessageSubscriber
 	userSvc         UserService
 	msgSvc          MessageService
 	matchSvc        MatchingService
@@ -41,7 +41,7 @@ func init() {
 	}
 }
 
-func NewRouter(svr *gin.Engine, mm, mc *melody.Melody, matchSubscriber MatchSubscriber, msgSubscriber MessageSubscriber, userSvc UserService, msgSvc MessageService, matchSvc MatchingService, chanSvc ChannelService) *Router {
+func NewRouter(svr *gin.Engine, mm, mc *melody.Melody, matchSubscriber *MatchSubscriber, msgSubscriber *MessageSubscriber, userSvc UserService, msgSvc MessageService, matchSvc MatchingService, chanSvc ChannelService) *Router {
 	return &Router{
 		svr:             svr,
 		mm:              mm,
@@ -109,13 +109,13 @@ func (r *Router) Run() {
 		}
 	}()
 	go func() {
-		err := r.matchSubscriber.Subscribe()
+		err := r.matchSubscriber.Run()
 		if err != nil {
 			log.Fatal(err)
 		}
 	}()
 	go func() {
-		err := r.msgSubscriber.Subscribe()
+		err := r.msgSubscriber.Run()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -126,9 +126,16 @@ func (r *Router) GracefulStop(ctx context.Context, done chan bool) {
 	if err != nil {
 		log.Error(err)
 	}
-	r.matchSubscriber.Close()
-	r.msgSubscriber.Close()
-	if err = RedisClient.Close(); err != nil {
+	err = r.matchSubscriber.GracefulStop()
+	if err != nil {
+		log.Error(err)
+	}
+	err = r.msgSubscriber.GracefulStop()
+	if err != nil {
+		log.Error(err)
+	}
+	err = RedisClient.Close()
+	if err != nil {
 		log.Error(err)
 	}
 

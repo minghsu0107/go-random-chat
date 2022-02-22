@@ -17,16 +17,30 @@ func InitializeRouter() (*Router, error) {
 		return nil, err
 	}
 
-	msgSubscriber := NewMessageSubscriber(redisClient, MelodyChat)
-
 	redisCache := NewRedisCache(redisClient)
 
-	userRepo := NewRedisUserRepo(redisCache)
-	msgRepo := NewRedisMessageRepo(redisCache)
-	chanRepo := NewRedisChannelRepo(redisCache)
-	matchRepo := NewRedisMatchingRepo(redisCache)
+	kafkaPub, err := NewKafkaPublisher()
+	if err != nil {
+		return nil, err
+	}
+	kafkaSub, err := NewKafkaSubscriber()
+	if err != nil {
+		return nil, err
+	}
 
-	matchSubscriber := NewMatchSubscriber(redisClient, MelodyMatch, userRepo)
+	userRepo := NewRedisUserRepo(redisCache)
+	msgRepo := NewMessageRepo(redisCache, kafkaPub)
+	chanRepo := NewRedisChannelRepo(redisCache)
+	matchRepo := NewMatchingRepo(redisCache, kafkaPub)
+
+	matchSubscriber, err := NewMatchSubscriber(MelodyMatch, userRepo, kafkaSub)
+	if err != nil {
+		return nil, err
+	}
+	msgSubscriber, err := NewMessageSubscriber(kafkaSub, MelodyChat)
+	if err != nil {
+		return nil, err
+	}
 
 	sf, err := NewSonyFlake()
 	if err != nil {

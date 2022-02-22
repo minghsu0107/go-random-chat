@@ -6,12 +6,16 @@ import (
 	"errors"
 	"strconv"
 	"time"
+
+	"github.com/ThreeDotsLabs/watermill"
+	"github.com/ThreeDotsLabs/watermill/message"
 )
 
 var maxMessages int64
 var (
-	matchPubSubTopic   = "rc:match:pubsub"
-	messagePubSubTopic = "rc:msg:pubsub"
+	matchPubSubTopic   = "rc_match"
+	messagePubSubTopic = "rc_msg"
+
 	messagesPrefix     = "rc:msgs"
 	channelPrefix      = "rc:chan"
 	userWaitList       = "rc:userwait"
@@ -166,22 +170,26 @@ func (repo *RedisUserRepo) DeleteAllOnlineUsers(ctx context.Context, channelID u
 	return repo.r.Delete(ctx, constructKey(onlineUsersPrefix, channelID))
 }
 
-type RedisMessageRepo struct {
+type MessageRepoImpl struct {
 	r RedisCache
+	p message.Publisher
 }
 
-func NewRedisMessageRepo(r RedisCache) MessageRepo {
-	return &RedisMessageRepo{r}
+func NewMessageRepo(r RedisCache, p message.Publisher) MessageRepo {
+	return &MessageRepoImpl{r, p}
 }
 
-func (repo *RedisMessageRepo) InsertMessage(ctx context.Context, msg *Message) error {
+func (repo *MessageRepoImpl) InsertMessage(ctx context.Context, msg *Message) error {
 	key := constructKey(messagesPrefix, msg.ChannelID)
 	return repo.r.RPush(ctx, key, msg.Encode())
 }
-func (repo *RedisMessageRepo) PublishMessage(ctx context.Context, msg *Message) error {
-	return repo.r.Publish(ctx, messagePubSubTopic, msg.Encode())
+func (repo *MessageRepoImpl) PublishMessage(ctx context.Context, msg *Message) error {
+	return repo.p.Publish(messagePubSubTopic, message.NewMessage(
+		watermill.NewUUID(),
+		msg.Encode(),
+	))
 }
-func (repo *RedisMessageRepo) ListMessages(ctx context.Context, channelID uint64) ([]Message, error) {
+func (repo *MessageRepoImpl) ListMessages(ctx context.Context, channelID uint64) ([]Message, error) {
 	var dummy int
 	exist, err := repo.r.Get(ctx, constructKey(channelPrefix, channelID), &dummy)
 	if err != nil {
@@ -241,14 +249,15 @@ func (repo *RedisChannelRepo) DeleteChannel(ctx context.Context, channelID uint6
 	return repo.r.ExecPipeLine(ctx, &cmds)
 }
 
-type RedisMatchingRepo struct {
+type MatchingRepoImpl struct {
 	r RedisCache
+	p message.Publisher
 }
 
-func NewRedisMatchingRepo(r RedisCache) MatchingRepo {
-	return &RedisMatchingRepo{r}
+func NewMatchingRepo(r RedisCache, p message.Publisher) MatchingRepo {
+	return &MatchingRepoImpl{r, p}
 }
-func (repo *RedisMatchingRepo) PopOrPushWaitList(ctx context.Context, userID uint64) (bool, uint64, error) {
+func (repo *MatchingRepoImpl) PopOrPushWaitList(ctx context.Context, userID uint64) (bool, uint64, error) {
 	match, peerIDStr, err := repo.r.ZPopMinOrAddOne(ctx, userWaitList, float64(time.Now().Unix()), userID)
 	if err != nil {
 		return false, 0, err
@@ -262,11 +271,14 @@ func (repo *RedisMatchingRepo) PopOrPushWaitList(ctx context.Context, userID uin
 	}
 	return true, peerID, nil
 }
-func (repo *RedisMatchingRepo) RemoveFromWaitList(ctx context.Context, userID uint64) error {
+func (repo *MatchingRepoImpl) RemoveFromWaitList(ctx context.Context, userID uint64) error {
 	return repo.r.ZRemOne(ctx, userWaitList, userID)
 }
-func (repo *RedisMatchingRepo) PublishMatchResult(ctx context.Context, result *MatchResult) error {
-	return repo.r.Publish(ctx, matchPubSubTopic, result.Encode())
+func (repo *MatchingRepoImpl) PublishMatchResult(ctx context.Context, result *MatchResult) error {
+	return repo.p.Publish(matchPubSubTopic, message.NewMessage(
+		watermill.NewUUID(),
+		result.Encode(),
+	))
 }
 
 func constructKey(prefix string, id uint64) string {

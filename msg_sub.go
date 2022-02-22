@@ -2,84 +2,61 @@ package main
 
 import (
 	"context"
-	"strconv"
-	"time"
 
-	retry "github.com/avast/retry-go"
-	"github.com/go-redis/redis/v8"
-	log "github.com/sirupsen/logrus"
+	"github.com/ThreeDotsLabs/watermill/message"
 	"gopkg.in/olahol/melody.v1"
 )
 
-var msgNumberWorker int64
-
-type MessageSubscriber interface {
-	Subscribe() error
-	Close()
-}
-
-type MessageSubscriberImpl struct {
-	client redis.UniversalClient
+type MessageSubscriber struct {
+	router *message.Router
+	sub    message.Subscriber
 	m      *melody.Melody
-	pool   *Pool
 }
 
-func init() {
-	var err error
-	msgNumberWorker, err = strconv.ParseInt(getenv("MSG_NUMBER_WORKER", "4"), 10, 0)
+func NewMessageSubscriber(sub message.Subscriber, m *melody.Melody) (*MessageSubscriber, error) {
+	router, err := NewMessageRouter()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-}
-
-func NewMessageSubscriber(client redis.UniversalClient, m *melody.Melody) MessageSubscriber {
-	return &MessageSubscriberImpl{
-		client: client,
+	return &MessageSubscriber{
+		router: router,
+		sub:    sub,
 		m:      m,
-	}
+	}, nil
 }
 
-func (s *MessageSubscriberImpl) Subscribe() error {
-	ctx := context.Background()
-	pubsub := s.client.Subscribe(ctx, messagePubSubTopic)
-	_, err := pubsub.Receive(ctx)
+func (s *MessageSubscriber) HandleMessage(msg *message.Message) error {
+	message, err := DecodeToMessage([]byte(msg.Payload))
 	if err != nil {
 		return err
 	}
-	channel := pubsub.Channel()
-	s.pool = NewPool(ctx, Option{NumberWorker: int(msgNumberWorker)})
-	s.pool.Start()
+	return s.sendMessage(context.Background(), message)
+}
 
-	for msg := range channel {
-		message, err := DecodeToMessage([]byte(msg.Payload))
-		if err != nil {
-			log.Error(err)
-			continue
+func (s *MessageSubscriber) RegisterHandler() {
+	s.router.AddNoPublisherHandler(
+		"randomchat_message_handler",
+		messagePubSubTopic,
+		s.sub,
+		s.HandleMessage,
+	)
+}
+
+func (s *MessageSubscriber) Run() error {
+	s.RegisterHandler()
+	return s.router.Run(context.Background())
+}
+
+func (s *MessageSubscriber) GracefulStop() error {
+	return s.router.Close()
+}
+
+func (s *MessageSubscriber) sendMessage(ctx context.Context, message *Message) error {
+	return s.m.BroadcastFilter(message.ToPresenter().Encode(), func(sess *melody.Session) bool {
+		channelID, exist := sess.Get(sessCidKey)
+		if !exist {
+			return false
 		}
-		s.pool.Do(s.sendMessage(ctx, message))
-	}
-	return nil
-}
-
-func (s *MessageSubscriberImpl) Close() {
-	s.pool.Stop()
-}
-
-func (s *MessageSubscriberImpl) sendMessage(ctx context.Context, message *Message) *Task {
-	return NewTask(ctx, func(ctx context.Context) (interface{}, error) {
-		return nil, retry.Do(
-			func() error {
-				return s.m.BroadcastFilter(message.ToPresenter().Encode(), func(sess *melody.Session) bool {
-					channelID, exist := sess.Get(sessCidKey)
-					if !exist {
-						return false
-					}
-					return message.ChannelID == (channelID.(uint64))
-				})
-			},
-			retry.Attempts(3),
-			retry.DelayType(retry.RandomDelay),
-			retry.MaxJitter(10*time.Millisecond),
-		)
+		return message.ChannelID == (channelID.(uint64))
 	})
 }

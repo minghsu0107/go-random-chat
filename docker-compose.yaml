@@ -9,8 +9,8 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - --accesslog=true # output log to stdout
     ports:
-      - "80:80"
-      - "8080:8080"
+      - 80:80
+      - 8080:8080
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   random-chat:
@@ -20,6 +20,7 @@ services:
       - "80"
     environment:
       - 'HTTP_PORT=80'
+      - 'KAFKA_ADDRS=kafka:9092'
       - 'REDIS_PASSWORD=pass.123'
       - 'REDIS_ADDRS=redis-node1:7000,redis-node2:7001,redis-node3:7002,redis-node4:7003,redis-node5:7004,redis-node6:7005'
       - 'REDIS_EXPIRATION_HOURS=24'
@@ -33,6 +34,10 @@ services:
       - "traefik.http.routers.random-chat.entrypoints=web"
       - "traefik.http.routers.random-chat.service=random-chat"
       - "traefik.http.services.random-chat.loadbalancer.server.port=80"
+    depends_on:
+      - redis-cluster-creator
+      - zookeeper
+      - kafka
   redis-node1:
     build:
       context: redis
@@ -103,6 +108,31 @@ services:
       - redis-node4
       - redis-node5
       - redis-node6
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.0.1
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181   
+  kafka:
+    image: confluentinc/cp-kafka:7.0.1
+    restart: unless-stopped
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_LOG_RETENTION_MINUTES: 1440 # save data for 24hrs
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      # This is required when you are running with a single-node cluster
+      # specify the replication factor for the __consumer_offsets topic
+      # __consumer_offsets topic preserves consumer offsets when consumer group commits offsets to Kafka
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      # when applications attempt to produce, consume, or fetch metadata for a non-existent topic, 
+      # Kafka will automatically create the topic with the default replication factor and number of partitions
+      # which is true by default
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    depends_on:
+      - zookeeper
 volumes:
   redis-node1-data:
   redis-node2-data:

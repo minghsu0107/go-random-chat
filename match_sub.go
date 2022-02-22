@@ -2,94 +2,72 @@ package main
 
 import (
 	"context"
-	"strconv"
-	"time"
 
-	retry "github.com/avast/retry-go"
-	"github.com/go-redis/redis/v8"
+	"github.com/ThreeDotsLabs/watermill/message"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/olahol/melody.v1"
 )
 
-var matchNumberWorker int64
-
-type MatchSubscriber interface {
-	Subscribe() error
-	Close()
-}
-
-type MatchSubscriberImpl struct {
-	client   redis.UniversalClient
+type MatchSubscriber struct {
 	m        *melody.Melody
-	pool     *Pool
+	router   *message.Router
 	userRepo UserRepo
+	sub      message.Subscriber
 }
 
-func init() {
-	var err error
-	matchNumberWorker, err = strconv.ParseInt(getenv("MATCH_NUMBER_WORKER", "4"), 10, 0)
+func NewMatchSubscriber(m *melody.Melody, userRepo UserRepo, sub message.Subscriber) (*MatchSubscriber, error) {
+	router, err := NewMessageRouter()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-}
-
-func NewMatchSubscriber(client redis.UniversalClient, m *melody.Melody, userRepo UserRepo) MatchSubscriber {
-	return &MatchSubscriberImpl{
-		client:   client,
+	return &MatchSubscriber{
 		m:        m,
+		router:   router,
 		userRepo: userRepo,
-	}
+		sub:      sub,
+	}, nil
 }
 
-func (s *MatchSubscriberImpl) Subscribe() error {
-	ctx := context.Background()
-	pubsub := s.client.Subscribe(ctx, matchPubSubTopic)
-	_, err := pubsub.Receive(ctx)
+func (s *MatchSubscriber) HandleMatchResult(msg *message.Message) error {
+	result, err := DecodeToMatchResult([]byte(msg.Payload))
 	if err != nil {
 		return err
 	}
-	channel := pubsub.Channel()
-	s.pool = NewPool(ctx, Option{NumberWorker: int(matchNumberWorker)})
-	s.pool.Start()
+	return s.sendMatchResult(context.Background(), result)
+}
 
-	for msg := range channel {
-		result, err := DecodeToMatchResult([]byte(msg.Payload))
-		if err != nil {
-			log.Error(err)
-			continue
+func (s *MatchSubscriber) RegisterHandler() {
+	s.router.AddNoPublisherHandler(
+		"randomchat_match_result_handler",
+		matchPubSubTopic,
+		s.sub,
+		s.HandleMatchResult,
+	)
+}
+
+func (s *MatchSubscriber) Run() error {
+	s.RegisterHandler()
+	return s.router.Run(context.Background())
+}
+
+func (s *MatchSubscriber) GracefulStop() error {
+	return s.router.Close()
+}
+
+func (s *MatchSubscriber) sendMatchResult(ctx context.Context, result *MatchResult) error {
+	return s.m.BroadcastFilter(result.ToPresenter().Encode(), func(sess *melody.Session) bool {
+		uid, exist := sess.Get(sessUidKey)
+		if !exist {
+			return false
 		}
-		s.pool.Do(s.sendMatchResult(ctx, result))
-	}
-	return nil
-}
-
-func (s *MatchSubscriberImpl) Close() {
-	s.pool.Stop()
-}
-
-func (s *MatchSubscriberImpl) sendMatchResult(ctx context.Context, result *MatchResult) *Task {
-	return NewTask(ctx, func(ctx context.Context) (interface{}, error) {
-		return nil, retry.Do(
-			func() error {
-				return s.m.BroadcastFilter(result.ToPresenter().Encode(), func(sess *melody.Session) bool {
-					uid, exist := sess.Get(sessUidKey)
-					if !exist {
-						return false
-					}
-					userID := uid.(uint64)
-					if (userID == result.PeerID) || (userID == result.UserID) {
-						if err := s.userRepo.AddUserToChannel(ctx, result.ChannelID, userID); err != nil {
-							log.Error(err)
-							return false
-						}
-						return true
-					}
-					return false
-				})
-			},
-			retry.Attempts(3),
-			retry.DelayType(retry.RandomDelay),
-			retry.MaxJitter(10*time.Millisecond),
-		)
+		userID := uid.(uint64)
+		if (userID == result.PeerID) || (userID == result.UserID) {
+			if err := s.userRepo.AddUserToChannel(ctx, result.ChannelID, userID); err != nil {
+				log.Error(err)
+				return false
+			}
+			return true
+		}
+		return false
 	})
 }
