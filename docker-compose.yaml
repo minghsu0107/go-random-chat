@@ -116,8 +116,6 @@ services:
   kafka:
     image: confluentinc/cp-kafka:7.0.1
     restart: unless-stopped
-    ports:
-      - 9092:9092
     environment:
       KAFKA_LOG_RETENTION_MINUTES: 1440 # save data for 24hrs
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
