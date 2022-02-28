@@ -4,9 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v8"
