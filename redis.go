@@ -59,10 +59,8 @@ type RedisCacheImpl struct {
 type RedisOpType int
 
 const (
-	// SET represents set operation
-	SET RedisOpType = iota
 	// DELETE represents delete operation
-	DELETE
+	DELETE RedisOpType = iota
 )
 
 // RedisPayload is a abstract interface for payload type
@@ -70,21 +68,11 @@ type RedisPayload interface {
 	Payload()
 }
 
-// RedisSetPayload is the payload type of set method
-type RedisSetPayload struct {
-	RedisPayload
-	Key string
-	Val interface{}
-}
-
 // RedisDeletePayload is the payload type of delete method
 type RedisDeletePayload struct {
 	RedisPayload
 	Key string
 }
-
-// Payload implements abstract interface
-func (RedisSetPayload) Payload() {}
 
 // Payload implements abstract interface
 func (RedisDeletePayload) Payload() {}
@@ -228,15 +216,6 @@ func (rc *RedisCacheImpl) ExecPipeLine(ctx context.Context, cmds *[]RedisCmd) er
 	var pipelineCmds []RedisPipelineCmd
 	for _, cmd := range *cmds {
 		switch cmd.OpType {
-		case SET:
-			strVal, err := json.Marshal(cmd.Payload.(RedisSetPayload).Val)
-			if err != nil {
-				return err
-			}
-			pipelineCmds = append(pipelineCmds, RedisPipelineCmd{
-				OpType: SET,
-				Cmd:    pipe.Set(ctx, cmd.Payload.(RedisSetPayload).Key, strVal, expiration),
-			})
 		case DELETE:
 			pipelineCmds = append(pipelineCmds, RedisPipelineCmd{
 				OpType: DELETE,
@@ -253,10 +232,6 @@ func (rc *RedisCacheImpl) ExecPipeLine(ctx context.Context, cmds *[]RedisCmd) er
 
 	for _, executedCmd := range pipelineCmds {
 		switch executedCmd.OpType {
-		case SET:
-			if err := executedCmd.Cmd.(*redis.StatusCmd).Err(); err != nil {
-				return err
-			}
 		case DELETE:
 			if err := executedCmd.Cmd.(*redis.IntCmd).Err(); err != nil {
 				return err
