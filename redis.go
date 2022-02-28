@@ -240,15 +240,3 @@ func (rc *RedisCacheImpl) ExecPipeLine(ctx context.Context, cmds *[]RedisCmd) er
 	}
 	return nil
 }
-
-func getServerAddrs(addrs string) []string {
-	return strings.Split(addrs, ",")
-}
-
-func getenv(key, fallback string) string {
-	value := os.Getenv(key)
-	if len(value) == 0 {
-		return fallback
-	}
-	return value
-}
