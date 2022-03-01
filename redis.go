@@ -4,9 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -42,7 +40,6 @@ type RedisCache interface {
 	HSet(ctx context.Context, key string, values ...interface{}) error
 	HDel(ctx context.Context, key, field string) error
 	RPush(ctx context.Context, key string, val interface{}) error
-	LLen(ctx context.Context, key string) (int64, error)
 	LRange(ctx context.Context, key string, start, stop int64) ([]string, error)
 	Publish(ctx context.Context, topic string, payload interface{}) error
 	ZPopMinOrAddOne(ctx context.Context, key string, score float64, member interface{}) (bool, string, error)
@@ -59,10 +56,8 @@ type RedisCacheImpl struct {
 type RedisOpType int
 
 const (
-	// SET represents set operation
-	SET RedisOpType = iota
 	// DELETE represents delete operation
-	DELETE
+	DELETE RedisOpType = iota
 )
 
 // RedisPayload is a abstract interface for payload type
@@ -70,21 +65,11 @@ type RedisPayload interface {
 	Payload()
 }
 
-// RedisSetPayload is the payload type of set method
-type RedisSetPayload struct {
-	RedisPayload
-	Key string
-	Val interface{}
-}
-
 // RedisDeletePayload is the payload type of delete method
 type RedisDeletePayload struct {
 	RedisPayload
 	Key string
 }
-
-// Payload implements abstract interface
-func (RedisSetPayload) Payload() {}
 
 // Payload implements abstract interface
 func (RedisDeletePayload) Payload() {}
@@ -180,10 +165,6 @@ func (rc *RedisCacheImpl) RPush(ctx context.Context, key string, val interface{}
 	return rc.client.RPush(ctx, key, val).Err()
 }
 
-func (rc *RedisCacheImpl) LLen(ctx context.Context, key string) (int64, error) {
-	return rc.client.LLen(ctx, key).Result()
-}
-
 func (rc *RedisCacheImpl) LRange(ctx context.Context, key string, start, stop int64) ([]string, error) {
 	return rc.client.LRange(ctx, key, start, stop).Result()
 }
@@ -228,15 +209,6 @@ func (rc *RedisCacheImpl) ExecPipeLine(ctx context.Context, cmds *[]RedisCmd) er
 	var pipelineCmds []RedisPipelineCmd
 	for _, cmd := range *cmds {
 		switch cmd.OpType {
-		case SET:
-			strVal, err := json.Marshal(cmd.Payload.(RedisSetPayload).Val)
-			if err != nil {
-				return err
-			}
-			pipelineCmds = append(pipelineCmds, RedisPipelineCmd{
-				OpType: SET,
-				Cmd:    pipe.Set(ctx, cmd.Payload.(RedisSetPayload).Key, strVal, expiration),
-			})
 		case DELETE:
 			pipelineCmds = append(pipelineCmds, RedisPipelineCmd{
 				OpType: DELETE,
@@ -253,10 +225,6 @@ func (rc *RedisCacheImpl) ExecPipeLine(ctx context.Context, cmds *[]RedisCmd) er
 
 	for _, executedCmd := range pipelineCmds {
 		switch executedCmd.OpType {
-		case SET:
-			if err := executedCmd.Cmd.(*redis.StatusCmd).Err(); err != nil {
-				return err
-			}
 		case DELETE:
 			if err := executedCmd.Cmd.(*redis.IntCmd).Err(); err != nil {
 				return err
@@ -264,16 +232,4 @@ func (rc *RedisCacheImpl) ExecPipeLine(ctx context.Context, cmds *[]RedisCmd) er
 		}
 	}
 	return nil
-}
-
-func getServerAddrs(addrs string) []string {
-	return strings.Split(addrs, ",")
-}
-
-func getenv(key, fallback string) string {
-	value := os.Getenv(key)
-	if len(value) == 0 {
-		return fallback
-	}
-	return value
 }
