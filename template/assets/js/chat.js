@@ -190,7 +190,7 @@ ws.addEventListener('message', async function (e) {
             if (el !== null) {
                 el.remove()
             }
-            if (!window.mobileCheck) {
+            if (!window.mobileCheck() && isPageHidden) {
                 sendBrowserNotification("You got a new message")
             }
         }

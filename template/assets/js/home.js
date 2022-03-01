@@ -57,7 +57,18 @@ function done() {
         <p class="saving">Matching<span>.</span><span>.</span><span>.</span></p>
         `
         button.style.cursor = 'default'
-        match()
+
+        fetch(`/api/user/${localStorage.getItem(userIDStoreKey)}/name`)
+            .then((response) => {
+                if (response.status === 200) {
+                    match()
+                } else {
+                    localStorage.removeItem(userIDStoreKey)
+                    localStorage.removeItem(userNameStoreKey)
+                    localStorage.removeItem(accessTokenKey)
+                    window.location.reload()
+                }
+            })
     }
     h1.appendChild(button)
     setTimeout(function () {
