@@ -1,5 +1,5 @@
 # Go Random Chat
-Fast and scalable real-time random chat written in go.
+Modern real-time random chat written in go.
 
 Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
@@ -8,6 +8,8 @@ Features:
   - If you prefer at-least-once delivery for message Pub/Sub, please refer to [this branch](https://github.com/minghsu0107/go-random-chat/tree/kafka) where Kafka is used as the message broker.
 - High performance and linear scalability.
 - User matching with idempotency.
+- Message seen feature.
+- Auto-scroll to the first unseen message.
 - Responsive web design.
 ## Usage
 ```bash
