@@ -174,12 +174,7 @@ func (r *Router) ListMessages(c *gin.Context) {
 	}
 	msgsPresenter := []MessagePresenter{}
 	for _, msg := range msgs {
-		msgsPresenter = append(msgsPresenter, MessagePresenter{
-			Event:   msg.Event,
-			UserID:  strconv.FormatUint(msg.UserID, 10),
-			Payload: msg.Payload,
-			Time:    msg.Time,
-		})
+		msgsPresenter = append(msgsPresenter, *msg.ToPresenter())
 	}
 	c.JSON(http.StatusOK, &MessagesPresenter{
 		Messages: msgsPresenter,
