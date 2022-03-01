@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"gopkg.in/olahol/melody.v1"
 )
@@ -11,6 +13,11 @@ func InitializeRouter() (*Router, error) {
 
 	MelodyMatch = melody.New()
 	MelodyChat = melody.New()
+	maxMessageSize, err := strconv.ParseInt(getenv("MAX_MSG_SIZE_BYTE", "4096"), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	MelodyChat.Config.MaxMessageSize = maxMessageSize
 
 	redisClient, err := NewRedisClient()
 	if err != nil {
