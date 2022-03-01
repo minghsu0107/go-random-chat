@@ -5,7 +5,7 @@ Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
 - At-least-once delivery for message Pub/Sub using [Kafka](https://kafka.apache.org).
 - High performance and linear scalability.
-- User Matching with idempotency.
+- User matching with idempotency.
 - Responsive web design.
 ## Usage
 ```bash
