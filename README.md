@@ -20,7 +20,7 @@ Environment variables:
 - `REDIS_PASSWORD`: Redis password
 - `REDIS_ADDRS`: Redis node addresses
 - `REDIS_EXPIRATION_HOURS`: The expiration of all Redis keys (in hour). Default: `24`
-- `MAX_ALLOWED_CONNS`: Max allowed connections to the chat server. Default: `200`
+- `MAX_ALLOWED_CONNS`: Max allowed connections to a chat server. Default: `200`
 - `MAX_MSG_SIZE_BYTE`: Max message size in byte. Default: `4096`
 - `MAX_MSGS`: Max number of messages in a channel. Default: `500`
 - `JWT_SECRET`: JWT secret key
