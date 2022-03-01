@@ -28,4 +28,4 @@ Environment variables:
 ## Screenshots
 <img src="https://i.imgur.com/4ctofQv.png" alt="" data-canonical-src="https://i.imgur.com/4ctofQv.png" width="60%" height="60%" />
 
-<img src="https://i.imgur.com/NL60zFN.png" alt="" data-canonical-src="https://i.imgur.com/NL60zFN.png" width="60%" height="60%" />
+<img src="https://i.imgur.com/KIAlhmP.png" alt="" data-canonical-src="https://i.imgur.com/KIAlhmP.png" width="60%" height="60%" />
