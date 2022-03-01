@@ -317,6 +317,15 @@ func (r *Router) HandleChatOnMessage(sess *melody.Session, data []byte) {
 		if err := r.msgSvc.BroadcastActionMessage(context.Background(), msg.ChannelID, msg.UserID, Action(msg.Payload)); err != nil {
 			log.Error(err)
 		}
+	case EventSeen:
+		messageID, err := strconv.ParseUint(msg.Payload, 10, 64)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		if err := r.msgSvc.MarkMessageSeen(context.Background(), msg.ChannelID, msg.UserID, messageID); err != nil {
+			log.Error(err)
+		}
 	default:
 		log.Errorf("invailid event type: %v", msg.Event)
 	}

@@ -22,6 +22,7 @@ var (
 	userPrefix         = "rc:user"
 	channelUsersPrefix = "rc:chanusers"
 	onlineUsersPrefix  = "rc:onlineusers"
+	seenMessagesPrefix = "rc:seenmsgs"
 )
 
 var (
@@ -52,8 +53,9 @@ type UserRepo interface {
 
 type MessageRepo interface {
 	InsertMessage(ctx context.Context, msg *Message) error
+	MarkMessageSeen(ctx context.Context, channelID, messageID uint64) error
 	PublishMessage(ctx context.Context, msg *Message) error
-	ListMessages(ctx context.Context, channelID uint64) ([]Message, error)
+	ListMessages(ctx context.Context, channelID uint64) ([]*Message, error)
 }
 
 type ChannelRepo interface {
@@ -180,8 +182,28 @@ func NewMessageRepo(r RedisCache, p message.Publisher) MessageRepo {
 }
 
 func (repo *MessageRepoImpl) InsertMessage(ctx context.Context, msg *Message) error {
-	key := constructKey(messagesPrefix, msg.ChannelID)
-	return repo.r.RPush(ctx, key, msg.Encode())
+	cmds := []RedisCmd{
+		{
+			OpType: RPUSH,
+			Payload: RedisRpushPayload{
+				Key: constructKey(messagesPrefix, msg.ChannelID),
+				Val: msg.Encode(),
+			},
+		},
+		{
+			OpType: HSETONE,
+			Payload: RedisHsetOnePayload{
+				Key:   constructKey(seenMessagesPrefix, msg.ChannelID),
+				Field: strconv.FormatUint(msg.MessageID, 10),
+				Val:   0,
+			},
+		},
+	}
+	return repo.r.ExecPipeLine(ctx, &cmds)
+}
+func (repo *MessageRepoImpl) MarkMessageSeen(ctx context.Context, channelID, messageID uint64) error {
+	key := constructKey(seenMessagesPrefix, channelID)
+	return repo.r.HSet(ctx, key, strconv.FormatUint(messageID, 10), 1)
 }
 func (repo *MessageRepoImpl) PublishMessage(ctx context.Context, msg *Message) error {
 	return repo.p.Publish(messagePubSubTopic, message.NewMessage(
@@ -189,7 +211,7 @@ func (repo *MessageRepoImpl) PublishMessage(ctx context.Context, msg *Message) e
 		msg.Encode(),
 	))
 }
-func (repo *MessageRepoImpl) ListMessages(ctx context.Context, channelID uint64) ([]Message, error) {
+func (repo *MessageRepoImpl) ListMessages(ctx context.Context, channelID uint64) ([]*Message, error) {
 	var dummy int
 	exist, err := repo.r.Get(ctx, constructKey(channelPrefix, channelID), &dummy)
 	if err != nil {
@@ -198,15 +220,36 @@ func (repo *MessageRepoImpl) ListMessages(ctx context.Context, channelID uint64)
 	if !exist {
 		return nil, ErrChannelNotFound
 	}
-	key := constructKey(messagesPrefix, channelID)
-	messagesStr, err := repo.r.LRange(ctx, key, -maxMessages, -1)
+
+	messageStrs, err := repo.r.LRange(ctx, constructKey(messagesPrefix, channelID), -maxMessages, -1)
 	if err != nil {
 		return nil, err
 	}
-	var messages []Message
-	for _, messageStr := range messagesStr {
+
+	var messages []*Message
+	if len(messageStrs) == 0 {
+		return messages, nil
+	}
+
+	var messageIDStrs []string
+	for _, messageStr := range messageStrs {
 		message, _ := DecodeToMessage([]byte(messageStr))
-		messages = append(messages, *message)
+		messages = append(messages, message)
+		messageIDStrs = append(messageIDStrs, strconv.FormatUint(message.MessageID, 10))
+	}
+
+	seenStatuses, err := repo.r.HMGet(ctx, constructKey(seenMessagesPrefix, channelID), messageIDStrs)
+	if err != nil {
+		return nil, err
+	}
+	for idx, seenStatus := range seenStatuses {
+		switch s := seenStatus.(type) {
+		case string:
+			val, _ := strconv.ParseInt(s, 10, 64)
+			messages[idx].Seen = (val == 1)
+		case nil:
+			messages[idx].Seen = false
+		}
 	}
 	return messages, nil
 }

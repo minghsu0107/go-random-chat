@@ -28,10 +28,12 @@ var OkMsg SuccessMessage = SuccessMessage{
 }
 
 type MessagePresenter struct {
-	Event   int    `json:"event"`
-	UserID  string `json:"user_id"`
-	Payload string `json:"payload"`
-	Time    int64  `json:"time"`
+	MessageID string `json:"message_id"`
+	Event     int    `json:"event"`
+	UserID    string `json:"user_id"`
+	Payload   string `json:"payload"`
+	Seen      bool   `json:"seen"`
+	Time      int64  `json:"time"`
 }
 
 type ChannelPresenter struct {

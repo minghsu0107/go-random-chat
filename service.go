@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"strconv"
 	"time"
 )
 
@@ -9,7 +10,8 @@ type MessageService interface {
 	BroadcastTextMessage(ctx context.Context, channelID, userID uint64, payload string) error
 	BroadcastConnectMessage(ctx context.Context, channelID, userID uint64) error
 	BroadcastActionMessage(ctx context.Context, channelID, userID uint64, action Action) error
-	ListMessages(ctx context.Context, channelID uint64) ([]Message, error)
+	MarkMessageSeen(ctx context.Context, channelID, userID, messageID uint64) error
+	ListMessages(ctx context.Context, channelID uint64) ([]*Message, error)
 }
 
 type MatchingService interface {
@@ -36,13 +38,19 @@ type ChannelService interface {
 type MessageServiceImpl struct {
 	msgRepo  MessageRepo
 	userRepo UserRepo
+	sf       IDGenerator
 }
 
-func NewMessageService(msgRepo MessageRepo, userRepo UserRepo) MessageService {
-	return &MessageServiceImpl{msgRepo, userRepo}
+func NewMessageService(msgRepo MessageRepo, userRepo UserRepo, sf IDGenerator) MessageService {
+	return &MessageServiceImpl{msgRepo, userRepo, sf}
 }
 func (svc *MessageServiceImpl) BroadcastTextMessage(ctx context.Context, channelID, userID uint64, payload string) error {
+	messageID, err := svc.sf.NextID()
+	if err != nil {
+		return err
+	}
 	msg := Message{
+		MessageID: messageID,
 		Event:     EventText,
 		ChannelID: channelID,
 		UserID:    userID,
@@ -65,7 +73,12 @@ func (svc *MessageServiceImpl) BroadcastConnectMessage(ctx context.Context, chan
 	return svc.BroadcastActionMessage(ctx, channelID, userID, JoinedMessage)
 }
 func (svc *MessageServiceImpl) BroadcastActionMessage(ctx context.Context, channelID, userID uint64, action Action) error {
+	eventMessageID, err := svc.sf.NextID()
+	if err != nil {
+		return err
+	}
 	msg := Message{
+		MessageID: eventMessageID,
 		Event:     EventAction,
 		ChannelID: channelID,
 		UserID:    userID,
@@ -74,7 +87,26 @@ func (svc *MessageServiceImpl) BroadcastActionMessage(ctx context.Context, chann
 	}
 	return svc.msgRepo.PublishMessage(ctx, &msg)
 }
-func (svc *MessageServiceImpl) ListMessages(ctx context.Context, channelID uint64) ([]Message, error) {
+func (svc *MessageServiceImpl) MarkMessageSeen(ctx context.Context, channelID, userID, messageID uint64) error {
+	if err := svc.msgRepo.MarkMessageSeen(ctx, channelID, messageID); err != nil {
+		return err
+	}
+	eventMessageID, err := svc.sf.NextID()
+	if err != nil {
+		return err
+	}
+	msg := Message{
+		MessageID: eventMessageID,
+		Event:     EventSeen,
+		ChannelID: channelID,
+		UserID:    userID,
+		Payload:   strconv.FormatUint(messageID, 10),
+		Seen:      true,
+		Time:      time.Now().UnixMilli(),
+	}
+	return svc.msgRepo.PublishMessage(ctx, &msg)
+}
+func (svc *MessageServiceImpl) ListMessages(ctx context.Context, channelID uint64) ([]*Message, error) {
 	return svc.msgRepo.ListMessages(ctx, channelID)
 }
 
