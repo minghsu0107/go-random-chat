@@ -5,9 +5,9 @@ Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
 - Stateless chat servers with the help of [Redis Pub/Sub](https://redis.io/topics/pubsub).
   - Redis Pub/Sub provides only at-most-once delivery. Thus, there is chance of data loss during matching and chatting stages.
-  - If you want at-least-once delivery for message Pub/Sub, please refer to [this branch](https://github.com/minghsu0107/go-random-chat/tree/kafka) where Kafka is used as the message broker.
+  - If you prefer at-least-once delivery for message Pub/Sub, please refer to [this branch](https://github.com/minghsu0107/go-random-chat/tree/kafka) where Kafka is used as the message broker.
 - High performance and linear scalability.
-- User Matching with idempotency.
+- User matching with idempotency.
 - Responsive web design.
 ## Usage
 ```bash
@@ -20,7 +20,7 @@ Environment variables:
 - `REDIS_PASSWORD`: Redis password
 - `REDIS_ADDRS`: Redis node addresses
 - `REDIS_EXPIRATION_HOURS`: The expiration of all Redis keys (in hour). Default: `24`
-- `MAX_ALLOWED_CONNS`: Max allowed connections to the server. Default: `200`
+- `MAX_ALLOWED_CONNS`: Max allowed connections to the chat server. Default: `200`
 - `MAX_MSG_SIZE_BYTE`: Max message size in byte. Default: `4096`
 - `MAX_MSGS`: Max number of messages in a channel. Default: `500`
 - `JWT_SECRET`: JWT secret key
