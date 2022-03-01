@@ -3,13 +3,7 @@ Fast and scalable real-time random chat written in go.
 
 Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
-<<<<<<< HEAD
 - At-least-once delivery for message Pub/Sub using [Kafka](https://kafka.apache.org).
-=======
-- Stateless chat servers with the help of [Redis Pub/Sub](https://redis.io/topics/pubsub).
-  - Redis Pub/Sub provides only at-most-once delivery. Thus, there is chance of data loss during matching and chatting stages.
-  - If you want at-least-once delivery for message Pub/Sub, please refer to [this branch](https://github.com/minghsu0107/go-random-chat/tree/kafka) where Kafka is used as the message broker.
->>>>>>> main
 - High performance and linear scalability.
 - User Matching with idempotency.
 - Responsive web design.
