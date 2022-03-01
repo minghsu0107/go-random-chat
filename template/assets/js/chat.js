@@ -447,6 +447,9 @@ function insertMsg(msg, domObj, isSelf) {
             domObj.scrollTop = domObj.scrollHeight
         }
     }
+    if (text.value === "\n") {
+        text.value = ""
+    }
 }
 
 function urlify(text) {
