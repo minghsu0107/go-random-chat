@@ -62,6 +62,7 @@ var userTypingID = 'usertyping'
 var peerTypingID = 'peertyping'
 var isTyping = false
 text.addEventListener('keyup', function () {
+    markMessagesAsSeen()
     clearTimeout(timeout)
     if (!isTyping) {
         insertMsg(getTypingMessage(USER_ID, RIGHT, userTypingID), chatroom[0], true)
