@@ -36,6 +36,7 @@ type RedisCache interface {
 	Set(ctx context.Context, key string, val interface{}) error
 	Delete(ctx context.Context, key string) error
 	HGet(ctx context.Context, key, field string, dst interface{}) (bool, error)
+	HMGet(ctx context.Context, key string, fields []string) ([]interface{}, error)
 	HGetAll(ctx context.Context, key string) (map[string]string, error)
 	HSet(ctx context.Context, key string, values ...interface{}) error
 	HDel(ctx context.Context, key, field string) error
@@ -58,6 +59,8 @@ type RedisOpType int
 const (
 	// DELETE represents delete operation
 	DELETE RedisOpType = iota
+	HSETONE
+	RPUSH
 )
 
 // RedisPayload is a abstract interface for payload type
@@ -71,8 +74,23 @@ type RedisDeletePayload struct {
 	Key string
 }
 
+type RedisHsetOnePayload struct {
+	RedisPayload
+	Key   string
+	Field string
+	Val   interface{}
+}
+
+type RedisRpushPayload struct {
+	RedisPayload
+	Key string
+	Val interface{}
+}
+
 // Payload implements abstract interface
-func (RedisDeletePayload) Payload() {}
+func (RedisDeletePayload) Payload()  {}
+func (RedisHsetOnePayload) Payload() {}
+func (RedisRpushPayload) Payload()   {}
 
 // RedisCmd represents an operation and its payload
 type RedisCmd struct {
@@ -149,6 +167,10 @@ func (rc *RedisCacheImpl) HGet(ctx context.Context, key, field string, dst inter
 	return true, nil
 }
 
+func (rc *RedisCacheImpl) HMGet(ctx context.Context, key string, fields []string) ([]interface{}, error) {
+	return rc.client.HMGet(ctx, key, fields...).Result()
+}
+
 func (rc *RedisCacheImpl) HGetAll(ctx context.Context, key string) (map[string]string, error) {
 	return rc.client.HGetAll(ctx, key).Result()
 }
@@ -214,6 +236,18 @@ func (rc *RedisCacheImpl) ExecPipeLine(ctx context.Context, cmds *[]RedisCmd) er
 				OpType: DELETE,
 				Cmd:    pipe.Del(ctx, cmd.Payload.(RedisDeletePayload).Key),
 			})
+		case HSETONE:
+			payload := cmd.Payload.(RedisHsetOnePayload)
+			pipelineCmds = append(pipelineCmds, RedisPipelineCmd{
+				OpType: HSETONE,
+				Cmd:    pipe.HSet(ctx, payload.Key, payload.Field, payload.Val),
+			})
+		case RPUSH:
+			payload := cmd.Payload.(RedisRpushPayload)
+			pipelineCmds = append(pipelineCmds, RedisPipelineCmd{
+				OpType: RPUSH,
+				Cmd:    pipe.RPush(ctx, payload.Key, payload.Val),
+			})
 		default:
 			return ErrRedisPipelineCmdNotFound
 		}
@@ -226,6 +260,14 @@ func (rc *RedisCacheImpl) ExecPipeLine(ctx context.Context, cmds *[]RedisCmd) er
 	for _, executedCmd := range pipelineCmds {
 		switch executedCmd.OpType {
 		case DELETE:
+			if err := executedCmd.Cmd.(*redis.IntCmd).Err(); err != nil {
+				return err
+			}
+		case HSETONE:
+			if err := executedCmd.Cmd.(*redis.IntCmd).Err(); err != nil {
+				return err
+			}
+		case RPUSH:
 			if err := executedCmd.Cmd.(*redis.IntCmd).Err(); err != nil {
 				return err
 			}

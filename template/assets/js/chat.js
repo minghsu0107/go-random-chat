@@ -11,6 +11,7 @@ const RIGHT = "right"
 
 const EVENT_TEXT = 0
 const EVENT_ACTION = 1
+const EVENT_SEEN = 2
 
 var USER_ID = ""
 if (localStorage.getItem(userIDStoreKey) !== null) {
@@ -33,15 +34,28 @@ if (localStorage.getItem(userNameStoreKey) !== null) {
     ID2NAME[USER_ID] = USER_NAME
 }
 var ONLINE_USERS = new Set()
+var peerMessages = []
+
+var isPageHidden = false
+document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === 'visible') {
+        isPageHidden = false
+        if (chatroom[0].scrollHeight === initialChatScrollHeight) {
+            markMessagesAsSeen()
+        }
+    } else if (document.visibilityState === 'hidden') {
+        isPageHidden = true
+    }
+})
 
 var chatUrl = "ws://" + window.location.host + "/api/chat?uid=" + USER_ID + "&access_token=" + ACCESS_TOKEN
 ws = new WebSocket(chatUrl)
 
 var chatroom = document.getElementsByClassName("msger-chat")
+var initialChatScrollHeight = chatroom[0].scrollHeight
 var text = document.getElementById("msg")
 var send = document.getElementById("send")
 var leave = document.getElementById("leave")
-
 
 var timeout = setTimeout(function () { }, 0)
 var userTypingID = 'usertyping'
@@ -63,6 +77,27 @@ text.addEventListener('keyup', function () {
         isTyping = false
     }, 500)
 })
+
+chatroom[0].addEventListener("scroll", function (e) {
+    if (!isPageHidden && (chatroom[0].scrollHeight - 1.2 * chatroom[0].offsetHeight <= chatroom[0].scrollTop)) {
+        markMessagesAsSeen()
+    }
+})
+
+function markMessagesAsSeen() {
+    for (let i = peerMessages.length - 1; i >= 0; i--) {
+        if (peerMessages[i].seen) {
+            break
+        } else {
+            peerMessages[i].seen = true
+            ws.send(JSON.stringify({
+                "event": EVENT_SEEN,
+                "user_id": peerMessages[i].user_id,
+                "payload": peerMessages[i].message_id,
+            }))
+        }
+    }
+}
 
 send.addEventListener("pointerdown", function (e) {
     send.style.color = "#0a1869"
@@ -160,11 +195,18 @@ ws.addEventListener('message', async function (e) {
         }
         var isSelf = (m.user_id === USER_ID)
         insertMsg(msg, chatroom[0], isSelf)
+        if (m.event === EVENT_TEXT && !isSelf) {
+            peerMessages.push(m)
+            if (!isPageHidden && chatroom[0].scrollHeight === initialChatScrollHeight) {
+                markMessagesAsSeen()
+            }
+        }
         if (m.event === EVENT_ACTION && m.payload === "leaved") {
             insertMsg(getReturnHomeMessage(), chatroom[0], isSelf)
         }
     }
 })
+
 ws.addEventListener('close', function (e) {
     document.getElementById("headstatus").innerHTML = `
     <div id="headstatus"><i class="fas fa-circle icon-red"></i>&nbsp;disconnected</div>
@@ -231,10 +273,31 @@ async function fetchMessages() {
     let result = await response.json()
     for (const message of result.messages) {
         var msg = await processMessage(message)
-        insertMsg(msg, chatroom[0], true)
+        chatroom[0].insertAdjacentHTML("beforeend", msg)
+        if (message.event === EVENT_TEXT && message.user_id !== USER_ID) {
+            peerMessages.push(message)
+        }
     }
     if (result.messages.length === 0) {
         insertMsg(getActionMessage("Matched!"), chatroom[0], true)
+    }
+    let firstUnreadMessageID = -1
+    for (let i = peerMessages.length - 1; i >= 0; i--) {
+        if (i === peerMessages.length - 1 && peerMessages[i].seen) {
+            break
+        }
+        if (!peerMessages[i].seen) {
+            while (!peerMessages[i].seen) {
+                i--
+            }
+            firstUnreadMessageID = peerMessages[i + 1].message_id
+            break
+        }
+    }
+    if (firstUnreadMessageID !== -1) {
+        document.getElementById(`${firstUnreadMessageID}`).scrollIntoView()
+    } else {
+        chatroom[0].scrollTop = chatroom[0].scrollHeight
     }
 }
 
@@ -248,9 +311,9 @@ async function processMessage(m) {
             const d = new Date(m.time)
             var time = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
             if (m.user_id === USER_ID) {
-                msg = getTextMessage(USER_ID, RIGHT, m.payload, time)
+                msg = getTextMessage(m.message_id, USER_ID, RIGHT, m.payload, time, m.seen)
             } else {
-                msg = getTextMessage(m.user_id, LEFT, m.payload, time)
+                msg = getTextMessage(m.message_id, m.user_id, LEFT, m.payload, time, m.seen)
             }
             break
         case EVENT_ACTION:
@@ -259,9 +322,6 @@ async function processMessage(m) {
                 case "waiting":
                     break
                 case "joined":
-                    if (m.user_id !== USER_ID) {
-                        actionMsg = ID2NAME[m.user_id] + " joined"
-                    }
                     break
                 case "offline":
                     break
@@ -278,6 +338,17 @@ async function processMessage(m) {
             }
             if (actionMsg !== "") {
                 msg = getActionMessage(actionMsg)
+            }
+            break
+        case EVENT_SEEN:
+            if (m.user_id === USER_ID) {
+                let id = `seen-${m.payload}`
+                let el = document.getElementById(id)
+                while (el === null) {
+                    await sleep(250)
+                    el = document.getElementById(id)
+                }
+                el.textContent = "seen"
             }
             break
     }
@@ -399,9 +470,9 @@ function getActionMessage(msg) {
     return msg
 }
 
-function getTextMessage(userID, side, text, time) {
+function getTextMessage(messageID, userID, side, text, time, seen) {
     var msg = `
-    <div class="msg ${side}-msg">
+    <div id="${messageID}" class="msg ${side}-msg">
       <div class="msg-img" style="background-image: url(${getUserImageURL(userID)})"></div>
 
       <div class="msg-bubble" style="min-width: 125px">
@@ -412,8 +483,15 @@ function getTextMessage(userID, side, text, time) {
 
         <div class="msg-text" style="max-width: 15em;overflow-wrap: break-word;">${urlify(text).replace(/(?:\r|\n|\r\n)/g, '<br>')}</div>
       </div>
-    </div>
     `
+    if (side === RIGHT) {
+        var seenMsg = ""
+        if (seen) {
+            seenMsg = "seen"
+        }
+        msg += `<div id="seen-${messageID}" style="margin-right: 10px; color: #a6a6a6">${seenMsg}</div>`
+    }
+    msg += `</div>`
     return msg
 }
 
@@ -443,9 +521,12 @@ function insertMsg(msg, domObj, isSelf) {
     if (isSelf) {
         domObj.scrollTop = domObj.scrollHeight
     } else {
-        if (domObj.scrollHeight - 2 * domObj.offsetHeight <= domObj.scrollTop) {
+        if (domObj.scrollHeight - 1.2 * domObj.offsetHeight <= domObj.scrollTop) {
             domObj.scrollTop = domObj.scrollHeight
         }
+    }
+    if (text.value === "\n") {
+        text.value = ""
     }
 }
 
@@ -457,6 +538,8 @@ function urlify(text) {
     // or alternatively
     // return text.replace(urlRegex, '<a href="$1">$1</a>')
 }
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function auto_grow(element) {
     element.style.height = "5px";

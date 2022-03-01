@@ -34,7 +34,7 @@ func InitializeRouter() (*Router, error) {
 	}
 
 	userSvc := NewUserService(userRepo, sf)
-	msgSvc := NewMessageService(msgRepo, userRepo)
+	msgSvc := NewMessageService(msgRepo, userRepo, sf)
 	matchSvc := NewMatchingService(matchRepo, chanRepo, sf)
 	chanSvc := NewChannelService(chanRepo, userRepo)
 
