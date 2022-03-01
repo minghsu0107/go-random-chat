@@ -443,7 +443,7 @@ function insertMsg(msg, domObj, isSelf) {
     if (isSelf) {
         domObj.scrollTop = domObj.scrollHeight
     } else {
-        if (domObj.scrollHeight - 2 * domObj.offsetHeight <= domObj.scrollTop) {
+        if (domObj.scrollHeight - 1.2 * domObj.offsetHeight <= domObj.scrollTop) {
             domObj.scrollTop = domObj.scrollHeight
         }
     }
