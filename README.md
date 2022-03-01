@@ -1,10 +1,12 @@
 # Go Random Chat (Kafka version)
-Fast and scalable real-time random chat written in go.
+Modern real-time random chat written in go.
 
 Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
 - At-least-once delivery for message Pub/Sub using [Kafka](https://kafka.apache.org).
 - High performance and linear scalability.
+- Message seen feature.
+- Auto-scroll to the first unseen message.
 - User matching with idempotency.
 - Responsive web design.
 ## Usage
