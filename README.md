@@ -10,6 +10,7 @@ Features:
 - User matching with idempotency.
 - Message seen feature.
 - Auto-scroll to the first unseen message.
+- File upload and image preview.
 - Responsive web design.
 ## Usage
 ```bash
