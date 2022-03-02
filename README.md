@@ -13,11 +13,13 @@ Features:
 - Responsive web design.
 ## Usage
 ```bash
-./run.sh run
+sudo ./run.sh run
 ```
+`run.sh` needs root permission to alias `minio` to `localhost` in `/etc/hosts`.
+
 This will spin up all services declared in `docker-compose.yaml`. Visit `localhost` and you will see the application home page.
 
-Environment variables:
+Environment variables for the chat server:
 - `HTTP_PORT`: Opened port of HTTP server
 - `REDIS_PASSWORD`: Redis password
 - `REDIS_ADDRS`: Redis node addresses
