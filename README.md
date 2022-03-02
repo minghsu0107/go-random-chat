@@ -34,3 +34,5 @@ Environment variables for the chat server:
 <img src="https://i.imgur.com/4ctofQv.png" alt="" data-canonical-src="https://i.imgur.com/4ctofQv.png" width="60%" height="60%" />
 
 <img src="https://user-images.githubusercontent.com/50090692/156455665-1944f5b3-ce52-4465-b465-5a7e3d6f1c2a.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/156455665-1944f5b3-ce52-4465-b465-5a7e3d6f1c2a.png" width="60%" height="60%" />
+
+<img src="https://user-images.githubusercontent.com/50090692/156457027-cd957d71-344a-46f1-8b1e-29b5eefb558f.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/156457027-cd957d71-344a-46f1-8b1e-29b5eefb558f.png" width="60%" height="60%" />
