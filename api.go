@@ -1,4 +1,4 @@
-package main
+package randomchat
 
 import (
 	"context"
@@ -324,6 +324,10 @@ func (r *Router) HandleChatOnMessage(sess *melody.Session, data []byte) {
 			return
 		}
 		if err := r.msgSvc.MarkMessageSeen(context.Background(), msg.ChannelID, msg.UserID, messageID); err != nil {
+			log.Error(err)
+		}
+	case EventFile:
+		if err := r.msgSvc.BroadcastFileMessage(context.Background(), msg.ChannelID, msg.UserID, msg.Payload); err != nil {
 			log.Error(err)
 		}
 	default:
