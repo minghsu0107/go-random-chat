@@ -111,7 +111,7 @@ function markMessagesAsSeen() {
 function uploadFile(file) {
     let fd = new FormData()
     fd.append('file', file)
-    fetch('http://localhost:5001/api/file', {
+    fetch('/api/file', {
         method: 'POST',
         body: fd
     })
