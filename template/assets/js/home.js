@@ -107,6 +107,10 @@ function match() {
         }
     })
 }
+window.onbeforeunload = function () {
+    ws.onclose = function () { }; // disable onclose handler first
+    ws.close();
+};
 
 // when submitting the current question
 async function validate() {
