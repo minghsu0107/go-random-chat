@@ -12,6 +12,7 @@ const RIGHT = "right"
 const EVENT_TEXT = 0
 const EVENT_ACTION = 1
 const EVENT_SEEN = 2
+const EVENT_FILE = 3
 
 var USER_ID = ""
 if (localStorage.getItem(userIDStoreKey) !== null) {
@@ -54,8 +55,16 @@ ws = new WebSocket(chatUrl)
 var chatroom = document.getElementsByClassName("msger-chat")
 var initialChatScrollHeight = chatroom[0].scrollHeight
 var text = document.getElementById("msg")
+var upload = document.getElementById("upload")
 var send = document.getElementById("send")
 var leave = document.getElementById("leave")
+
+var modal = document.getElementById("myModal")
+var modalImg = document.getElementById("img01")
+var span = document.getElementsByClassName("close")[0]
+span.onclick = function () {
+    modal.style.display = "none"
+}
 
 var timeout = setTimeout(function () { }, 0)
 var userTypingID = 'usertyping'
@@ -99,7 +108,24 @@ function markMessagesAsSeen() {
         }
     }
 }
-
+function uploadFile(file) {
+    let fd = new FormData()
+    fd.append('file', file)
+    fetch('http://localhost:5001/api/file', {
+        method: 'POST',
+        body: fd
+    })
+        .then(res => res.json())
+        .then(json => {
+            sendFileMessage(json.file_name, json.file_url)
+        })
+}
+upload.addEventListener("pointerdown", function (e) {
+    upload.style.color = "black"
+})
+upload.addEventListener("pointerup", function (e) {
+    upload.style.color = "gray"
+})
 send.addEventListener("pointerdown", function (e) {
     send.style.color = "#0a1869"
 })
@@ -190,13 +216,15 @@ ws.addEventListener('message', async function (e) {
             if (el !== null) {
                 el.remove()
             }
+        }
+        if (m.event === EVENT_TEXT || m.event === EVENT_FILE) {
             if (!window.mobileCheck() && isPageHidden) {
                 sendBrowserNotification("You got a new message")
             }
         }
         var isSelf = (m.user_id === USER_ID)
         insertMsg(msg, chatroom[0], isSelf)
-        if (m.event === EVENT_TEXT && !isSelf) {
+        if ((m.event === EVENT_TEXT || m.event === EVENT_FILE) && !isSelf) {
             peerMessages.push(m)
             if (!isPageHidden && chatroom[0].scrollHeight === initialChatScrollHeight) {
                 markMessagesAsSeen()
@@ -275,7 +303,7 @@ async function fetchMessages() {
     for (const message of result.messages) {
         var msg = await processMessage(message)
         chatroom[0].insertAdjacentHTML("beforeend", msg)
-        if (message.event === EVENT_TEXT && message.user_id !== USER_ID) {
+        if ((message.event === EVENT_TEXT || message.event === EVENT_FILE) && message.user_id !== USER_ID) {
             peerMessages.push(message)
         }
     }
@@ -309,7 +337,7 @@ async function processMessage(m) {
     var msg = ""
     switch (m.event) {
         case EVENT_TEXT:
-            const d = new Date(m.time)
+            let d = new Date(m.time)
             var time = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
             if (m.user_id === USER_ID) {
                 msg = getTextMessage(m.message_id, USER_ID, RIGHT, m.payload, time, m.seen)
@@ -350,6 +378,16 @@ async function processMessage(m) {
                     el = document.getElementById(id)
                 }
                 el.textContent = "seen"
+            }
+            break
+        case EVENT_FILE:
+            let d1 = new Date(m.time)
+            var time1 = `${d1.getFullYear()}/${d1.getMonth() + 1}/${d1.getDate()} ${String(d1.getHours()).padStart(2, "0")}:${String(d1.getMinutes()).padStart(2, "0")}`
+            payload = m.payload.split(' ')
+            if (m.user_id === USER_ID) {
+                msg = getFileMessage(m.message_id, USER_ID, RIGHT, payload[0], payload[1], time1, m.seen)
+            } else {
+                msg = getFileMessage(m.message_id, USER_ID, LEFT, payload[0], payload[1], time1, m.seen)
             }
             break
     }
@@ -466,6 +504,60 @@ function sendActionMessage(action) {
     }))
 }
 
+function sendFileMessage(fileName, fileURL) {
+    ws.send(JSON.stringify({
+        "event": EVENT_FILE,
+        "user_id": USER_ID,
+        "payload": fileName + " " + fileURL,
+    }))
+}
+
+function getFileMessage(messageID, userID, side, fileName, fileURL, time, seen) {
+    let extention = getFileExtention(fileURL)
+    let isImg = (extention === "jpg" || extention === "png" || extention === "jpeg")
+    let fileView = ""
+    if (isImg) {
+        fileView = `<img id="img-${messageID}" src=${fileURL} alt='' style="max-width:50%" onclick="showModal(this.src)"/>`
+    } else {
+        let color = "black"
+        if (side === RIGHT) {
+            color = "white"
+        }
+        fileView = `
+        <div class="msg-bubble" style="min-width: 75px">
+          <div class="msg-info">
+            <div class="msg-info-name">${ID2NAME[userID]}</div>
+          </div>
+          <div style="margin-left: auto;margin-right: auto;margin-top: 25px;">
+            <a href=${fileURL} download style="color: ${color}"><i class="fa fa-file-alt fa-2xl"></i></a>
+            <span>&nbsp;${fileName}</span>
+          </div>
+        </div>
+        `
+    }
+    var msg = `
+    <div id="${messageID}" class="msg ${side}-msg">
+      <div class="msg-img" style="background-image: url(${getUserImageURL(userID)})"></div>
+      ${fileView}
+    `
+    if (side === RIGHT) {
+        var seenMsg = ""
+        if (seen) {
+            seenMsg = "seen"
+        }
+        msg += `<div style="margin-right: 10px; color: #a6a6a6"><div id="seen-${messageID}">${seenMsg}</div><div class="msg-info-time">${time.split(' ')[1]}</div></div>`
+    } else {
+        msg += `<div style="margin-left: 10px; color: #a6a6a6"><div class="msg-info-time">${time.split(' ')[1]}</div></div>`
+    }
+    msg += `</div>`
+    return msg
+}
+
+function showModal(src) {
+    modal.style.display = "block";
+    modalImg.src = src;
+}
+
 function getActionMessage(msg) {
     var msg = `<br><div class="msg-left">${msg}</div><br>`
     return msg
@@ -476,10 +568,9 @@ function getTextMessage(messageID, userID, side, text, time, seen) {
     <div id="${messageID}" class="msg ${side}-msg">
       <div class="msg-img" style="background-image: url(${getUserImageURL(userID)})"></div>
 
-      <div class="msg-bubble" style="min-width: 125px">
+      <div class="msg-bubble" style="min-width: 75px">
         <div class="msg-info">
           <div class="msg-info-name">${ID2NAME[userID]}</div>
-          <div class="msg-info-time">${time.split(' ')[1]}</div>
         </div>
 
         <div class="msg-text" style="max-width: 15em;overflow-wrap: break-word;">${urlify(text).replace(/(?:\r|\n|\r\n)/g, '<br>')}</div>
@@ -490,7 +581,9 @@ function getTextMessage(messageID, userID, side, text, time, seen) {
         if (seen) {
             seenMsg = "seen"
         }
-        msg += `<div id="seen-${messageID}" style="margin-right: 10px; color: #a6a6a6">${seenMsg}</div>`
+        msg += `<div style="margin-right: 10px; color: #a6a6a6"><div id="seen-${messageID}">${seenMsg}</div><div class="msg-info-time">${time.split(' ')[1]}</div></div>`
+    } else {
+        msg += `<div style="margin-left: 10px; color: #a6a6a6"><div class="msg-info-time">${time.split(' ')[1]}</div></div>`
     }
     msg += `</div>`
     return msg
@@ -534,15 +627,23 @@ function insertMsg(msg, domObj, isSelf) {
 function urlify(text) {
     var urlRegex = /(https?:\/\/[^\s]+)/g;
     return text.replace(urlRegex, function (url) {
-        return '<a href="' + url + '">' + url + '</a>';
+        return '<a href="' + url + '">' + url + '</a>'
     })
     // or alternatively
     // return text.replace(urlRegex, '<a href="$1">$1</a>')
 }
 
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+const sleep = ms => new Promise(r => setTimeout(r, ms))
 
 function auto_grow(element) {
     element.style.height = "5px";
-    element.style.height = (element.scrollHeight) + "px";
+    element.style.height = (element.scrollHeight) + "px"
+}
+
+function getFileExtention(filename) {
+    var a = filename.split(".")
+    if (a.length === 1 || (a[0] === "" && a.length === 2)) {
+        return ""
+    }
+    return a.pop().toLowerCase()
 }
