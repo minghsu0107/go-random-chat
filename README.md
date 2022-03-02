@@ -13,6 +13,7 @@ Features:
 - File upload and image preview.
 - Responsive web design.
 ## Usage
+To run locally, execute the following command:
 ```bash
 sudo ./run.sh run
 ```
