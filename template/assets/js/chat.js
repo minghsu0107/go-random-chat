@@ -56,6 +56,7 @@ var chatroom = document.getElementsByClassName("msger-chat")
 var initialChatScrollHeight = chatroom[0].scrollHeight
 var text = document.getElementById("msg")
 var upload = document.getElementById("upload")
+var fileInput = document.getElementById("file")
 var send = document.getElementById("send")
 var leave = document.getElementById("leave")
 
@@ -113,6 +114,9 @@ function uploadFile(file) {
     fd.append('file', file)
     fetch('/api/file', {
         method: 'POST',
+        headers: new Headers({
+            'Authorization': 'Bearer ' + ACCESS_TOKEN
+        }),
         body: fd
     })
         .then(res => res.json())
@@ -205,6 +209,7 @@ ws.addEventListener('message', async function (e) {
                     console.log(`Error: ${err}`)
                 }
                 localStorage.removeItem(accessTokenKey)
+                fileInput.disabled = true
                 ws.close()
                 break
         }

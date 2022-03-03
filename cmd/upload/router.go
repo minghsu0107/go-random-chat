@@ -30,7 +30,11 @@ func NewRouter(svr *gin.Engine) *Router {
 }
 
 func (r *Router) RegisterRoutes() {
-	r.svr.POST("/api/file", r.UploadFile)
+	uploadGroup := r.svr.Group("/api/file")
+	uploadGroup.Use(rc.JWTAuth())
+	{
+		uploadGroup.POST("", r.UploadFile)
+	}
 }
 
 func (r *Router) Run() {
