@@ -517,7 +517,7 @@ function getFileMessage(messageID, userID, side, fileName, fileURL, time, seen) 
     let isImg = (extention === "jpg" || extention === "png" || extention === "jpeg")
     let fileView = ""
     if (isImg) {
-        fileView = `<img id="img-${messageID}" src=${fileURL} alt='' style="max-width:50%" onclick="showModal(this.src)"/>`
+        fileView = `<img id="img-${messageID}" onload="this.style.visibility='visible'" src=${fileURL} loading="lazy" alt='' style="max-width:50%;border-radius: 15px;visibility: hidden;" onclick="showModal(this.src)"/>`
     } else {
         let color = "black"
         if (side === RIGHT) {
@@ -529,8 +529,7 @@ function getFileMessage(messageID, userID, side, fileName, fileURL, time, seen) 
             <div class="msg-info-name">${ID2NAME[userID]}</div>
           </div>
           <div style="margin-left: auto;margin-right: auto;margin-top: 25px;">
-            <a href=${fileURL} download style="color: ${color}"><i class="fa fa-file-alt fa-2xl"></i></a>
-            <span>&nbsp;${fileName}</span>
+            <a href=${fileURL} download style="color: ${color}">${fileName}</a>
           </div>
         </div>
         `
