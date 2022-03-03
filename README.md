@@ -16,6 +16,7 @@ To run locally, execute the following command:
 ```bash
 sudo ./run.sh run
 ```
+cd deployments
 `run.sh` needs root permission to alias `minio` to `localhost` in `/etc/hosts`.
 
 This will spin up all services declared in `docker-compose.yaml`. Visit `http://localhost` and you will see the application home page.
@@ -32,7 +33,7 @@ Environment variables for the chat server:
 - `JWT_SECRET`: JWT secret key
 - `JWT_EXPIRATION_SECONDS`: JWT expiration seconds. Default: `86400` (24 hours)
 ## Deploy with SSL
-A common scenario is that one deploys the application behind a reverse proxy with SSL termination. If that is your case, then you should change the websocket connection from `ws` to `wss` in [chat.js](./template/assets/js/chat.js) and [home.js](./template/assets/js/home.js) respectively. 
+A common scenario is that one deploys the application behind a reverse proxy with SSL termination. If that is your case, then you should change the websocket connection from `ws` to `wss` in [chat.js](./web/assets/js/chat.js) and [home.js](./web/assets/js/home.js) respectively. 
 
 Also, remember to correctly configure your proxy for websocket. For example, in Google Cloud Platform, for websocket traffic sent through a Google Cloud external HTTP(S) load balancer, the backend service timeout is interpreted as the maximum amount of time that a WebSocket connection can remain open, whether idle or not. Therefore, you may want to use a `timeoutSec` value larger than the default 30 seconds in your `BackendConfig`.
 ## Docker Tagging Rules

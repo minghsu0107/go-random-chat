@@ -11,10 +11,10 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o server ./
 
 FROM alpine:3.14
 
-RUN mkdir -p /app/template
+RUN mkdir -p /app/web
 WORKDIR /app
 COPY --from=builder /app/server /app/server
-COPY --from=builder /app/template /app/template
+COPY --from=builder /app/web /app/web
 RUN apk add --no-cache bash
 
 ENTRYPOINT ["/app/server"]

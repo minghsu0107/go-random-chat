@@ -6,10 +6,12 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/minghsu0107/go-random-chat/pkg/upload"
 )
 
 func RunUploadServer() {
-	router := InitializeRouter()
+	router := upload.InitializeRouter()
 	router.Run()
 
 	done := make(chan bool, 1)

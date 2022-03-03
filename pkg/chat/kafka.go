@@ -1,4 +1,4 @@
-package randomchat
+package chat
 
 import (
 	"time"

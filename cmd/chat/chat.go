@@ -7,12 +7,12 @@ import (
 	"syscall"
 	"time"
 
-	rc "github.com/minghsu0107/go-random-chat"
+	"github.com/minghsu0107/go-random-chat/pkg/chat"
 	log "github.com/sirupsen/logrus"
 )
 
 func RunChatServer() {
-	router, err := rc.InitializeRouter()
+	router, err := chat.InitializeRouter()
 	if err != nil {
 		log.Fatal(err)
 	}

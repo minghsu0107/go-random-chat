@@ -14,7 +14,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   random-chat:
-    build: .
+    image: minghsu0107/random-chat:kafka
     restart: always
     expose:
       - "80"
