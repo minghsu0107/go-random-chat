@@ -31,6 +31,14 @@ Environment variables for the chat server:
 - `MAX_MSGS`: Max number of messages in a channel. Default: `500`
 - `JWT_SECRET`: JWT secret key
 - `JWT_EXPIRATION_SECONDS`: JWT expiration seconds. Default: `86400` (24 hours)
+## Docker Tagging Rules
+| Event           | Ref                           | Docker Tags                         |
+|-----------------|-------------------------------|-------------------------------------|
+| `pull_request`  | `refs/pull/2/merge`           | `pr-2`                              |
+| `push`          | `refs/heads/master`           | `master`                            |
+| `push`          | `refs/heads/releases/v1`      | `releases-v1`                       |
+| `push tag`      | `refs/tags/v1.2.3`            | `v1.2.3`, `latest`                  |
+| `push tag`      | `refs/tags/v2.0.8-beta.67`    | `v2.0.8-beta.67`, `latest`          |
 ## Screenshots
 <img src="https://i.imgur.com/4ctofQv.png" alt="" data-canonical-src="https://i.imgur.com/4ctofQv.png" width="60%" height="60%" />
 
