@@ -14,6 +14,7 @@ Features:
 ## Usage
 To run locally, execute the following command:
 ```bash
+cd deployments
 sudo ./run.sh run
 ```
 cd deployments
