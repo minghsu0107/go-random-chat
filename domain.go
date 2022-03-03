@@ -1,4 +1,4 @@
-package main
+package randomchat
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ const (
 	EventText = iota
 	EventAction
 	EventSeen
+	EventFile
 )
 
 type Action string

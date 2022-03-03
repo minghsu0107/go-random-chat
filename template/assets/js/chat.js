@@ -12,6 +12,7 @@ const RIGHT = "right"
 const EVENT_TEXT = 0
 const EVENT_ACTION = 1
 const EVENT_SEEN = 2
+const EVENT_FILE = 3
 
 var USER_ID = ""
 if (localStorage.getItem(userIDStoreKey) !== null) {
@@ -49,13 +50,21 @@ document.addEventListener("visibilitychange", function () {
 })
 
 var chatUrl = "ws://" + window.location.host + "/api/chat?uid=" + USER_ID + "&access_token=" + ACCESS_TOKEN
-ws = new WebSocket(chatUrl)
-
+var ws
 var chatroom = document.getElementsByClassName("msger-chat")
 var initialChatScrollHeight = chatroom[0].scrollHeight
 var text = document.getElementById("msg")
+var upload = document.getElementById("upload")
+var fileInput = document.getElementById("file")
 var send = document.getElementById("send")
 var leave = document.getElementById("leave")
+
+var modal = document.getElementById("myModal")
+var modalImg = document.getElementById("img01")
+var span = document.getElementsByClassName("close")[0]
+span.onclick = function () {
+    modal.style.display = "none"
+}
 
 var timeout = setTimeout(function () { }, 0)
 var userTypingID = 'usertyping'
@@ -99,7 +108,35 @@ function markMessagesAsSeen() {
         }
     }
 }
-
+function uploadFile(file) {
+    let fd = new FormData()
+    fd.append('file', file)
+    fetch('/api/file', {
+        method: 'POST',
+        headers: new Headers({
+            'Authorization': 'Bearer ' + ACCESS_TOKEN
+        }),
+        body: fd
+    })
+        .then(res => {
+            if (res.status !== 201) {
+                throw Error(res.statusText)
+            }
+            return res.json()
+        })
+        .then(json => {
+            sendFileMessage(json.file_name, json.file_url)
+        })
+        .catch(err => {
+            console.log(`Error: ${err}`)
+        });
+}
+upload.addEventListener("pointerdown", function (e) {
+    upload.style.color = "black"
+})
+upload.addEventListener("pointerup", function (e) {
+    upload.style.color = "gray"
+})
 send.addEventListener("pointerdown", function (e) {
     send.style.color = "#0a1869"
 })
@@ -137,83 +174,97 @@ text.onkeydown = function (e) {
         }
     }
 }
-ws.addEventListener('open', async function (e) {
-    if (USER_NAME === "") {
+function connectWebSocket() {
+    ws = new WebSocket(chatUrl)
+    ws.addEventListener('open', async function (e) {
+        if (USER_NAME === "") {
+            try {
+                await getUserName()
+            } catch (err) {
+                console.log(`Error: ${err}`)
+            }
+        }
         try {
-            await getUserName()
+            await getAllChannelUserNames()
+            await fetchMessages()
         } catch (err) {
             console.log(`Error: ${err}`)
         }
-    }
-    try {
-        await getAllChannelUserNames()
-        await fetchMessages()
-    } catch (err) {
-        console.log(`Error: ${err}`)
-    }
-    document.getElementById("msg").disabled = false
-})
-ws.addEventListener('message', async function (e) {
-    var m = JSON.parse(e.data)
-    if (m.event === EVENT_ACTION) {
-        switch (m.payload) {
-            case "waiting":
-            case "joined":
-            case "offline":
-                try {
-                    await updateOnlineUsers()
-                } catch (err) {
-                    console.log(`Error: ${err}`)
-                }
-                break
-            case "endtyping":
-                let el = document.getElementById(peerTypingID)
+        document.getElementById("msg").disabled = false
+    })
+    ws.addEventListener('message', async function (e) {
+        var m = JSON.parse(e.data)
+        if (m.event === EVENT_ACTION) {
+            switch (m.payload) {
+                case "waiting":
+                case "joined":
+                case "offline":
+                    try {
+                        await updateOnlineUsers()
+                    } catch (err) {
+                        console.log(`Error: ${err}`)
+                    }
+                    break
+                case "endtyping":
+                    let el = document.getElementById(peerTypingID)
+                    if (el !== null) {
+                        el.remove()
+                    }
+                    break
+                case "leaved":
+                    try {
+                        await updateOnlineUsers()
+                    } catch (err) {
+                        console.log(`Error: ${err}`)
+                    }
+                    localStorage.removeItem(accessTokenKey)
+                    ACCESS_TOKEN = ""
+                    fileInput.disabled = true
+                    ws.close()
+                    break
+            }
+        }
+        var msg = await processMessage(m)
+        if (msg !== "") {
+            if (m.event === EVENT_TEXT) {
+                let el = (m.user_id === USER_ID) ? document.getElementById(userTypingID) : document.getElementById(peerTypingID)
                 if (el !== null) {
                     el.remove()
                 }
-                break
-            case "leaved":
-                try {
-                    await updateOnlineUsers()
-                } catch (err) {
-                    console.log(`Error: ${err}`)
+            }
+            if (m.event === EVENT_TEXT || m.event === EVENT_FILE) {
+                if (!window.mobileCheck() && isPageHidden) {
+                    sendBrowserNotification("You got a new message")
                 }
-                localStorage.removeItem(accessTokenKey)
-                ws.close()
-                break
-        }
-    }
-    var msg = await processMessage(m)
-    if (msg !== "") {
-        if (m.event === EVENT_TEXT) {
-            let el = (m.user_id === USER_ID) ? document.getElementById(userTypingID) : document.getElementById(peerTypingID)
-            if (el !== null) {
-                el.remove()
             }
-            if (!window.mobileCheck() && isPageHidden) {
-                sendBrowserNotification("You got a new message")
+            var isSelf = (m.user_id === USER_ID)
+            insertMsg(msg, chatroom[0], isSelf)
+            if ((m.event === EVENT_TEXT || m.event === EVENT_FILE) && !isSelf) {
+                peerMessages.push(m)
+                if (!isPageHidden && chatroom[0].scrollHeight === initialChatScrollHeight) {
+                    markMessagesAsSeen()
+                }
+            }
+            if (m.event === EVENT_ACTION && m.payload === "leaved") {
+                insertMsg(getReturnHomeMessage(), chatroom[0], isSelf)
             }
         }
-        var isSelf = (m.user_id === USER_ID)
-        insertMsg(msg, chatroom[0], isSelf)
-        if (m.event === EVENT_TEXT && !isSelf) {
-            peerMessages.push(m)
-            if (!isPageHidden && chatroom[0].scrollHeight === initialChatScrollHeight) {
-                markMessagesAsSeen()
-            }
-        }
-        if (m.event === EVENT_ACTION && m.payload === "leaved") {
-            insertMsg(getReturnHomeMessage(), chatroom[0], isSelf)
-        }
-    }
-})
+    })
 
-ws.addEventListener('close', function (e) {
-    document.getElementById("headstatus").innerHTML = `
+    ws.addEventListener('close', async function (e) {
+        document.getElementById("headstatus").innerHTML = `
     <div id="headstatus"><i class="fas fa-circle icon-red"></i>&nbsp;disconnected</div>
     `
-    document.getElementById("msg").disabled = true
-})
+        document.getElementById("msg").disabled = true
+        if (ACCESS_TOKEN !== "" && !isPageHidden) {
+            setTimeout(function () {
+                connectWebSocket()
+            }, 1000)
+        }
+    })
+}
+connectWebSocket()
+
 window.onbeforeunload = function () {
     ws.onclose = function () { }; // disable onclose handler first
     ws.close();
@@ -253,6 +304,9 @@ async function getAllChannelUserNames() {
         })
     })
         .then((response) => {
+            if (response.status !== 200) {
+                throw Error(response.statusText)
+            }
             return response.json()
         })
         .then(async (result) => {
@@ -262,6 +316,9 @@ async function getAllChannelUserNames() {
                 }
             }
         })
+        .catch(err => {
+            console.log(`Error: ${err}`)
+        });
 }
 
 async function fetchMessages() {
@@ -271,12 +328,24 @@ async function fetchMessages() {
             'Authorization': 'Bearer ' + ACCESS_TOKEN
         })
     })
-    let result = await response.json()
+    let result
+    try {
+        if (response.status !== 200) {
+            throw Error(response.statusText)
+        }
+        result = await response.json()
+    } catch (err) {
+        console.log(`Error: ${err}`)
+        return
+    }
     for (const message of result.messages) {
-        var msg = await processMessage(message)
-        chatroom[0].insertAdjacentHTML("beforeend", msg)
-        if (message.event === EVENT_TEXT && message.user_id !== USER_ID) {
-            peerMessages.push(message)
+        let el = document.getElementById(message.message_id)
+        if (el === null) {
+            var msg = await processMessage(message)
+            chatroom[0].insertAdjacentHTML("beforeend", msg)
+            if ((message.event === EVENT_TEXT || message.event === EVENT_FILE) && message.user_id !== USER_ID) {
+                peerMessages.push(message)
+            }
         }
     }
     if (result.messages.length === 0) {
@@ -309,7 +378,7 @@ async function processMessage(m) {
     var msg = ""
     switch (m.event) {
         case EVENT_TEXT:
-            const d = new Date(m.time)
+            let d = new Date(m.time)
             var time = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
             if (m.user_id === USER_ID) {
                 msg = getTextMessage(m.message_id, USER_ID, RIGHT, m.payload, time, m.seen)
@@ -352,6 +421,16 @@ async function processMessage(m) {
                 el.textContent = "seen"
             }
             break
+        case EVENT_FILE:
+            let d1 = new Date(m.time)
+            var time1 = `${d1.getFullYear()}/${d1.getMonth() + 1}/${d1.getDate()} ${String(d1.getHours()).padStart(2, "0")}:${String(d1.getMinutes()).padStart(2, "0")}`
+            let filepayload = JSON.parse(m.payload)
+            if (m.user_id === USER_ID) {
+                msg = getFileMessage(m.message_id, USER_ID, RIGHT, filepayload.file_name, filepayload.file_url, time1, m.seen)
+            } else {
+                msg = getFileMessage(m.message_id, m.user_id, LEFT, filepayload.file_name, filepayload.file_url, time1, m.seen)
+            }
+            break
     }
     return msg
 }
@@ -359,21 +438,33 @@ async function processMessage(m) {
 async function getUserName() {
     return fetch(`/api/user/${USER_ID}/name`)
         .then((response) => {
+            if (response.status !== 200) {
+                throw Error(response.statusText)
+            }
             return response.json()
         })
         .then((result) => {
             USER_NAME = result.name
             ID2NAME[USER_ID] = USER_NAME
         })
+        .catch(err => {
+            console.log(`Error: ${err}`)
+        });
 }
 async function setPeerName(peerID) {
     return fetch(`/api/user/${peerID}/name`)
         .then((response) => {
+            if (response.status !== 200) {
+                throw Error(response.statusText)
+            }
             return response.json()
         })
         .then((result) => {
             ID2NAME[peerID] = result.name
         })
+        .catch(err => {
+            console.log(`Error: ${err}`)
+        });
 }
 
 async function updateOnlineUsers() {
@@ -384,6 +475,9 @@ async function updateOnlineUsers() {
         })
     })
         .then((response) => {
+            if (response.status !== 200) {
+                throw Error(response.statusText)
+            }
             return response.json()
         })
         .then(async (result) => {
@@ -428,6 +522,9 @@ async function updateOnlineUsers() {
                 <div id="headstatus" style="font-size: 1rem;"><i class="fas fa-circle icon-green"></i>&nbsp;${onlineMsg}</div>
                 `
         })
+        .catch(err => {
+            console.log(`Error: ${err}`)
+        });
 }
 
 async function deleteChannel() {
@@ -466,6 +563,65 @@ function sendActionMessage(action) {
     }))
 }
 
+function sendFileMessage(fileName, fileURL) {
+    let payload = {
+        "file_name": fileName,
+        "file_url": fileURL
+    }
+    ws.send(JSON.stringify({
+        "event": EVENT_FILE,
+        "user_id": USER_ID,
+        "payload": JSON.stringify(payload),
+    }))
+}
+
+function getFileMessage(messageID, userID, side, fileName, fileURL, time, seen) {
+    let extention = getFileExtention(fileURL)
+    let isImg = (extention === "jpg" || extention === "png" || extention === "jpeg")
+    let fileView = ""
+    if (isImg) {
+        fileView = `<img id="img-${messageID}" onload="this.style.visibility='visible'" src=${fileURL} loading="lazy" alt='' style="max-width:50%;border-radius: 15px;visibility: hidden;" onclick="showModal(this.src)"/>`
+    } else {
+        let color = "black"
+        if (side === RIGHT) {
+            color = "white"
+        }
+        fileView = `
+        <div class="msg-bubble" style="min-width: 75px">
+          <div class="msg-info">
+            <div class="msg-info-name">${ID2NAME[userID]}</div>
+          </div>
+          <div style="margin-left: auto;margin-right: auto;margin-top: 25px;">
+            <a href=${fileURL} download target="_blank" style="color: ${color}">
+              <div style="max-width: 15em;;overflow-wrap: break-word;">${fileName}</div>
+            </a>
+          </div>
+        </div>
+        `
+    }
+    var msg = `
+    <div id="${messageID}" class="msg ${side}-msg">
+      <div class="msg-img" style="background-image: url(${getUserImageURL(userID)})"></div>
+      ${fileView}
+    `
+    if (side === RIGHT) {
+        var seenMsg = ""
+        if (seen) {
+            seenMsg = "seen"
+        }
+        msg += `<div style="margin-right: 10px; color: #a6a6a6"><div id="seen-${messageID}">${seenMsg}</div><div class="msg-info-time">${time.split(' ')[1]}</div></div>`
+    } else {
+        msg += `<div style="margin-left: 10px; color: #a6a6a6"><div class="msg-info-time">${time.split(' ')[1]}</div></div>`
+    }
+    msg += `</div>`
+    return msg
+}
+
+function showModal(src) {
+    modal.style.display = "block";
+    modalImg.src = src;
+}
+
 function getActionMessage(msg) {
     var msg = `<br><div class="msg-left">${msg}</div><br>`
     return msg
@@ -476,10 +632,9 @@ function getTextMessage(messageID, userID, side, text, time, seen) {
     <div id="${messageID}" class="msg ${side}-msg">
       <div class="msg-img" style="background-image: url(${getUserImageURL(userID)})"></div>
 
-      <div class="msg-bubble" style="min-width: 125px">
+      <div class="msg-bubble" style="min-width: 75px">
         <div class="msg-info">
           <div class="msg-info-name">${ID2NAME[userID]}</div>
-          <div class="msg-info-time">${time.split(' ')[1]}</div>
         </div>
 
         <div class="msg-text" style="max-width: 15em;overflow-wrap: break-word;">${urlify(text).replace(/(?:\r|\n|\r\n)/g, '<br>')}</div>
@@ -490,7 +645,9 @@ function getTextMessage(messageID, userID, side, text, time, seen) {
         if (seen) {
             seenMsg = "seen"
         }
-        msg += `<div id="seen-${messageID}" style="margin-right: 10px; color: #a6a6a6">${seenMsg}</div>`
+        msg += `<div style="margin-right: 10px; color: #a6a6a6"><div id="seen-${messageID}">${seenMsg}</div><div class="msg-info-time">${time.split(' ')[1]}</div></div>`
+    } else {
+        msg += `<div style="margin-left: 10px; color: #a6a6a6"><div class="msg-info-time">${time.split(' ')[1]}</div></div>`
     }
     msg += `</div>`
     return msg
@@ -534,15 +691,23 @@ function insertMsg(msg, domObj, isSelf) {
 function urlify(text) {
     var urlRegex = /(https?:\/\/[^\s]+)/g;
     return text.replace(urlRegex, function (url) {
-        return '<a href="' + url + '">' + url + '</a>';
+        return '<a href="' + url + '">' + url + '</a>'
     })
     // or alternatively
     // return text.replace(urlRegex, '<a href="$1">$1</a>')
 }
 
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+const sleep = ms => new Promise(r => setTimeout(r, ms))
 
 function auto_grow(element) {
     element.style.height = "5px";
-    element.style.height = (element.scrollHeight) + "px";
+    element.style.height = (element.scrollHeight) + "px"
+}
+
+function getFileExtention(filename) {
+    var a = filename.split(".")
+    if (a.length === 1 || (a[0] === "" && a.length === 2)) {
+        return ""
+    }
+    return a.pop().toLowerCase()
 }

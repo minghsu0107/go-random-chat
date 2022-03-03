@@ -116,7 +116,6 @@ body {
 }
 
 .msg-info-name {
-    margin-right: 10px;
     font-weight: bold;
 }
 
@@ -188,6 +187,22 @@ body {
     background:none;
 }
 
+.msger-upload-btn {
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-right: 10px;
+    color: gray;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    max-height: 50px;
+}
+
+.msger-upload-btn:hover {
+    background:none;
+}
+
 .msger-chat {
     background-color: #fcfcfe;
 }
@@ -248,5 +263,70 @@ body {
     44% {
         transform: translateY(0px);
         background-color: #b3d9ff;
+    }
+}
+
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+}
+  
+/* Modal Content (image) */
+.modal-content {
+    margin: auto;
+    display: block;
+    width: 80%;
+    max-width: 700px;
+}
+
+/* Add Animation */
+.modal-content {  
+-webkit-animation-name: zoom;
+-webkit-animation-duration: 0.6s;
+animation-name: zoom;
+animation-duration: 0.6s;
+}
+
+@-webkit-keyframes zoom {
+from {-webkit-transform:scale(0)} 
+to {-webkit-transform:scale(1)}
+}
+
+@keyframes zoom {
+from {transform:scale(0)} 
+to {transform:scale(1)}
+}
+
+/* The Close Button */
+.close {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.close:hover,
+.close:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* 100% Image Width on Smaller Screens */
+@media only screen and (max-width: 700px){
+    .modal-content {
+        width: 100%;
     }
 }

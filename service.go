@@ -1,4 +1,4 @@
-package main
+package randomchat
 
 import (
 	"context"
@@ -10,6 +10,7 @@ type MessageService interface {
 	BroadcastTextMessage(ctx context.Context, channelID, userID uint64, payload string) error
 	BroadcastConnectMessage(ctx context.Context, channelID, userID uint64) error
 	BroadcastActionMessage(ctx context.Context, channelID, userID uint64, action Action) error
+	BroadcastFileMessage(ctx context.Context, channelID, userID uint64, payload string) error
 	MarkMessageSeen(ctx context.Context, channelID, userID, messageID uint64) error
 	ListMessages(ctx context.Context, channelID uint64) ([]*Message, error)
 }
@@ -84,6 +85,24 @@ func (svc *MessageServiceImpl) BroadcastActionMessage(ctx context.Context, chann
 		UserID:    userID,
 		Payload:   string(action),
 		Time:      time.Now().UnixMilli(),
+	}
+	return svc.msgRepo.PublishMessage(ctx, &msg)
+}
+func (svc *MessageServiceImpl) BroadcastFileMessage(ctx context.Context, channelID, userID uint64, payload string) error {
+	messageID, err := svc.sf.NextID()
+	if err != nil {
+		return err
+	}
+	msg := Message{
+		MessageID: messageID,
+		Event:     EventFile,
+		ChannelID: channelID,
+		UserID:    userID,
+		Payload:   payload,
+		Time:      time.Now().UnixMilli(),
+	}
+	if err := svc.msgRepo.InsertMessage(ctx, &msg); err != nil {
+		return err
 	}
 	return svc.msgRepo.PublishMessage(ctx, &msg)
 }

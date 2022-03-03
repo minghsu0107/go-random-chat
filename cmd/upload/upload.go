@@ -1,4 +1,4 @@
-package main
+package upload
 
 import (
 	"context"
@@ -6,16 +6,10 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
-func main() {
-	router, err := InitializeRouter()
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func RunUploadServer() {
+	router := InitializeRouter()
 	router.Run()
 
 	done := make(chan bool, 1)

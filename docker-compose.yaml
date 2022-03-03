@@ -19,16 +19,17 @@ services:
     expose:
       - "80"
     environment:
-      - 'HTTP_PORT=80'
-      - 'KAFKA_ADDRS=kafka:9092'
-      - 'REDIS_PASSWORD=pass.123'
-      - 'REDIS_ADDRS=redis-node1:7000,redis-node2:7001,redis-node3:7002,redis-node4:7003,redis-node5:7004,redis-node6:7005'
-      - 'REDIS_EXPIRATION_HOURS=24'
-      - 'MAX_ALLOWED_CONNS=200'
-      - 'MAX_MSGS=500'
-      - 'MAX_MSG_SIZE_BYTE=4096'
-      - 'JWT_SECRET=mysecret'
-      - 'JWT_EXPIRATION_SECONDS=86400'
+      APP: chat
+      HTTP_PORT: "80"
+      KAFKA_ADDRS: kafka:9092
+      REDIS_PASSWORD: pass.123
+      REDIS_ADDRS: redis-node1:7000,redis-node2:7001,redis-node3:7002,redis-node4:7003,redis-node5:7004,redis-node6:7005
+      REDIS_EXPIRATION_HOURS: "24"
+      MAX_ALLOWED_CONNS: "200"
+      MAX_MSGS: "500"
+      MAX_MSG_SIZE_BYTE: "4096"
+      JWT_SECRET: "mysecret"
+      JWT_EXPIRATION_SECONDS: "86400"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.random-chat.rule=PathPrefix(`/`)"
@@ -39,6 +40,50 @@ services:
       - redis-cluster-creator
       - zookeeper
       - kafka
+  uploader:
+    build: .
+    restart: always
+    depends_on:
+      - minio
+    expose:
+      - "80"
+    environment:
+      APP: upload
+      HTTP_PORT: "80"
+      S3_ENDPOINT: http://minio:9000
+      S3_REGION: us-east-1
+      S3_BUCKET: myfilebucket
+      AWS_ACCESS_KEY_ID: testaccesskey
+      AWS_SECRET_KEY: testsecret
+      JWT_SECRET: "mysecret"
+      JWT_EXPIRATION_SECONDS: "86400"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.uploader.rule=PathPrefix(`/api/file`)"
+      - "traefik.http.routers.uploader.entrypoints=web"
+      - "traefik.http.routers.uploader.service=uploader"
+      - "traefik.http.services.uploader.loadbalancer.server.port=80"
+  minio:
+    image: minio/minio:RELEASE.2021-03-17T02-33-02Z@sha256:d33b2e9559ee59acf7591cd83cb7238837158a316956e6140e6692a8e4e12fe9
+    volumes:
+      - minio_data:/export
+    command: server /export
+    environment:
+      MINIO_ACCESS_KEY: testaccesskey
+      MINIO_SECRET_KEY: testsecret
+    ports:
+      - "9000:9000"
+  createbucket:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 testaccesskey testsecret;
+      /usr/bin/mc mb myminio/myfilebucket;
+      /usr/bin/mc policy set public myminio/myfilebucket;
+      exit 0;
+      "
   redis-node1:
     build:
       context: redis
@@ -133,6 +178,7 @@ services:
     depends_on:
       - zookeeper
 volumes:
+  minio_data:
   redis-node1-data:
   redis-node2-data:
   redis-node3-data:
