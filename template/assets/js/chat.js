@@ -119,10 +119,18 @@ function uploadFile(file) {
         }),
         body: fd
     })
-        .then(res => res.json())
+        .then(res => {
+            if (res.status !== 201) {
+                throw Error(res.statusText)
+            }
+            return res.json()
+        })
         .then(json => {
             sendFileMessage(json.file_name, json.file_url)
         })
+        .catch(err => {
+            console.log(`Error: ${err}`)
+        });
 }
 upload.addEventListener("pointerdown", function (e) {
     upload.style.color = "black"
@@ -286,6 +294,9 @@ async function getAllChannelUserNames() {
         })
     })
         .then((response) => {
+            if (response.status !== 200) {
+                throw Error(response.statusText)
+            }
             return response.json()
         })
         .then(async (result) => {
@@ -295,6 +306,9 @@ async function getAllChannelUserNames() {
                 }
             }
         })
+        .catch(err => {
+            console.log(`Error: ${err}`)
+        });
 }
 
 async function fetchMessages() {
@@ -304,7 +318,16 @@ async function fetchMessages() {
             'Authorization': 'Bearer ' + ACCESS_TOKEN
         })
     })
-    let result = await response.json()
+    let result
+    try {
+        if (response.status !== 200) {
+            throw Error(response.statusText)
+        }
+        result = await response.json()
+    } catch (err) {
+        console.log(`Error: ${err}`)
+        return
+    }
     for (const message of result.messages) {
         var msg = await processMessage(message)
         chatroom[0].insertAdjacentHTML("beforeend", msg)
@@ -402,21 +425,33 @@ async function processMessage(m) {
 async function getUserName() {
     return fetch(`/api/user/${USER_ID}/name`)
         .then((response) => {
+            if (response.status !== 200) {
+                throw Error(response.statusText)
+            }
             return response.json()
         })
         .then((result) => {
             USER_NAME = result.name
             ID2NAME[USER_ID] = USER_NAME
         })
+        .catch(err => {
+            console.log(`Error: ${err}`)
+        });
 }
 async function setPeerName(peerID) {
     return fetch(`/api/user/${peerID}/name`)
         .then((response) => {
+            if (response.status !== 200) {
+                throw Error(response.statusText)
+            }
             return response.json()
         })
         .then((result) => {
             ID2NAME[peerID] = result.name
         })
+        .catch(err => {
+            console.log(`Error: ${err}`)
+        });
 }
 
 async function updateOnlineUsers() {
@@ -427,6 +462,9 @@ async function updateOnlineUsers() {
         })
     })
         .then((response) => {
+            if (response.status !== 200) {
+                throw Error(response.statusText)
+            }
             return response.json()
         })
         .then(async (result) => {
@@ -471,6 +509,9 @@ async function updateOnlineUsers() {
                 <div id="headstatus" style="font-size: 1rem;"><i class="fas fa-circle icon-green"></i>&nbsp;${onlineMsg}</div>
                 `
         })
+        .catch(err => {
+            console.log(`Error: ${err}`)
+        });
 }
 
 async function deleteChannel() {
