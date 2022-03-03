@@ -41,7 +41,7 @@ services:
       - zookeeper
       - kafka
   uploader:
-    build: .
+    image: minghsu0107/random-chat:kafka
     restart: always
     depends_on:
       - minio
