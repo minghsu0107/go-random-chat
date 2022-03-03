@@ -387,7 +387,7 @@ async function processMessage(m) {
             if (m.user_id === USER_ID) {
                 msg = getFileMessage(m.message_id, USER_ID, RIGHT, payload[0], payload[1], time1, m.seen)
             } else {
-                msg = getFileMessage(m.message_id, USER_ID, LEFT, payload[0], payload[1], time1, m.seen)
+                msg = getFileMessage(m.message_id, m.user_id, LEFT, payload[0], payload[1], time1, m.seen)
             }
             break
     }
