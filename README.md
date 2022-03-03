@@ -4,13 +4,14 @@ Modern real-time random chat written in go.
 Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
 - Stateless chat servers with the help of [Redis Pub/Sub](https://redis.io/topics/pubsub).
-  - Redis Pub/Sub provides only at-most-once delivery. Thus, there is chance of data loss during matching and chatting stages.
+  - Redis Pub/Sub provides only at-most-once delivery, so there is chance of data loss during matching and chatting stages.
   - If you prefer at-least-once delivery for message Pub/Sub, please refer to [this branch](https://github.com/minghsu0107/go-random-chat/tree/kafka) where Kafka is used as the message broker.
 - High performance and linear scalability.
 - User matching with idempotency.
 - Message seen feature.
 - Auto-scroll to the first unseen message.
-- File upload and image preview.
+- Automatic websocket reconnection.
+- File uploads using object storage.
 - Responsive web design.
 ## Usage
 To run locally, execute the following command:
@@ -31,6 +32,10 @@ Environment variables for the chat server:
 - `MAX_MSGS`: Max number of messages in a channel. Default: `500`
 - `JWT_SECRET`: JWT secret key
 - `JWT_EXPIRATION_SECONDS`: JWT expiration seconds. Default: `86400` (24 hours)
+## Deploy with SSL
+A common scenario is that one deploys the application behind a reverse proxy with SSL termination. If that is your case, then you should change the websocket connection from `ws` to `wss` in [chat.js](./template/assets/js/chat.js) and [home.js](./template/assets/js/home.js) respectively. 
+
+Also, remember to correctly configure your proxy for websocket. For example, in Google Cloud Platform, for websocket traffic sent through a Google Cloud external HTTP(S) load balancer, the backend service timeout is interpreted as the maximum amount of time that a WebSocket connection can remain open, whether idle or not. Therefore, you may want to use a `timeoutSec` value larger than the default 30 seconds in your `BackendConfig`.
 ## Docker Tagging Rules
 | Event           | Ref                           | Docker Tags                         |
 |-----------------|-------------------------------|-------------------------------------|
