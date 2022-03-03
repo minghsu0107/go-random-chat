@@ -50,8 +50,7 @@ document.addEventListener("visibilitychange", function () {
 })
 
 var chatUrl = "ws://" + window.location.host + "/api/chat?uid=" + USER_ID + "&access_token=" + ACCESS_TOKEN
-ws = new WebSocket(chatUrl)
-
+var ws
 var chatroom = document.getElementsByClassName("msger-chat")
 var initialChatScrollHeight = chatroom[0].scrollHeight
 var text = document.getElementById("msg")
@@ -175,86 +174,97 @@ text.onkeydown = function (e) {
         }
     }
 }
-ws.addEventListener('open', async function (e) {
-    if (USER_NAME === "") {
+function connectWebSocket() {
+    ws = new WebSocket(chatUrl)
+    ws.addEventListener('open', async function (e) {
+        if (USER_NAME === "") {
+            try {
+                await getUserName()
+            } catch (err) {
+                console.log(`Error: ${err}`)
+            }
+        }
         try {
-            await getUserName()
+            await getAllChannelUserNames()
+            await fetchMessages()
         } catch (err) {
             console.log(`Error: ${err}`)
         }
-    }
-    try {
-        await getAllChannelUserNames()
-        await fetchMessages()
-    } catch (err) {
-        console.log(`Error: ${err}`)
-    }
-    document.getElementById("msg").disabled = false
-})
-ws.addEventListener('message', async function (e) {
-    var m = JSON.parse(e.data)
-    if (m.event === EVENT_ACTION) {
-        switch (m.payload) {
-            case "waiting":
-            case "joined":
-            case "offline":
-                try {
-                    await updateOnlineUsers()
-                } catch (err) {
-                    console.log(`Error: ${err}`)
-                }
-                break
-            case "endtyping":
-                let el = document.getElementById(peerTypingID)
+        document.getElementById("msg").disabled = false
+    })
+    ws.addEventListener('message', async function (e) {
+        var m = JSON.parse(e.data)
+        if (m.event === EVENT_ACTION) {
+            switch (m.payload) {
+                case "waiting":
+                case "joined":
+                case "offline":
+                    try {
+                        await updateOnlineUsers()
+                    } catch (err) {
+                        console.log(`Error: ${err}`)
+                    }
+                    break
+                case "endtyping":
+                    let el = document.getElementById(peerTypingID)
+                    if (el !== null) {
+                        el.remove()
+                    }
+                    break
+                case "leaved":
+                    try {
+                        await updateOnlineUsers()
+                    } catch (err) {
+                        console.log(`Error: ${err}`)
+                    }
+                    localStorage.removeItem(accessTokenKey)
+                    ACCESS_TOKEN = ""
+                    fileInput.disabled = true
+                    ws.close()
+                    break
+            }
+        }
+        var msg = await processMessage(m)
+        if (msg !== "") {
+            if (m.event === EVENT_TEXT) {
+                let el = (m.user_id === USER_ID) ? document.getElementById(userTypingID) : document.getElementById(peerTypingID)
                 if (el !== null) {
                     el.remove()
                 }
-                break
-            case "leaved":
-                try {
-                    await updateOnlineUsers()
-                } catch (err) {
-                    console.log(`Error: ${err}`)
+            }
+            if (m.event === EVENT_TEXT || m.event === EVENT_FILE) {
+                if (!window.mobileCheck() && isPageHidden) {
+                    sendBrowserNotification("You got a new message")
                 }
-                localStorage.removeItem(accessTokenKey)
-                fileInput.disabled = true
-                ws.close()
-                break
-        }
-    }
-    var msg = await processMessage(m)
-    if (msg !== "") {
-        if (m.event === EVENT_TEXT) {
-            let el = (m.user_id === USER_ID) ? document.getElementById(userTypingID) : document.getElementById(peerTypingID)
-            if (el !== null) {
-                el.remove()
+            }
+            var isSelf = (m.user_id === USER_ID)
+            insertMsg(msg, chatroom[0], isSelf)
+            if ((m.event === EVENT_TEXT || m.event === EVENT_FILE) && !isSelf) {
+                peerMessages.push(m)
+                if (!isPageHidden && chatroom[0].scrollHeight === initialChatScrollHeight) {
+                    markMessagesAsSeen()
+                }
+            }
+            if (m.event === EVENT_ACTION && m.payload === "leaved") {
+                insertMsg(getReturnHomeMessage(), chatroom[0], isSelf)
             }
         }
-        if (m.event === EVENT_TEXT || m.event === EVENT_FILE) {
-            if (!window.mobileCheck() && isPageHidden) {
-                sendBrowserNotification("You got a new message")
-            }
-        }
-        var isSelf = (m.user_id === USER_ID)
-        insertMsg(msg, chatroom[0], isSelf)
-        if ((m.event === EVENT_TEXT || m.event === EVENT_FILE) && !isSelf) {
-            peerMessages.push(m)
-            if (!isPageHidden && chatroom[0].scrollHeight === initialChatScrollHeight) {
-                markMessagesAsSeen()
-            }
-        }
-        if (m.event === EVENT_ACTION && m.payload === "leaved") {
-            insertMsg(getReturnHomeMessage(), chatroom[0], isSelf)
-        }
-    }
-})
+    })
 
-ws.addEventListener('close', function (e) {
-    document.getElementById("headstatus").innerHTML = `
+    ws.addEventListener('close', async function (e) {
+        document.getElementById("headstatus").innerHTML = `
     <div id="headstatus"><i class="fas fa-circle icon-red"></i>&nbsp;disconnected</div>
     `
-    document.getElementById("msg").disabled = true
-})
+        document.getElementById("msg").disabled = true
+        if (ACCESS_TOKEN !== "" && !isPageHidden) {
+            setTimeout(function () {
+                connectWebSocket()
+            }, 1000)
+        }
+    })
+}
+connectWebSocket()
+
 window.onbeforeunload = function () {
     ws.onclose = function () { }; // disable onclose handler first
     ws.close();
@@ -329,10 +339,13 @@ async function fetchMessages() {
         return
     }
     for (const message of result.messages) {
-        var msg = await processMessage(message)
-        chatroom[0].insertAdjacentHTML("beforeend", msg)
-        if ((message.event === EVENT_TEXT || message.event === EVENT_FILE) && message.user_id !== USER_ID) {
-            peerMessages.push(message)
+        let el = document.getElementById(message.message_id)
+        if (el === null) {
+            var msg = await processMessage(message)
+            chatroom[0].insertAdjacentHTML("beforeend", msg)
+            if ((message.event === EVENT_TEXT || message.event === EVENT_FILE) && message.user_id !== USER_ID) {
+                peerMessages.push(message)
+            }
         }
     }
     if (result.messages.length === 0) {
@@ -411,11 +424,11 @@ async function processMessage(m) {
         case EVENT_FILE:
             let d1 = new Date(m.time)
             var time1 = `${d1.getFullYear()}/${d1.getMonth() + 1}/${d1.getDate()} ${String(d1.getHours()).padStart(2, "0")}:${String(d1.getMinutes()).padStart(2, "0")}`
-            payload = m.payload.split(' ')
+            let filepayload = JSON.parse(m.payload)
             if (m.user_id === USER_ID) {
-                msg = getFileMessage(m.message_id, USER_ID, RIGHT, payload[0], payload[1], time1, m.seen)
+                msg = getFileMessage(m.message_id, USER_ID, RIGHT, filepayload.file_name, filepayload.file_url, time1, m.seen)
             } else {
-                msg = getFileMessage(m.message_id, m.user_id, LEFT, payload[0], payload[1], time1, m.seen)
+                msg = getFileMessage(m.message_id, m.user_id, LEFT, filepayload.file_name, filepayload.file_url, time1, m.seen)
             }
             break
     }
@@ -551,10 +564,14 @@ function sendActionMessage(action) {
 }
 
 function sendFileMessage(fileName, fileURL) {
+    let payload = {
+        "file_name": fileName,
+        "file_url": fileURL
+    }
     ws.send(JSON.stringify({
         "event": EVENT_FILE,
         "user_id": USER_ID,
-        "payload": fileName + " " + fileURL,
+        "payload": JSON.stringify(payload),
     }))
 }
 
@@ -575,7 +592,9 @@ function getFileMessage(messageID, userID, side, fileName, fileURL, time, seen) 
             <div class="msg-info-name">${ID2NAME[userID]}</div>
           </div>
           <div style="margin-left: auto;margin-right: auto;margin-top: 25px;">
-            <a href=${fileURL} download style="color: ${color}">${fileName}</a>
+            <a href=${fileURL} download target="_blank" style="color: ${color}">
+              <div style="max-width: 15em;;overflow-wrap: break-word;">${fileName}</div>
+            </a>
           </div>
         </div>
         `
