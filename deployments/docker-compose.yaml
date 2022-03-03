@@ -14,7 +14,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   random-chat:
-    build: .
+    image: minghsu0107/random-chat:main
     restart: always
     expose:
       - "80"
@@ -36,7 +36,7 @@ services:
       - "traefik.http.routers.random-chat.service=random-chat"
       - "traefik.http.services.random-chat.loadbalancer.server.port=80"
   uploader:
-    build: .
+    image: minghsu0107/random-chat:main
     restart: always
     depends_on:
       - minio

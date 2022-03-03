@@ -16,6 +16,7 @@ Features:
 ## Usage
 To run locally, execute the following command:
 ```bash
+cd deployments
 sudo ./run.sh run
 ```
 `run.sh` needs root permission to alias `minio` to `localhost` in `/etc/hosts`.
@@ -33,17 +34,17 @@ Environment variables for the chat server:
 - `JWT_SECRET`: JWT secret key
 - `JWT_EXPIRATION_SECONDS`: JWT expiration seconds. Default: `86400` (24 hours)
 ## Deploy with SSL
-A common scenario is that one deploys the application behind a reverse proxy with SSL termination. If that is your case, then you should change the websocket connection from `ws` to `wss` in [chat.js](./template/assets/js/chat.js) and [home.js](./template/assets/js/home.js) respectively. 
+A common scenario is that one deploys the application behind a reverse proxy with SSL termination. If that is your case, then you should change the websocket connection from `ws` to `wss` in [chat.js](./web/assets/js/chat.js) and [home.js](./web/assets/js/home.js) respectively and rebuild Docker image. 
 
 Also, remember to correctly configure your proxy for websocket. For example, in Google Cloud Platform, for websocket traffic sent through a Google Cloud external HTTP(S) load balancer, the backend service timeout is interpreted as the maximum amount of time that a WebSocket connection can remain open, whether idle or not. Therefore, you may want to use a `timeoutSec` value larger than the default 30 seconds in your `BackendConfig`.
 ## Docker Tagging Rules
-| Event           | Ref                           | Docker Tags                         |
-|-----------------|-------------------------------|-------------------------------------|
-| `pull_request`  | `refs/pull/2/merge`           | `pr-2`                              |
-| `push`          | `refs/heads/master`           | `master`                            |
-| `push`          | `refs/heads/releases/v1`      | `releases-v1`                       |
-| `push tag`      | `refs/tags/v1.2.3`            | `v1.2.3`, `latest`                  |
-| `push tag`      | `refs/tags/v2.0.8-beta.67`    | `v2.0.8-beta.67`, `latest`          |
+| Event          | Ref                        | Docker Tags                |
+| -------------- | -------------------------- | -------------------------- |
+| `pull_request` | `refs/pull/2/merge`        | `pr-2`                     |
+| `push`         | `refs/heads/master`        | `master`                   |
+| `push`         | `refs/heads/releases/v1`   | `releases-v1`              |
+| `push tag`     | `refs/tags/v1.2.3`         | `v1.2.3`, `latest`         |
+| `push tag`     | `refs/tags/v2.0.8-beta.67` | `v2.0.8-beta.67`, `latest` |
 ## Screenshots
 <img src="https://i.imgur.com/4ctofQv.png" alt="" data-canonical-src="https://i.imgur.com/4ctofQv.png" width="60%" height="60%" />
 

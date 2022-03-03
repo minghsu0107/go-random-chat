@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	rc "github.com/minghsu0107/go-random-chat"
+	"github.com/minghsu0107/go-random-chat/pkg/chat"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -31,7 +31,7 @@ func NewRouter(svr *gin.Engine) *Router {
 
 func (r *Router) RegisterRoutes() {
 	uploadGroup := r.svr.Group("/api/file")
-	uploadGroup.Use(rc.JWTAuth())
+	uploadGroup.Use(chat.JWTAuth())
 	{
 		uploadGroup.POST("", r.UploadFile)
 	}
@@ -64,7 +64,7 @@ func (r *Router) GracefulStop(ctx context.Context, done chan bool) {
 
 func response(c *gin.Context, httpCode int, err error) {
 	message := err.Error()
-	c.JSON(httpCode, rc.ErrResponse{
+	c.JSON(httpCode, chat.ErrResponse{
 		Message: message,
 	})
 }
