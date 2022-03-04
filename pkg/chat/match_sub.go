@@ -7,6 +7,7 @@ import (
 
 	retry "github.com/avast/retry-go"
 	"github.com/go-redis/redis/v8"
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/olahol/melody.v1"
 )
@@ -27,7 +28,7 @@ type MatchSubscriberImpl struct {
 
 func init() {
 	var err error
-	matchNumberWorker, err = strconv.ParseInt(getenv("MATCH_NUMBER_WORKER", "4"), 10, 0)
+	matchNumberWorker, err = strconv.ParseInt(common.Getenv("MATCH_NUMBER_WORKER", "4"), 10, 0)
 	if err != nil {
 		panic(err)
 	}

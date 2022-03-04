@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"gopkg.in/olahol/melody.v1"
 )
 
@@ -13,7 +14,7 @@ func InitializeRouter() (*Router, error) {
 
 	MelodyMatch = melody.New()
 	MelodyChat = melody.New()
-	maxMessageSize, err := strconv.ParseInt(getenv("MAX_MSG_SIZE_BYTE", "4096"), 10, 64)
+	maxMessageSize, err := strconv.ParseInt(common.Getenv("MAX_MSG_SIZE_BYTE", "4096"), 10, 64)
 	if err != nil {
 		panic(err)
 	}

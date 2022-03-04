@@ -3,8 +3,6 @@ package chat
 import (
 	"encoding/json"
 	"errors"
-	"os"
-	"strings"
 
 	"github.com/sony/sonyflake"
 )
@@ -45,16 +43,4 @@ func DecodeToMessage(data []byte) (*Message, error) {
 		return nil, err
 	}
 	return &msg, nil
-}
-
-func getServerAddrs(addrs string) []string {
-	return strings.Split(addrs, ",")
-}
-
-func getenv(key, fallback string) string {
-	value := os.Getenv(key)
-	if len(value) == 0 {
-		return fallback
-	}
-	return value
 }

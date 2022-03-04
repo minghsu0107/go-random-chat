@@ -6,6 +6,8 @@ import (
 	"errors"
 	"strconv"
 	"time"
+
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 )
 
 var maxMessages int64
@@ -29,7 +31,7 @@ var (
 
 func init() {
 	var err error
-	maxMessages, err = strconv.ParseInt(getenv("MAX_MSGS", "500"), 10, 64)
+	maxMessages, err = strconv.ParseInt(common.Getenv("MAX_MSGS", "500"), 10, 64)
 	if err != nil {
 		panic(err)
 	}

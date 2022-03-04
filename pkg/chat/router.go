@@ -6,12 +6,13 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/olahol/melody.v1"
 )
 
 var (
-	httpPort        = getenv("HTTP_PORT", "5000")
+	httpPort        = common.Getenv("HTTP_PORT", "5000")
 	maxAllowedConns int64
 	sessUidKey      = "sessuid"
 	sessCidKey      = "sesscid"
@@ -35,7 +36,7 @@ type Router struct {
 func init() {
 	gin.SetMode(gin.ReleaseMode)
 	var err error
-	maxAllowedConns, err = strconv.ParseInt(getenv("MAX_ALLOWED_CONNS", "200"), 10, 64)
+	maxAllowedConns, err = strconv.ParseInt(common.Getenv("MAX_ALLOWED_CONNS", "200"), 10, 64)
 	if err != nil {
 		panic(err)
 	}

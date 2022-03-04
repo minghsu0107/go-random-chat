@@ -7,10 +7,11 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 )
 
 var (
-	jwtSecret            = getenv("JWT_SECRET", "randomchatjwtcred")
+	jwtSecret            = common.Getenv("JWT_SECRET", "randomchatjwtcred")
 	jwtExpirationSeconds int64
 )
 
@@ -21,7 +22,7 @@ var (
 
 func init() {
 	var err error
-	jwtExpirationSeconds, err = strconv.ParseInt(getenv("JWT_EXPIRATION_SECONDS", "86400"), 10, 0)
+	jwtExpirationSeconds, err = strconv.ParseInt(common.Getenv("JWT_EXPIRATION_SECONDS", "86400"), 10, 0)
 	if err != nil {
 		panic(err)
 	}
