@@ -57,15 +57,6 @@ func NewRouter(svr *gin.Engine, mm, mc *melody.Melody, matchSubscriber MatchSubs
 }
 
 func (r *Router) RegisterRoutes() {
-	r.svr.LoadHTMLGlob("web/html/*")
-	r.svr.Static("/assets", "./web/assets")
-	r.svr.GET("", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "home.html", nil)
-	})
-	r.svr.GET("/chat", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "chat.html", nil)
-	})
-
 	r.svr.GET("/api/match", r.Match)
 	r.svr.GET("/api/chat", r.StartChat)
 
