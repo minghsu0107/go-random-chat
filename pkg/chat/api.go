@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/olahol/melody.v1"
 )
@@ -14,7 +15,7 @@ func (r *Router) Match(c *gin.Context) {
 	uid := c.Query("uid")
 	userID, err := strconv.ParseUint(uid, 10, 64)
 	if err != nil {
-		response(c, http.StatusBadRequest, ErrInvalidParam)
+		response(c, http.StatusBadRequest, common.ErrInvalidParam)
 		return
 	}
 	_, err = r.userSvc.GetUser(c.Request.Context(), userID)
@@ -24,7 +25,7 @@ func (r *Router) Match(c *gin.Context) {
 			return
 		}
 		log.Error(err)
-		response(c, http.StatusInternalServerError, ErrServer)
+		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
 	r.mm.HandleRequest(c.Writer, c.Request)
@@ -34,27 +35,27 @@ func (r *Router) StartChat(c *gin.Context) {
 	uid := c.Query("uid")
 	userID, err := strconv.ParseUint(uid, 10, 64)
 	if err != nil {
-		response(c, http.StatusBadRequest, ErrInvalidParam)
+		response(c, http.StatusBadRequest, common.ErrInvalidParam)
 		return
 	}
 	accessToken := c.Query("access_token")
-	authResult, err := Auth(&AuthPayload{
+	authResult, err := common.Auth(&common.AuthPayload{
 		AccessToken: accessToken,
 	})
 	if err != nil {
 		log.Error(err)
-		response(c, http.StatusInternalServerError, ErrServer)
+		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
 	if authResult.Expired {
-		log.Error(ErrTokenExpired)
-		response(c, http.StatusUnauthorized, ErrTokenExpired)
+		log.Error(common.ErrTokenExpired)
+		response(c, http.StatusUnauthorized, common.ErrTokenExpired)
 	}
 	channelID := authResult.ChannelID
 	exist, err := r.userSvc.IsChannelUserExist(c.Request.Context(), channelID, userID)
 	if err != nil {
 		log.Error(err)
-		response(c, http.StatusInternalServerError, ErrServer)
+		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
 	if !exist {
@@ -68,13 +69,13 @@ func (r *Router) StartChat(c *gin.Context) {
 func (r *Router) CreateUser(c *gin.Context) {
 	var userPresenter UserPresenter
 	if err := c.ShouldBindJSON(&userPresenter); err != nil {
-		response(c, http.StatusBadRequest, ErrInvalidParam)
+		response(c, http.StatusBadRequest, common.ErrInvalidParam)
 		return
 	}
 	user, err := r.userSvc.CreateUser(c.Request.Context(), userPresenter.Name)
 	if err != nil {
 		log.Error(err)
-		response(c, http.StatusInternalServerError, ErrServer)
+		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
 	c.JSON(http.StatusCreated, &UserPresenter{
@@ -84,9 +85,9 @@ func (r *Router) CreateUser(c *gin.Context) {
 }
 
 func (r *Router) GetChannelUsers(c *gin.Context) {
-	channelID, ok := c.Request.Context().Value(ChannelKey).(uint64)
+	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
-		response(c, http.StatusUnauthorized, ErrUnauthorized)
+		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
 		return
 	}
 	userIDs, err := r.userSvc.GetChannelUserIDs(c.Request.Context(), channelID)
@@ -96,7 +97,7 @@ func (r *Router) GetChannelUsers(c *gin.Context) {
 			response(c, http.StatusNotFound, ErrChannelNotFound)
 			return
 		}
-		response(c, http.StatusInternalServerError, ErrServer)
+		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
 	userIDsPresenter := []string{}
@@ -109,9 +110,9 @@ func (r *Router) GetChannelUsers(c *gin.Context) {
 }
 
 func (r *Router) GetOnlineUsers(c *gin.Context) {
-	channelID, ok := c.Request.Context().Value(ChannelKey).(uint64)
+	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
-		response(c, http.StatusUnauthorized, ErrUnauthorized)
+		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
 		return
 	}
 	userIDs, err := r.userSvc.GetOnlineUserIDs(c.Request.Context(), channelID)
@@ -121,7 +122,7 @@ func (r *Router) GetOnlineUsers(c *gin.Context) {
 			return
 		}
 		log.Error(err)
-		response(c, http.StatusInternalServerError, ErrServer)
+		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
 	userIDsPresenter := []string{}
@@ -137,7 +138,7 @@ func (r *Router) GetUserName(c *gin.Context) {
 	id := c.Param("uid")
 	userID, err := strconv.ParseUint(id, 10, 64)
 	if err != nil {
-		response(c, http.StatusBadRequest, ErrInvalidParam)
+		response(c, http.StatusBadRequest, common.ErrInvalidParam)
 		return
 	}
 	user, err := r.userSvc.GetUser(c.Request.Context(), userID)
@@ -147,7 +148,7 @@ func (r *Router) GetUserName(c *gin.Context) {
 			return
 		}
 		log.Error(err)
-		response(c, http.StatusInternalServerError, ErrServer)
+		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
 	c.JSON(http.StatusOK, &UserPresenter{
@@ -157,9 +158,9 @@ func (r *Router) GetUserName(c *gin.Context) {
 }
 
 func (r *Router) ListMessages(c *gin.Context) {
-	channelID, ok := c.Request.Context().Value(ChannelKey).(uint64)
+	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
-		response(c, http.StatusUnauthorized, ErrUnauthorized)
+		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
 		return
 	}
 	msgs, err := r.msgSvc.ListMessages(c.Request.Context(), channelID)
@@ -169,7 +170,7 @@ func (r *Router) ListMessages(c *gin.Context) {
 			response(c, http.StatusNotFound, ErrChannelNotFound)
 			return
 		}
-		response(c, http.StatusInternalServerError, ErrServer)
+		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
 	msgsPresenter := []MessagePresenter{}
@@ -182,22 +183,22 @@ func (r *Router) ListMessages(c *gin.Context) {
 }
 
 func (r *Router) DeleteChannel(c *gin.Context) {
-	channelID, ok := c.Request.Context().Value(ChannelKey).(uint64)
+	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
-		response(c, http.StatusUnauthorized, ErrUnauthorized)
+		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
 		return
 	}
 	uid := c.Query("delby")
 	userID, err := strconv.ParseUint(uid, 10, 64)
 	if err != nil {
-		response(c, http.StatusBadRequest, ErrInvalidParam)
+		response(c, http.StatusBadRequest, common.ErrInvalidParam)
 		return
 	}
 
 	exist, err := r.userSvc.IsChannelUserExist(c.Request.Context(), channelID, userID)
 	if err != nil {
 		log.Error(err)
-		response(c, http.StatusInternalServerError, ErrServer)
+		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
 	if !exist {
@@ -208,16 +209,16 @@ func (r *Router) DeleteChannel(c *gin.Context) {
 	err = r.msgSvc.BroadcastActionMessage(c.Request.Context(), channelID, userID, LeavedMessage)
 	if err != nil {
 		log.Error(err)
-		response(c, http.StatusInternalServerError, ErrServer)
+		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
 	err = r.chanSvc.DeleteChannel(c.Request.Context(), channelID)
 	if err != nil {
 		log.Error(err)
-		response(c, http.StatusInternalServerError, ErrServer)
+		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
-	c.JSON(http.StatusNoContent, SuccessMessage{
+	c.JSON(http.StatusNoContent, common.SuccessMessage{
 		Message: "ok",
 	})
 }
@@ -267,14 +268,14 @@ func (r *Router) HandleChatOnConnect(sess *melody.Session) {
 		return
 	}
 	accessToken := sess.Request.URL.Query().Get("access_token")
-	authResult, err := Auth(&AuthPayload{
+	authResult, err := common.Auth(&common.AuthPayload{
 		AccessToken: accessToken,
 	})
 	if err != nil {
 		log.Error(err)
 	}
 	if authResult.Expired {
-		log.Error(ErrTokenExpired)
+		log.Error(common.ErrTokenExpired)
 	}
 	channelID := authResult.ChannelID
 	err = r.initializeChatSession(sess, channelID, userID)
@@ -342,7 +343,7 @@ func (r *Router) HandleChatOnClose(sess *melody.Session, i int, s string) error 
 		return err
 	}
 	accessToken := sess.Request.URL.Query().Get("access_token")
-	authResult, err := Auth(&AuthPayload{
+	authResult, err := common.Auth(&common.AuthPayload{
 		AccessToken: accessToken,
 	})
 	if err != nil {
@@ -350,8 +351,8 @@ func (r *Router) HandleChatOnClose(sess *melody.Session, i int, s string) error 
 		return err
 	}
 	if authResult.Expired {
-		log.Error(ErrTokenExpired)
-		return ErrTokenExpired
+		log.Error(common.ErrTokenExpired)
+		return common.ErrTokenExpired
 	}
 	channelID := authResult.ChannelID
 	err = r.userSvc.DeleteOnlineUser(context.Background(), channelID, userID)

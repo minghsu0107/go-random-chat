@@ -8,6 +8,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill-kafka/v2/pkg/kafka"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 )
 
 var (
@@ -20,7 +21,7 @@ var (
 func NewKafkaPublisher() (message.Publisher, error) {
 	kafkaPublisher, err := kafka.NewPublisher(
 		kafka.PublisherConfig{
-			Brokers:   getServerAddrs(getenv("KAFKA_ADDRS", "localhost:9092")),
+			Brokers:   common.GetServerAddrs(common.Getenv("KAFKA_ADDRS", "localhost:9092")),
 			Marshaler: kafka.DefaultMarshaler{},
 		},
 		logger,
@@ -40,7 +41,7 @@ func NewKafkaSubscriber() (message.Subscriber, error) {
 
 	kafkaSubscriber, err := kafka.NewSubscriber(
 		kafka.SubscriberConfig{
-			Brokers:       getServerAddrs(getenv("KAFKA_ADDRS", "localhost:9092")),
+			Brokers:       common.GetServerAddrs(common.Getenv("KAFKA_ADDRS", "localhost:9092")),
 			Unmarshaler:   kafka.DefaultMarshaler{},
 			ConsumerGroup: watermill.NewUUID(),
 			InitializeTopicDetails: &sarama.TopicDetail{

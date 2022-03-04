@@ -6,12 +6,13 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/olahol/melody.v1"
 )
 
 var (
-	httpPort        = getenv("HTTP_PORT", "5000")
+	httpPort        = common.Getenv("HTTP_PORT", "5000")
 	maxAllowedConns int64
 	sessUidKey      = "sessuid"
 	sessCidKey      = "sesscid"
@@ -35,7 +36,7 @@ type Router struct {
 func init() {
 	gin.SetMode(gin.ReleaseMode)
 	var err error
-	maxAllowedConns, err = strconv.ParseInt(getenv("MAX_ALLOWED_CONNS", "200"), 10, 64)
+	maxAllowedConns, err = strconv.ParseInt(common.Getenv("MAX_ALLOWED_CONNS", "200"), 10, 64)
 	if err != nil {
 		panic(err)
 	}
@@ -56,15 +57,6 @@ func NewRouter(svr *gin.Engine, mm, mc *melody.Melody, matchSubscriber *MatchSub
 }
 
 func (r *Router) RegisterRoutes() {
-	r.svr.LoadHTMLGlob("web/html/*")
-	r.svr.Static("/assets", "./web/assets")
-	r.svr.GET("", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "home.html", nil)
-	})
-	r.svr.GET("/chat", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "chat.html", nil)
-	})
-
 	r.svr.GET("/api/match", r.Match)
 	r.svr.GET("/api/chat", r.StartChat)
 
@@ -74,13 +66,13 @@ func (r *Router) RegisterRoutes() {
 		userGroup.GET("/:uid/name", r.GetUserName)
 	}
 	usersGroup := r.svr.Group("/api/users")
-	usersGroup.Use(JWTAuth())
+	usersGroup.Use(common.JWTAuth())
 	{
 		usersGroup.GET("", r.GetChannelUsers)
 		usersGroup.GET("/online", r.GetOnlineUsers)
 	}
 	channelGroup := r.svr.Group("/api/channel")
-	channelGroup.Use(JWTAuth())
+	channelGroup.Use(common.JWTAuth())
 	{
 		channelGroup.GET("/messages", r.ListMessages)
 		channelGroup.DELETE("", r.DeleteChannel)
@@ -145,7 +137,7 @@ func (r *Router) GracefulStop(ctx context.Context, done chan bool) {
 
 func response(c *gin.Context, httpCode int, err error) {
 	message := err.Error()
-	c.JSON(httpCode, ErrResponse{
+	c.JSON(httpCode, common.ErrResponse{
 		Message: message,
 	})
 }

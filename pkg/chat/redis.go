@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 )
 
 var (
@@ -23,7 +24,7 @@ var (
 
 func init() {
 	var err error
-	expirationHour, err = strconv.ParseInt(getenv("REDIS_EXPIRATION_HOURS", "24"), 10, 64)
+	expirationHour, err = strconv.ParseInt(common.Getenv("REDIS_EXPIRATION_HOURS", "24"), 10, 64)
 	if err != nil {
 		panic(err)
 	}
@@ -106,8 +107,8 @@ type RedisPipelineCmd struct {
 
 func NewRedisClient() (redis.UniversalClient, error) {
 	RedisClient = redis.NewClusterClient(&redis.ClusterOptions{
-		Addrs:         getServerAddrs(getenv("REDIS_ADDRS", "localhost:6379")),
-		Password:      getenv("REDIS_PASSWORD", ""),
+		Addrs:         common.GetServerAddrs(common.Getenv("REDIS_ADDRS", "localhost:6379")),
+		Password:      common.Getenv("REDIS_PASSWORD", ""),
 		ReadOnly:      true,
 		RouteRandomly: true,
 	})

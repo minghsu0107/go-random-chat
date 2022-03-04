@@ -1,4 +1,4 @@
-package upload
+package web
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	httpPort = common.Getenv("HTTP_PORT", "5001")
+	httpPort = common.Getenv("HTTP_PORT", "5000")
 )
 
 type Router struct {
@@ -29,11 +29,14 @@ func NewRouter(svr *gin.Engine) *Router {
 }
 
 func (r *Router) RegisterRoutes() {
-	uploadGroup := r.svr.Group("/api/file")
-	uploadGroup.Use(common.JWTAuth())
-	{
-		uploadGroup.POST("", r.UploadFile)
-	}
+	r.svr.LoadHTMLGlob("web/html/*")
+	r.svr.Static("/assets", "./web/assets")
+	r.svr.GET("", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "home.html", nil)
+	})
+	r.svr.GET("/chat", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "chat.html", nil)
+	})
 }
 
 func (r *Router) Run() {
@@ -59,11 +62,4 @@ func (r *Router) GracefulStop(ctx context.Context, done chan bool) {
 
 	log.Info("gracefully shutdowned")
 	done <- true
-}
-
-func response(c *gin.Context, httpCode int, err error) {
-	message := err.Error()
-	c.JSON(httpCode, common.ErrResponse{
-		Message: message,
-	})
 }
