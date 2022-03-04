@@ -46,7 +46,7 @@ services:
       JWT_EXPIRATION_SECONDS: "86400"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.random-chat.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.random-chat.rule=PathPrefix(`/api`)"
       - "traefik.http.routers.random-chat.entrypoints=web"
       - "traefik.http.routers.random-chat.service=random-chat"
       - "traefik.http.services.random-chat.loadbalancer.server.port=80"
