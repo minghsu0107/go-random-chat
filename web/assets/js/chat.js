@@ -67,25 +67,25 @@ span.onclick = function () {
 }
 
 var timeout = setTimeout(function () { }, 0)
-var userTypingID = 'usertyping'
+//var userTypingID = 'usertyping'
 var peerTypingID = 'peertyping'
 var isTyping = false
 text.addEventListener('keyup', function () {
     markMessagesAsSeen()
     clearTimeout(timeout)
     if (!isTyping) {
-        insertMsg(getTypingMessage(USER_ID, RIGHT, userTypingID), chatroom[0], true)
+        //insertMsg(getTypingMessage(USER_ID, RIGHT, userTypingID), chatroom[0], true)
         sendActionMessage("istyping")
     }
     isTyping = true
     timeout = setTimeout(function () {
-        let el = document.getElementById(userTypingID)
-        if (el !== null) {
-            el.remove()
-        }
+        // let el = document.getElementById(userTypingID)
+        // if (el !== null) {
+        //     el.remove()
+        // }
         sendActionMessage("endtyping")
         isTyping = false
-    }, 500)
+    }, 1000)
 })
 
 chatroom[0].addEventListener("scroll", function (e) {
@@ -227,9 +227,12 @@ function connectWebSocket() {
         var msg = await processMessage(m)
         if (msg !== "") {
             if (m.event === EVENT_TEXT) {
-                let el = (m.user_id === USER_ID) ? document.getElementById(userTypingID) : document.getElementById(peerTypingID)
-                if (el !== null) {
-                    el.remove()
+                // let el = (m.user_id === USER_ID) ? document.getElementById(userTypingID) : document.getElementById(peerTypingID)
+                if (m.user_id !== USER_ID) {
+                    let el = document.getElementById(peerTypingID)
+                    if (el !== null) {
+                        el.remove()
+                    }
                 }
             }
             if (m.event === EVENT_TEXT || m.event === EVENT_FILE) {
@@ -253,7 +256,7 @@ function connectWebSocket() {
 
     ws.addEventListener('close', async function (e) {
         document.getElementById("headstatus").innerHTML = `
-    <div id="headstatus"><i class="fas fa-circle icon-red"></i>&nbsp;disconnected</div>
+        <i class="fas fa-circle icon-red fa-xs"></i><span style="margin-left: 10px; font-size: 1em;">disconnected</span>
     `
         document.getElementById("msg").disabled = true
         if (ACCESS_TOKEN !== "" && !isPageHidden) {
@@ -499,11 +502,9 @@ async function updateOnlineUsers() {
             }
             ONLINE_USERS = curOnlineUsers
             var onlineMsg = ""
-            var youMsg = ""
             for (var onlinerUserStr of ONLINE_USERS) {
                 var onlineUser = JSON.parse(onlinerUserStr)
                 if (onlineUser.id === USER_ID) {
-                    youMsg = ", you"
                     continue
                 }
                 if (onlineMsg !== "") {
@@ -511,15 +512,11 @@ async function updateOnlineUsers() {
                 }
                 onlineMsg += onlineUser.name
             }
-            if (youMsg !== "") {
-                if (onlineMsg === "") {
-                    onlineMsg = "only you"
-                } else {
-                    onlineMsg += youMsg
-                }
+            if (onlineMsg === "") {
+                onlineMsg = "only you"
             }
             document.getElementById("headstatus").innerHTML = `
-                <div id="headstatus" style="font-size: 1rem;"><i class="fas fa-circle icon-green"></i>&nbsp;${onlineMsg}</div>
+                <i class="fas fa-circle icon-green fa-xs"></i><span style="margin-left: 10px; font-size: 1em; font-weight: bold;">${onlineMsg}</span>
                 `
         })
         .catch(err => {
@@ -580,20 +577,17 @@ function getFileMessage(messageID, userID, side, fileName, fileURL, time, seen) 
     let isImg = (extention === "jpg" || extention === "png" || extention === "jpeg")
     let fileView = ""
     if (isImg) {
-        fileView = `<img id="img-${messageID}" onload="this.style.visibility='visible'" src=${fileURL} loading="lazy" alt='' style="max-width:50%;border-radius: 15px;visibility: hidden;" onclick="showModal(this.src)"/>`
+        fileView = `<img id="img-${messageID}" onload="this.style.visibility='visible'" src=${fileURL} loading="lazy" alt='' style="max-width:35%;border-radius: 15px;visibility: hidden;" onclick="showModal(this.src)"/>`
     } else {
         let color = "black"
         if (side === RIGHT) {
             color = "white"
         }
         fileView = `
-        <div class="msg-bubble" style="min-width: 75px">
-          <div class="msg-info">
-            <div class="msg-info-name">${ID2NAME[userID]}</div>
-          </div>
-          <div style="margin-left: auto;margin-right: auto;margin-top: 25px;">
+        <div class="msg-bubble">
+          <div class="msg-text">
             <a href=${fileURL} download target="_blank" style="color: ${color}">
-              <div style="max-width: 15em;;overflow-wrap: break-word;">${fileName}</div>
+              <div style="overflow-wrap: break-word;">${fileName}</div>
             </a>
           </div>
         </div>
@@ -609,7 +603,7 @@ function getFileMessage(messageID, userID, side, fileName, fileURL, time, seen) 
         if (seen) {
             seenMsg = "seen"
         }
-        msg += `<div style="margin-right: 10px; color: #a6a6a6"><div id="seen-${messageID}">${seenMsg}</div><div class="msg-info-time">${time.split(' ')[1]}</div></div>`
+        msg += `<div style="margin-right: 10px; color: #a6a6a6"><div id="seen-${messageID}" class="msg-info-seen">${seenMsg}</div><div class="msg-info-time">${time.split(' ')[1]}</div></div>`
     } else {
         msg += `<div style="margin-left: 10px; color: #a6a6a6"><div class="msg-info-time">${time.split(' ')[1]}</div></div>`
     }
@@ -632,12 +626,9 @@ function getTextMessage(messageID, userID, side, text, time, seen) {
     <div id="${messageID}" class="msg ${side}-msg">
       <div class="msg-img" style="background-image: url(${getUserImageURL(userID)})"></div>
 
-      <div class="msg-bubble" style="min-width: 75px">
-        <div class="msg-info">
-          <div class="msg-info-name">${ID2NAME[userID]}</div>
-        </div>
+      <div class="msg-bubble">
 
-        <div class="msg-text" style="max-width: 15em;overflow-wrap: break-word;">${urlify(text).replace(/(?:\r|\n|\r\n)/g, '<br>')}</div>
+        <div class="msg-text" style="overflow-wrap: break-word;">${urlify(text).replace(/(?:\r|\n|\r\n)/g, '<br>')}</div>
       </div>
     `
     if (side === RIGHT) {
@@ -645,7 +636,7 @@ function getTextMessage(messageID, userID, side, text, time, seen) {
         if (seen) {
             seenMsg = "seen"
         }
-        msg += `<div style="margin-right: 10px; color: #a6a6a6"><div id="seen-${messageID}">${seenMsg}</div><div class="msg-info-time">${time.split(' ')[1]}</div></div>`
+        msg += `<div style="margin-right: 10px; color: #a6a6a6"><div id="seen-${messageID}" class="msg-info-seen">${seenMsg}</div><div class="msg-info-time">${time.split(' ')[1]}</div></div>`
     } else {
         msg += `<div style="margin-left: 10px; color: #a6a6a6"><div class="msg-info-time">${time.split(' ')[1]}</div></div>`
     }
