@@ -2,30 +2,10 @@ package chat
 
 import (
 	"encoding/json"
-	"errors"
 	"strconv"
+
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 )
-
-var (
-	ErrInvalidParam = errors.New("invalid parameter")
-	ErrServer       = errors.New("server error")
-	ErrUnauthorized = errors.New("unauthorized")
-)
-
-// ErrResponse is the error response type
-type ErrResponse struct {
-	Message string `json:"msg"`
-}
-
-// SuccessMessage is the success response type
-type SuccessMessage struct {
-	Message string `json:"msg" example:"ok"`
-}
-
-// OkMsg is the default success response for 200 status code
-var OkMsg SuccessMessage = SuccessMessage{
-	Message: "ok",
-}
 
 type MessagePresenter struct {
 	MessageID string `json:"message_id"`
@@ -72,14 +52,14 @@ func (m *MessagePresenter) Encode() []byte {
 }
 
 func (m *MessagePresenter) ToMessage(accessToken string) (*Message, error) {
-	authResult, err := Auth(&AuthPayload{
+	authResult, err := common.Auth(&common.AuthPayload{
 		AccessToken: accessToken,
 	})
 	if err != nil {
 		return nil, err
 	}
 	if authResult.Expired {
-		return nil, ErrTokenExpired
+		return nil, common.ErrTokenExpired
 	}
 	channelID := authResult.ChannelID
 	userID, err := strconv.ParseUint(m.UserID, 10, 64)

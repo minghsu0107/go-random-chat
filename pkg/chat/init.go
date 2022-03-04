@@ -10,7 +10,7 @@ import (
 
 func InitializeRouter() (*Router, error) {
 	svr := gin.Default()
-	svr.Use(MaxAllowed(maxAllowedConns))
+	svr.Use(common.MaxAllowed(maxAllowedConns))
 
 	MelodyMatch = melody.New()
 	MelodyChat = melody.New()

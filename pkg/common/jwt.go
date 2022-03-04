@@ -1,4 +1,4 @@
-package chat
+package common
 
 import (
 	"errors"
@@ -7,11 +7,10 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/minghsu0107/go-random-chat/pkg/common"
 )
 
 var (
-	jwtSecret            = common.Getenv("JWT_SECRET", "randomchatjwtcred")
+	jwtSecret            = Getenv("JWT_SECRET", "randomchatjwtcred")
 	jwtExpirationSeconds int64
 )
 
@@ -22,7 +21,7 @@ var (
 
 func init() {
 	var err error
-	jwtExpirationSeconds, err = strconv.ParseInt(common.Getenv("JWT_EXPIRATION_SECONDS", "86400"), 10, 0)
+	jwtExpirationSeconds, err = strconv.ParseInt(Getenv("JWT_EXPIRATION_SECONDS", "86400"), 10, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -65,7 +64,7 @@ func Auth(authPayload *AuthPayload) (*AuthResponse, error) {
 	}, nil
 }
 
-func newJWT(channelID uint64) (string, error) {
+func NewJWT(channelID uint64) (string, error) {
 	expiresAt := time.Now().Add(time.Duration(jwtExpirationSeconds) * time.Second)
 	jwtClaims := &JWTClaims{
 		ChannelID: channelID,

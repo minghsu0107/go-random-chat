@@ -66,13 +66,13 @@ func (r *Router) RegisterRoutes() {
 		userGroup.GET("/:uid/name", r.GetUserName)
 	}
 	usersGroup := r.svr.Group("/api/users")
-	usersGroup.Use(JWTAuth())
+	usersGroup.Use(common.JWTAuth())
 	{
 		usersGroup.GET("", r.GetChannelUsers)
 		usersGroup.GET("/online", r.GetOnlineUsers)
 	}
 	channelGroup := r.svr.Group("/api/channel")
-	channelGroup.Use(JWTAuth())
+	channelGroup.Use(common.JWTAuth())
 	{
 		channelGroup.GET("/messages", r.ListMessages)
 		channelGroup.DELETE("", r.DeleteChannel)
@@ -130,7 +130,7 @@ func (r *Router) GracefulStop(ctx context.Context, done chan bool) {
 
 func response(c *gin.Context, httpCode int, err error) {
 	message := err.Error()
-	c.JSON(httpCode, ErrResponse{
+	c.JSON(httpCode, common.ErrResponse{
 		Message: message,
 	})
 }

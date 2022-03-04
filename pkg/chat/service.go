@@ -4,6 +4,8 @@ import (
 	"context"
 	"strconv"
 	"time"
+
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 )
 
 type MessageService interface {
@@ -152,7 +154,7 @@ func (svc *MatchingServiceImpl) Match(ctx context.Context, userID uint64) (*Matc
 		if err != nil {
 			return nil, err
 		}
-		accessToken, err := newJWT(newChannelID)
+		accessToken, err := common.NewJWT(newChannelID)
 		if err != nil {
 			return nil, err
 		}

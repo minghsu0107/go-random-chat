@@ -3,15 +3,14 @@ package upload
 import (
 	"context"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/minghsu0107/go-random-chat/pkg/chat"
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 	log "github.com/sirupsen/logrus"
 )
 
 var (
-	httpPort = getenv("HTTP_PORT", "5001")
+	httpPort = common.Getenv("HTTP_PORT", "5001")
 )
 
 type Router struct {
@@ -31,7 +30,7 @@ func NewRouter(svr *gin.Engine) *Router {
 
 func (r *Router) RegisterRoutes() {
 	uploadGroup := r.svr.Group("/api/file")
-	uploadGroup.Use(chat.JWTAuth())
+	uploadGroup.Use(common.JWTAuth())
 	{
 		uploadGroup.POST("", r.UploadFile)
 	}
@@ -64,15 +63,7 @@ func (r *Router) GracefulStop(ctx context.Context, done chan bool) {
 
 func response(c *gin.Context, httpCode int, err error) {
 	message := err.Error()
-	c.JSON(httpCode, chat.ErrResponse{
+	c.JSON(httpCode, common.ErrResponse{
 		Message: message,
 	})
-}
-
-func getenv(key, fallback string) string {
-	value := os.Getenv(key)
-	if len(value) == 0 {
-		return fallback
-	}
-	return value
 }
