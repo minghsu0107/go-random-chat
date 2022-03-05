@@ -16,5 +16,5 @@ RUN mkdir -p /app/web
 WORKDIR /app
 COPY --from=builder /app/server /app/server
 COPY --from=builder /app/web /app/web
-
+ENV APP=web
 ENTRYPOINT ["/app/server"]
