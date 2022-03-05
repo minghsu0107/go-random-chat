@@ -19,7 +19,6 @@ services:
     expose:
       - "80"
     environment:
-      APP: web
       HTTP_PORT: "80"
     labels:
       - "traefik.enable=true"
