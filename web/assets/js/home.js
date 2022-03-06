@@ -96,7 +96,14 @@ async function createUser(username) {
         })
 }
 function match() {
-    var matchUrl = "ws://" + window.location.host + "/api/match?uid=" + localStorage.getItem(userIDStoreKey)
+    var protocol
+    var loc = window.location
+    if (loc.protocol === "https:") {
+        protocol = "wss:"
+    } else {
+        protocol = "ws:"
+    }
+    var matchUrl = protocol + "//" + window.location.host + "/api/match?uid=" + localStorage.getItem(userIDStoreKey)
     ws = new WebSocket(matchUrl)
     ws.addEventListener('message', function (e) {
         var result = JSON.parse(e.data)

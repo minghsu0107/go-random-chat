@@ -49,7 +49,14 @@ document.addEventListener("visibilitychange", function () {
     }
 })
 
-var chatUrl = "ws://" + window.location.host + "/api/chat?uid=" + USER_ID + "&access_token=" + ACCESS_TOKEN
+var protocol
+var loc = window.location
+if (loc.protocol === "https:") {
+    protocol = "wss:"
+} else {
+    protocol = "ws:"
+}
+var chatUrl = protocol + "//" + window.location.host + "/api/chat?uid=" + USER_ID + "&access_token=" + ACCESS_TOKEN
 var ws
 var chatroom = document.getElementsByClassName("msger-chat")
 var initialChatScrollHeight = chatroom[0].scrollHeight
