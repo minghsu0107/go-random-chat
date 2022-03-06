@@ -1,5 +1,5 @@
 # Go Random Chat
-Modern real-time random chat written in go.
+Modern real-time random chat with high performance and linear scalability, written in go.
 
 Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
