@@ -40,7 +40,7 @@ services:
       MAX_ALLOWED_CONNS: "200"
       MAX_MSGS: "500"
       MAX_MSG_SIZE_BYTE: "4096"
-      JWT_SECRET: "mysecret"
+      JWT_SECRET: mysecret
       JWT_EXPIRATION_SECONDS: "86400"
     labels:
       - "traefik.enable=true"
@@ -63,8 +63,7 @@ services:
       S3_BUCKET: myfilebucket
       AWS_ACCESS_KEY_ID: testaccesskey
       AWS_SECRET_KEY: testsecret
-      JWT_SECRET: "mysecret"
-      JWT_EXPIRATION_SECONDS: "86400"
+      JWT_SECRET: mysecret
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.uploader.rule=PathPrefix(`/api/file`)"
