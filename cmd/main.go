@@ -22,6 +22,6 @@ func main() {
 	case "web":
 		web.RunWebServer()
 	default:
-		log.Fatalf("invalid app name: %s. Should be 'chat', 'upload'", app)
+		log.Fatalf("invalid app name: %s. Should be 'chat', 'upload', 'web'", app)
 	}
 }
