@@ -4,7 +4,7 @@ Modern real-time random chat with high performance and linear scalability, writt
 Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
 - At-least-once delivery for message Pub/Sub using [Kafka](https://kafka.apache.org).
-- High performance and linear scalability.
+- Message retention for a certain period.
 - User matching with idempotency.
 - Message seen feature.
 - Auto-scroll to the first unseen message.
