@@ -145,11 +145,14 @@ upload.addEventListener("pointerup", function (e) {
     upload.style.color = "gray"
 })
 send.addEventListener("pointerdown", function (e) {
+    e.preventDefault()
     send.style.color = "#0a1869"
 })
 send.addEventListener("pointerup", function (e) {
+    e.preventDefault()
     sendTextMessage()
     text.setAttribute("rows", 1)
+    text.focus()
     send.style.color = "#25A3FF"
 })
 leave.onclick = async function (e) {
