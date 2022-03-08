@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -45,7 +46,7 @@ func init() {
 }
 
 func (r *Router) UploadFile(c *gin.Context) {
-	channelIDStr, ok := c.Request.Context().Value(common.ChannelKey).(string)
+	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
 		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
 		return
@@ -65,7 +66,7 @@ func (r *Router) UploadFile(c *gin.Context) {
 	}
 
 	extension := filepath.Ext(fileHeader.Filename)
-	newFileName := newObjectKey(channelIDStr, extension)
+	newFileName := newObjectKey(channelID, extension)
 	if err := putFileToS3(c.Request.Context(), s3Bucket, newFileName, f); err != nil {
 		log.Error(err)
 		response(c, http.StatusServiceUnavailable, ErrUploadFile)
@@ -91,8 +92,8 @@ func putFileToS3(ctx context.Context, bucket, fileName string, f io.Reader) erro
 	return nil
 }
 
-func newObjectKey(channelID, extension string) string {
-	return joinStrs(channelID, "/", uuid.New().String(), extension)
+func newObjectKey(channelID uint64, extension string) string {
+	return joinStrs(strconv.FormatUint(channelID, 10), "/", uuid.New().String(), extension)
 }
 
 func joinStrs(strs ...string) string {
