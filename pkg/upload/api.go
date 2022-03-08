@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -44,6 +45,11 @@ func init() {
 }
 
 func (r *Router) UploadFile(c *gin.Context) {
+	channelIDStr, ok := c.Request.Context().Value(common.ChannelKey).(string)
+	if !ok {
+		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
+		return
+	}
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
 		log.Error(err)
@@ -59,7 +65,7 @@ func (r *Router) UploadFile(c *gin.Context) {
 	}
 
 	extension := filepath.Ext(fileHeader.Filename)
-	newFileName := uuid.New().String() + extension
+	newFileName := newObjectKey(channelIDStr, extension)
 	if err := putFileToS3(c.Request.Context(), s3Bucket, newFileName, f); err != nil {
 		log.Error(err)
 		response(c, http.StatusServiceUnavailable, ErrUploadFile)
@@ -83,6 +89,10 @@ func putFileToS3(ctx context.Context, bucket, fileName string, f io.Reader) erro
 		return err
 	}
 	return nil
+}
+
+func newObjectKey(channelID, extension string) string {
+	return joinStrs(channelID, "/", uuid.New().String(), extension)
 }
 
 func joinStrs(strs ...string) string {
