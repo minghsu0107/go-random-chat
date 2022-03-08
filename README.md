@@ -46,6 +46,6 @@ A common scenario is that one deploys the application behind a reverse proxy wit
 ## Screenshots
 <img src="https://i.imgur.com/4ctofQv.png" alt="" data-canonical-src="https://i.imgur.com/4ctofQv.png" width="60%" height="60%" />
 
-<img src="https://user-images.githubusercontent.com/50090692/156814966-58eb2120-8691-45e2-ba25-c1e617296122.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/156814966-58eb2120-8691-45e2-ba25-c1e617296122.png" width="60%" height="60%" />
+<img src="https://user-images.githubusercontent.com/50090692/157261249-c1d88e15-b8c7-4e89-829e-e96b43481422.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/157261249-c1d88e15-b8c7-4e89-829e-e96b43481422.png" width="60%" height="60%" />
 
 <img src="https://user-images.githubusercontent.com/50090692/156815192-11a251fb-32ee-4888-b79c-aa64c97b407d.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/156815192-11a251fb-32ee-4888-b79c-aa64c97b407d.png" width="60%" height="60%" />
