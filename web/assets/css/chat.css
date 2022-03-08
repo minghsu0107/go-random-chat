@@ -26,15 +26,15 @@ body {
     align-items: center;
     height: 100vh;
     background-image: var(--body-bg);
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Verdana', sans-serif;
 }
 
 .icon-red {
-    color: #ff6666;
+    color: #ff8080;
 }
 
 .icon-green {
-    color: #00e600;
+    color: #80ff80;
 }
 
 .msger {
@@ -56,9 +56,8 @@ body {
 .msger-header {
     display: flex;
     justify-content: space-between;
-    padding: 10px;
-    border-bottom: var(--border);
-    background: #eee;
+    padding: 15px;
+    background: white;
     color: #666;
 }
 
@@ -91,8 +90,8 @@ body {
 }
 
 .msg-img {
-    width: 30px;
-    height: 30px;
+    width: 25px;
+    height: 25px;
     margin-right: 10px;
     background: #ddd;
     background-repeat: no-repeat;
@@ -103,8 +102,8 @@ body {
 
 .msg-bubble {
     max-width: 75%;
-    min-width: 50px;
-    padding: 10px;
+    min-width: 3px;
+    padding: 10px 10px;
     border-radius: 15px;
     background: var(--left-msg-bg);
 }
@@ -128,9 +127,10 @@ body {
     font-size: 12px;
 }
 
+/*
 .left-msg .msg-bubble {
-    border-bottom-left-radius: 0;
 }
+*/
 
 .right-msg {
     flex-direction: row-reverse;
@@ -139,7 +139,6 @@ body {
 .right-msg .msg-bubble {
     background: var(--right-msg-bg);
     color: #fff;
-    border-bottom-right-radius: 0;
 }
 
 .right-msg .msg-img {
@@ -161,31 +160,34 @@ body {
 
 .msger-inputarea {
     display: flex;
-    padding: 10px;
-    border-top: var(--border);
-    background: #eee;
+    flex-direction: row-reverse;
+    padding: 20px 10px 20px 20px;
 }
 
-.msger-inputarea * {
-    padding: 10px;
-    border: none;
-    border-radius: 3px;
-    font-size: 1em;
-}
+
 
 .msger-input {
     flex: 1;
-    background: #ddd;
+    background: #f2f2f2;
+    border-radius: 15px;
+    resize: none;
+    padding: 20px 20px;
+    border: none;
+    font-size: 1em;
+    max-width: 80%;
 }
 
 .msger-send-btn {
+    margin-top: auto;
+    margin-bottom: auto;
     margin-left: 10px;
     color: #25A3FF;
-    padding: 0;
+    padding: 10px;
     border: none;
     background: none;
     cursor: pointer;
     max-height: 50px;
+    font-size: 1em;
 }
 
 .msger-send-btn:hover {
@@ -195,9 +197,10 @@ body {
 .msger-upload-btn {
     margin-top: auto;
     margin-bottom: auto;
+    margin-left: 0px;
     margin-right: 10px;
     color: gray;
-    padding: 0;
+    padding: 10px;
     border: none;
     background: none;
     cursor: pointer;
