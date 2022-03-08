@@ -28,11 +28,11 @@
             <img class="modal-content" id="img01">
         </div>
         <div class="msger-inputarea">
-            <label id="upload" class="msger-upload-btn"><input id="file" style="display:none;" type="file"
-                    onchange="uploadFile(this.files[0])" /><i class="fas fa-file-upload fa-lg"></i></label>
+            <button type="button" id="send" class="msger-send-btn"><i class="fas fa-paper-plane fa-lg"></i></button>
             <textarea class="msger-input" id="msg" placeholder="say something..." rows="1"
                 style="font-family:'Roboto', sans-serif;max-height: 15rem;"></textarea>
-            <button type="button" id="send" class="msger-send-btn"><i class="fas fa-paper-plane fa-lg"></i></button>
+            <label id="upload" class="msger-upload-btn"><input id="file" style="display:none;" type="file"
+                    onchange="uploadFile(this.files[0])" /><i class="fas fa-file-upload fa-lg"></i></label>
         </div>
     </section>
     <script src="/assets/js/chat.js"></script>
