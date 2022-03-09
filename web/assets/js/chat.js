@@ -100,6 +100,9 @@ chatroom[0].addEventListener("scroll", function (e) {
         markMessagesAsSeen()
     }
 })
+chatroom[0].addEventListener("touchstart", function (e) {
+    text.blur()
+})
 
 function markMessagesAsSeen() {
     for (let i = peerMessages.length - 1; i >= 0; i--) {
@@ -146,14 +149,17 @@ upload.addEventListener("pointerup", function (e) {
 })
 send.addEventListener("pointerdown", function (e) {
     e.preventDefault()
+    sendTextMessage()
+    text.setAttribute("rows", 1)
+    text.focus()
     send.style.color = "#0a1869"
 })
 send.addEventListener("pointerup", function (e) {
     e.preventDefault()
-    sendTextMessage()
-    text.setAttribute("rows", 1)
-    text.focus()
     send.style.color = "#25A3FF"
+})
+send.addEventListener("click", function (e) {
+    text.focus()
 })
 leave.onclick = async function (e) {
     var result = confirm("Are you sure you want to leave?")
@@ -355,6 +361,7 @@ async function fetchMessages() {
         let el = document.getElementById(message.message_id)
         if (el === null) {
             var msg = await processMessage(message)
+            insertDummy()
             chatroom[0].insertAdjacentHTML("beforeend", msg)
             if ((message.event === EVENT_TEXT || message.event === EVENT_FILE) && message.user_id !== USER_ID) {
                 peerMessages.push(message)
@@ -676,6 +683,7 @@ function getReturnHomeMessage() {
 }
 
 function insertMsg(msg, domObj, isSelf) {
+    insertDummy()
     domObj.insertAdjacentHTML("beforeend", msg)
     if (isSelf) {
         domObj.scrollTop = domObj.scrollHeight
@@ -686,6 +694,13 @@ function insertMsg(msg, domObj, isSelf) {
     }
     if (text.value === "\n") {
         text.value = ""
+    }
+}
+
+function insertDummy() {
+    while (chatroom[0].scrollHeight === initialChatScrollHeight) {
+        let dummy = `<div class="msg-left" style="visibility: hidden;">dummy</div>`
+        chatroom[0].insertAdjacentHTML("beforeend", dummy)
     }
 }
 
