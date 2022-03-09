@@ -175,6 +175,7 @@ body {
     border: none;
     font-size: 1em;
     max-width: 80%;
+    outline: none;
 }
 
 .msger-send-btn {
