@@ -201,6 +201,7 @@ function connectWebSocket() {
             }
         }
         try {
+            insertDummy()
             await getAllChannelUserNames()
             await fetchMessages()
         } catch (err) {
@@ -361,7 +362,6 @@ async function fetchMessages() {
         let el = document.getElementById(message.message_id)
         if (el === null) {
             var msg = await processMessage(message)
-            insertDummy()
             chatroom[0].insertAdjacentHTML("beforeend", msg)
             if ((message.event === EVENT_TEXT || message.event === EVENT_FILE) && message.user_id !== USER_ID) {
                 peerMessages.push(message)
@@ -683,7 +683,6 @@ function getReturnHomeMessage() {
 }
 
 function insertMsg(msg, domObj, isSelf) {
-    insertDummy()
     domObj.insertAdjacentHTML("beforeend", msg)
     if (isSelf) {
         domObj.scrollTop = domObj.scrollHeight
