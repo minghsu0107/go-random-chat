@@ -3,6 +3,7 @@ Modern real-time random chat with high performance and linear scalability, writt
 
 Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
+- Microservices architecture - `web` (frontend server), `chat` (messaging server) and `upload` (file uploader). Each of them can be horizontally scaled on demand.
 - At-least-once delivery for message Pub/Sub using [Kafka](https://kafka.apache.org).
 - Message retention for a certain period.
 - User matching with idempotency.
