@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"strconv"
 	"time"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
+	"github.com/minghsu0107/go-random-chat/pkg/config"
 )
 
 var (
@@ -21,15 +21,6 @@ var (
 	expirationHour int64
 	expiration     time.Duration
 )
-
-func init() {
-	var err error
-	expirationHour, err = strconv.ParseInt(common.Getenv("REDIS_EXPIRATION_HOURS", "24"), 10, 64)
-	if err != nil {
-		panic(err)
-	}
-	expiration = time.Duration(expirationHour) * time.Hour
-}
 
 // RedisCache is the interface of redis cache
 type RedisCache interface {
@@ -105,10 +96,12 @@ type RedisPipelineCmd struct {
 	Cmd    interface{}
 }
 
-func NewRedisClient() (redis.UniversalClient, error) {
+func NewRedisClient(config *config.Config) (redis.UniversalClient, error) {
+	expirationHour = config.Chat.Redis.ExpirationHour
+	expiration = time.Duration(expirationHour) * time.Hour
 	RedisClient = redis.NewClusterClient(&redis.ClusterOptions{
-		Addrs:         common.GetServerAddrs(common.Getenv("REDIS_ADDRS", "localhost:6379")),
-		Password:      common.Getenv("REDIS_PASSWORD", ""),
+		Addrs:         common.GetServerAddrs(config.Chat.Redis.Addrs),
+		Password:      config.Chat.Redis.Password,
 		ReadOnly:      true,
 		RouteRandomly: true,
 	})

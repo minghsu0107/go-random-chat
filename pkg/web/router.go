@@ -5,16 +5,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/minghsu0107/go-random-chat/pkg/common"
+	"github.com/minghsu0107/go-random-chat/pkg/config"
 	log "github.com/sirupsen/logrus"
-)
-
-var (
-	httpPort = common.Getenv("HTTP_PORT", "5000")
 )
 
 type Router struct {
 	svr        *gin.Engine
+	httpPort   string
 	httpServer *http.Server
 }
 
@@ -22,9 +19,14 @@ func init() {
 	gin.SetMode(gin.ReleaseMode)
 }
 
-func NewRouter(svr *gin.Engine) *Router {
+func NewGinServer() *gin.Engine {
+	return gin.Default()
+}
+
+func NewRouter(config *config.Config, svr *gin.Engine) *Router {
 	return &Router{
-		svr: svr,
+		svr:      svr,
+		httpPort: config.Web.Http.Port,
 	}
 }
 
@@ -42,7 +44,7 @@ func (r *Router) RegisterRoutes() {
 func (r *Router) Run() {
 	go func() {
 		r.RegisterRoutes()
-		addr := ":" + httpPort
+		addr := ":" + r.httpPort
 		r.httpServer = &http.Server{
 			Addr:    addr,
 			Handler: r.svr,

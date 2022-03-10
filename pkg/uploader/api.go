@@ -1,49 +1,20 @@
-package upload
+package uploader
 
 import (
 	"context"
 	"io"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	log "github.com/sirupsen/logrus"
 )
-
-var (
-	uploader *s3manager.Uploader
-
-	s3Endpoint = os.Getenv("S3_ENDPOINT")
-	s3Region   = os.Getenv("S3_REGION")
-	s3Bucket   = os.Getenv("S3_BUCKET")
-	accessKey  = os.Getenv("AWS_ACCESS_KEY_ID")
-	secretKey  = os.Getenv("AWS_SECRET_KEY")
-)
-
-func init() {
-	creds := credentials.NewStaticCredentials(accessKey, secretKey, "")
-
-	config := &aws.Config{
-		Credentials:      creds,
-		Endpoint:         aws.String(s3Endpoint),
-		Region:           aws.String(s3Region),
-		DisableSSL:       aws.Bool(true),
-		S3ForcePathStyle: aws.Bool(true),
-		MaxRetries:       aws.Int(3),
-	}
-
-	sess := session.Must(session.NewSession(config))
-	uploader = s3manager.NewUploader(sess)
-}
 
 func (r *Router) UploadFile(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
@@ -67,7 +38,7 @@ func (r *Router) UploadFile(c *gin.Context) {
 
 	extension := filepath.Ext(fileHeader.Filename)
 	newFileName := newObjectKey(channelID, extension)
-	if err := putFileToS3(c.Request.Context(), s3Bucket, newFileName, f); err != nil {
+	if err := r.putFileToS3(c.Request.Context(), r.s3Bucket, newFileName, f); err != nil {
 		log.Error(err)
 		response(c, http.StatusServiceUnavailable, ErrUploadFile)
 		return
@@ -75,12 +46,12 @@ func (r *Router) UploadFile(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"file_name": fileHeader.Filename,
-		"file_url":  joinStrs(s3Endpoint, "/", s3Bucket, "/", newFileName),
+		"file_url":  joinStrs(r.s3Endpoint, "/", r.s3Bucket, "/", newFileName),
 	})
 }
 
-func putFileToS3(ctx context.Context, bucket, fileName string, f io.Reader) error {
-	_, err := uploader.UploadWithContext(ctx, &s3manager.UploadInput{
+func (r *Router) putFileToS3(ctx context.Context, bucket, fileName string, f io.Reader) error {
+	_, err := r.uploader.UploadWithContext(ctx, &s3manager.UploadInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(fileName),
 		ACL:    aws.String("public-read"),

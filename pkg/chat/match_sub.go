@@ -2,17 +2,15 @@ package chat
 
 import (
 	"context"
-	"strconv"
 	"time"
+
+	"github.com/minghsu0107/go-random-chat/pkg/config"
 
 	retry "github.com/avast/retry-go"
 	"github.com/go-redis/redis/v8"
-	"github.com/minghsu0107/go-random-chat/pkg/common"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/olahol/melody.v1"
 )
-
-var matchNumberWorker int64
 
 type MatchSubscriber interface {
 	Subscribe() error
@@ -20,25 +18,19 @@ type MatchSubscriber interface {
 }
 
 type MatchSubscriberImpl struct {
-	client   redis.UniversalClient
-	m        *melody.Melody
-	pool     *Pool
-	userRepo UserRepo
+	client       redis.UniversalClient
+	m            MelodyMatchConn
+	numberWorker int
+	pool         *Pool
+	userRepo     UserRepo
 }
 
-func init() {
-	var err error
-	matchNumberWorker, err = strconv.ParseInt(common.Getenv("MATCH_NUMBER_WORKER", "4"), 10, 0)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func NewMatchSubscriber(client redis.UniversalClient, m *melody.Melody, userRepo UserRepo) MatchSubscriber {
+func NewMatchSubscriber(config *config.Config, client redis.UniversalClient, m MelodyMatchConn, userRepo UserRepo) MatchSubscriber {
 	return &MatchSubscriberImpl{
-		client:   client,
-		m:        m,
-		userRepo: userRepo,
+		client:       client,
+		m:            m,
+		numberWorker: config.Chat.Match.Worker,
+		userRepo:     userRepo,
 	}
 }
 
@@ -50,7 +42,7 @@ func (s *MatchSubscriberImpl) Subscribe() error {
 		return err
 	}
 	channel := pubsub.Channel()
-	s.pool = NewPool(ctx, Option{NumberWorker: int(matchNumberWorker)})
+	s.pool = NewPool(ctx, Option{NumberWorker: s.numberWorker})
 	s.pool.Start()
 
 	for msg := range channel {

@@ -7,10 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/minghsu0107/go-random-chat/pkg/common"
+	"github.com/minghsu0107/go-random-chat/pkg/config"
 )
 
-var maxMessages int64
 var (
 	matchPubSubTopic   = "rc:match:pubsub"
 	messagePubSubTopic = "rc:msg:pubsub"
@@ -28,14 +27,6 @@ var (
 	ErrChannelNotFound       = errors.New("error channel not found")
 	ErrChannelOrUserNotFound = errors.New("error channel or user not found")
 )
-
-func init() {
-	var err error
-	maxMessages, err = strconv.ParseInt(common.Getenv("MAX_MSGS", "500"), 10, 64)
-	if err != nil {
-		panic(err)
-	}
-}
 
 type UserRepo interface {
 	CreateUser(ctx context.Context, user *User) (*User, error)
@@ -171,11 +162,12 @@ func (repo *RedisUserRepo) DeleteAllOnlineUsers(ctx context.Context, channelID u
 }
 
 type RedisMessageRepo struct {
-	r RedisCache
+	r           RedisCache
+	maxMessages int64
 }
 
-func NewRedisMessageRepo(r RedisCache) MessageRepo {
-	return &RedisMessageRepo{r}
+func NewRedisMessageRepo(config *config.Config, r RedisCache) MessageRepo {
+	return &RedisMessageRepo{r, config.Chat.Message.MaxNum}
 }
 
 func (repo *RedisMessageRepo) InsertMessage(ctx context.Context, msg *Message) error {
@@ -215,7 +207,7 @@ func (repo *RedisMessageRepo) ListMessages(ctx context.Context, channelID uint64
 		return nil, ErrChannelNotFound
 	}
 
-	messageStrs, err := repo.r.LRange(ctx, constructKey(messagesPrefix, channelID), -maxMessages, -1)
+	messageStrs, err := repo.r.LRange(ctx, constructKey(messagesPrefix, channelID), -repo.maxMessages, -1)
 	if err != nil {
 		return nil, err
 	}

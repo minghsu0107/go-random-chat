@@ -3,7 +3,8 @@ Modern real-time random chat with high performance and linear scalability, writt
 
 Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
-- Microservices architecture - `web` (frontend server), `chat` (messaging server) and `upload` (file uploader). Each of them can be horizontally scaled on demand.
+- Microservices architecture
+  - `web` (frontend server), `chat` (messaging server) and `uploader` (file uploader). All of them can be horizontally scaled on demand.
 - Stateless messaging with the help of [Redis Pub/Sub](https://redis.io/topics/pubsub).
   - Redis Pub/Sub provides only at-most-once delivery, so there is chance of data loss during matching and chatting stages.
   - If you prefer at-least-once delivery for message Pub/Sub, please refer to [this branch](https://github.com/minghsu0107/go-random-chat/tree/kafka) where **Kafka is used as the message broker**.
@@ -24,16 +25,7 @@ sudo ./run.sh run
 
 This will spin up all services declared in `docker-compose.yaml`. Visit `http://localhost` and you will see the application home page.
 
-Environment variables for the chat server:
-- `HTTP_PORT`: Opened port of HTTP server
-- `REDIS_PASSWORD`: Redis password
-- `REDIS_ADDRS`: Redis node addresses
-- `REDIS_EXPIRATION_HOURS`: The expiration of all Redis keys (in hour). Default: `24`
-- `MAX_ALLOWED_CONNS`: Max allowed connections to a chat server. Default: `200`
-- `MAX_MSG_SIZE_BYTE`: Max message size in byte. Default: `4096`
-- `MAX_MSGS`: Max number of messages in a channel. Default: `500`
-- `JWT_SECRET`: JWT secret key
-- `JWT_EXPIRATION_SECONDS`: JWT expiration seconds. Default: `86400` (24 hours)
+Example configuration: [config.example.yaml](configs/config.example.yaml).
 ## Deploy with SSL
 A common scenario is that one deploys the application behind a reverse proxy with SSL termination. If that is your case, remember to correctly configure your proxy for websocket. For example, in Google Cloud Platform, for websocket traffic sent through a Google Cloud external HTTP(S) load balancer, the backend service timeout is interpreted as the maximum amount of time that a WebSocket connection can remain open, whether idle or not. Therefore, you may want to use a `timeoutSec` value larger than the default 30 seconds in your `BackendConfig`.
 ## Docker Tagging Rules
