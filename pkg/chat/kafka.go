@@ -9,6 +9,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
+	"github.com/minghsu0107/go-random-chat/pkg/config"
 )
 
 var (
@@ -18,10 +19,10 @@ var (
 	)
 )
 
-func NewKafkaPublisher() (message.Publisher, error) {
+func NewKafkaPublisher(config *config.Config) (message.Publisher, error) {
 	kafkaPublisher, err := kafka.NewPublisher(
 		kafka.PublisherConfig{
-			Brokers:   common.GetServerAddrs(common.Getenv("KAFKA_ADDRS", "localhost:9092")),
+			Brokers:   common.GetServerAddrs(config.Chat.Kafka.Addrs),
 			Marshaler: kafka.DefaultMarshaler{},
 		},
 		logger,
@@ -33,22 +34,22 @@ func NewKafkaPublisher() (message.Publisher, error) {
 	return kafkaPublisher, nil
 }
 
-func NewKafkaSubscriber() (message.Subscriber, error) {
-	config := sarama.NewConfig()
-	config.Consumer.Fetch.Default = 1024 * 1024
-	config.Consumer.Offsets.AutoCommit.Enable = true
-	config.Consumer.Offsets.AutoCommit.Interval = 1 * time.Second
+func NewKafkaSubscriber(config *config.Config) (message.Subscriber, error) {
+	saramaConfig := sarama.NewConfig()
+	saramaConfig.Consumer.Fetch.Default = 1024 * 1024
+	saramaConfig.Consumer.Offsets.AutoCommit.Enable = true
+	saramaConfig.Consumer.Offsets.AutoCommit.Interval = 1 * time.Second
 
 	kafkaSubscriber, err := kafka.NewSubscriber(
 		kafka.SubscriberConfig{
-			Brokers:       common.GetServerAddrs(common.Getenv("KAFKA_ADDRS", "localhost:9092")),
+			Brokers:       common.GetServerAddrs(config.Chat.Kafka.Addrs),
 			Unmarshaler:   kafka.DefaultMarshaler{},
 			ConsumerGroup: watermill.NewUUID(),
 			InitializeTopicDetails: &sarama.TopicDetail{
 				NumPartitions:     1,
 				ReplicationFactor: 2,
 			},
-			OverwriteSaramaConfig: config,
+			OverwriteSaramaConfig: saramaConfig,
 		},
 		logger,
 	)

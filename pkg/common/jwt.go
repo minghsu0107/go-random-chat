@@ -3,29 +3,20 @@ package common
 import (
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 )
 
 var (
-	jwtSecret            = Getenv("JWT_SECRET", "randomchatjwtcred")
-	jwtExpirationSeconds int64
+	JwtSecret           string
+	JwtExpirationSecond int64
 )
 
 var (
 	ErrInvalidToken = errors.New("invalid token")
 	ErrTokenExpired = errors.New("token expired")
 )
-
-func init() {
-	var err error
-	jwtExpirationSeconds, err = strconv.ParseInt(Getenv("JWT_EXPIRATION_SECONDS", "86400"), 10, 0)
-	if err != nil {
-		panic(err)
-	}
-}
 
 type JWTClaims struct {
 	ChannelID uint64
@@ -65,7 +56,7 @@ func Auth(authPayload *AuthPayload) (*AuthResponse, error) {
 }
 
 func NewJWT(channelID uint64) (string, error) {
-	expiresAt := time.Now().Add(time.Duration(jwtExpirationSeconds) * time.Second)
+	expiresAt := time.Now().Add(time.Duration(JwtExpirationSecond) * time.Second)
 	jwtClaims := &JWTClaims{
 		ChannelID: channelID,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -73,7 +64,7 @@ func NewJWT(channelID uint64) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwtClaims)
-	accessToken, err := token.SignedString([]byte(jwtSecret))
+	accessToken, err := token.SignedString([]byte(JwtSecret))
 	if err != nil {
 		return "", err
 	}
@@ -85,6 +76,6 @@ func parseToken(accessToken string) (*jwt.Token, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(jwtSecret), nil
+		return []byte(JwtSecret), nil
 	})
 }

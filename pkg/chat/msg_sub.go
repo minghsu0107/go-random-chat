@@ -10,10 +10,10 @@ import (
 type MessageSubscriber struct {
 	router *message.Router
 	sub    message.Subscriber
-	m      *melody.Melody
+	m      MelodyChatConn
 }
 
-func NewMessageSubscriber(sub message.Subscriber, m *melody.Melody) (*MessageSubscriber, error) {
+func NewMessageSubscriber(sub message.Subscriber, m MelodyChatConn) (*MessageSubscriber, error) {
 	router, err := NewMessageRouter()
 	if err != nil {
 		return nil, err

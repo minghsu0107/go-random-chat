@@ -1,4 +1,4 @@
-package chat
+package cmd
 
 import (
 	"context"
@@ -7,12 +7,21 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/minghsu0107/go-random-chat/pkg/chat"
+	"github.com/minghsu0107/go-random-chat/internal/wire"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
-func RunChatServer() {
-	router, err := chat.InitializeRouter()
+var uploaderCmd = &cobra.Command{
+	Use:   "uploader",
+	Short: "uploader server",
+	Run: func(cmd *cobra.Command, args []string) {
+		runUploadServer()
+	},
+}
+
+func runUploadServer() {
+	router, err := wire.InitializeUploaderRouter()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,4 +40,8 @@ func RunChatServer() {
 	}()
 
 	<-done
+}
+
+func init() {
+	rootCmd.AddCommand(uploaderCmd)
 }

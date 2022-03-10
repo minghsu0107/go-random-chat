@@ -19,7 +19,7 @@ services:
     expose:
       - "80"
     environment:
-      HTTP_PORT: "80"
+      WEB_HTTP_PORT: "80"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.rcweb.rule=PathPrefix(`/`)"
@@ -31,18 +31,19 @@ services:
     restart: always
     expose:
       - "80"
+    command:
+      - chat
     environment:
-      APP: chat
-      HTTP_PORT: "80"
-      KAFKA_ADDRS: kafka:9092
-      REDIS_PASSWORD: pass.123
-      REDIS_ADDRS: redis-node1:7000,redis-node2:7001,redis-node3:7002,redis-node4:7003,redis-node5:7004,redis-node6:7005
-      REDIS_EXPIRATION_HOURS: "24"
-      MAX_ALLOWED_CONNS: "200"
-      MAX_MSGS: "500"
-      MAX_MSG_SIZE_BYTE: "4096"
-      JWT_SECRET: mysecret
-      JWT_EXPIRATION_SECONDS: "86400"
+      CHAT_HTTP_PORT: "80"
+      CHAT_HTTP_MAXCONN: "200"
+      CHAT_KAFKA_ADDRS: kafka:9092
+      CHAT_REDIS_PASSWORD: pass.123
+      CHAT_REDIS_ADDRS: redis-node1:7000,redis-node2:7001,redis-node3:7002,redis-node4:7003,redis-node5:7004,redis-node6:7005
+      CHAT_REDIS_EXPIRATIONHOUR: "24"
+      CHAT_MESSAGE_MAXNUM: "500"
+      CHAT_MESSAGE_MAXSIZEBYTE: "4096"
+      CHAT_JWT_SECRET: ${JWT_SECRET}
+      CHAT_JWT_EXPIRATIONSECOND: "86400"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.random-chat.rule=PathPrefix(`/api`)"
@@ -60,15 +61,16 @@ services:
       - minio
     expose:
       - "80"
+    command:
+      - uploader
     environment:
-      APP: upload
-      HTTP_PORT: "80"
-      S3_ENDPOINT: http://minio:9000
-      S3_REGION: us-east-1
-      S3_BUCKET: myfilebucket
-      AWS_ACCESS_KEY_ID: testaccesskey
-      AWS_SECRET_KEY: testsecret
-      JWT_SECRET: mysecret
+      UPLOADER_HTTP_PORT: "80"
+      UPLOADER_S3_ENDPOINT: http://minio:9000
+      UPLOADER_S3_REGION: us-east-1
+      UPLOADER_S3_BUCKET: myfilebucket
+      UPLOADER_S3_ACCESSKEY: testaccesskey
+      UPLOADER_S3_SECRETKEY: testsecret
+      UPLOADER_JWT_SECRET: ${JWT_SECRET}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.uploader.rule=PathPrefix(`/api/file`)"

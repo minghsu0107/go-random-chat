@@ -9,13 +9,13 @@ import (
 )
 
 type MatchSubscriber struct {
-	m        *melody.Melody
+	m        MelodyMatchConn
 	router   *message.Router
 	userRepo UserRepo
 	sub      message.Subscriber
 }
 
-func NewMatchSubscriber(m *melody.Melody, userRepo UserRepo, sub message.Subscriber) (*MatchSubscriber, error) {
+func NewMatchSubscriber(m MelodyMatchConn, userRepo UserRepo, sub message.Subscriber) (*MatchSubscriber, error) {
 	router, err := NewMessageRouter()
 	if err != nil {
 		return nil, err

@@ -1,0 +1,33 @@
+web:
+  http:
+    port: "80"
+chat:
+  http:
+    port: "80"
+    maxConn: 200
+  kafka:
+    addrs: localhost:9092
+  redis:
+    password: pass.123
+    addrs: localhost:6379
+    expirationHour: 24
+  message:
+    maxNum: 500
+    maxSizeByte: 4096
+    worker: 4
+  jwt:
+    secret: mysecret
+    expirationSecond: 86400
+  match:
+    worker: 4
+uploader:
+  http:
+    port: "80"
+  s3:
+    endpoint: http://localhost:9000
+    region: us-east-1
+    bucket: myfilebucket
+    accessKey: testaccesskey
+    secretKey: testsecret
+  jwt:
+    secret: mysecret
