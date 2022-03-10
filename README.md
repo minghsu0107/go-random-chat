@@ -3,7 +3,8 @@ Modern real-time random chat with high performance and linear scalability, writt
 
 Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
-- Stateless chat servers with the help of [Redis Pub/Sub](https://redis.io/topics/pubsub).
+- Microservices architecture - `web` (frontend server), `chat` (messaging server) and `upload` (file uploader). Each of them can be horizontally scaled on demand.
+- Stateless messaging with the help of [Redis Pub/Sub](https://redis.io/topics/pubsub).
   - Redis Pub/Sub provides only at-most-once delivery, so there is chance of data loss during matching and chatting stages.
   - If you prefer at-least-once delivery for message Pub/Sub, please refer to [this branch](https://github.com/minghsu0107/go-random-chat/tree/kafka) where **Kafka is used as the message broker**.
 - Message retention for a certain period.
