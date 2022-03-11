@@ -5,6 +5,8 @@ Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
 - Microservices architecture
   - `web` (frontend server), `chat` (messaging server) and `uploader` (file uploader). All of them can be horizontally scaled on demand.
+- Use [cobra](https://github.com/spf13/cobra) and [viper](https://github.com/spf13/viper) for CLI and configuration management respectively.
+- Dependency injection using [wire](https://github.com/google/wire).
 - At-least-once delivery for message Pub/Sub using [Kafka](https://kafka.apache.org).
 - Message retention for a certain period.
 - User matching with idempotency.
