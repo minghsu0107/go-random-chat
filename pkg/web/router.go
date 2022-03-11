@@ -5,28 +5,41 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 	log "github.com/sirupsen/logrus"
+	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
+	prommiddleware "github.com/slok/go-http-metrics/middleware"
+	ginmiddleware "github.com/slok/go-http-metrics/middleware/gin"
 )
 
 type Router struct {
-	svr        *gin.Engine
-	httpPort   string
-	httpServer *http.Server
-}
-
-func init() {
-	gin.SetMode(gin.ReleaseMode)
+	obsInjector *common.ObservibilityInjector
+	svr         *gin.Engine
+	httpPort    string
+	httpServer  *http.Server
 }
 
 func NewGinServer() *gin.Engine {
-	return gin.Default()
+	svr := gin.New()
+	svr.Use(gin.Recovery())
+	svr.Use(common.LoggingMiddleware())
+
+	mdlw := prommiddleware.New(prommiddleware.Config{
+		Recorder: metrics.NewRecorder(metrics.Config{
+			Prefix: "web",
+		}),
+	})
+	svr.Use(ginmiddleware.Handler("", mdlw))
+	return svr
 }
 
-func NewRouter(config *config.Config, svr *gin.Engine) *Router {
+func NewRouter(config *config.Config, obsInjector *common.ObservibilityInjector, svr *gin.Engine) *Router {
+	common.InitLogging()
 	return &Router{
-		svr:      svr,
-		httpPort: config.Web.Http.Port,
+		obsInjector: obsInjector,
+		svr:         svr,
+		httpPort:    config.Web.Http.Port,
 	}
 }
 
@@ -42,12 +55,15 @@ func (r *Router) RegisterRoutes() {
 }
 
 func (r *Router) Run() {
+	if err := r.obsInjector.Register("web"); err != nil {
+		log.Error(err)
+	}
 	go func() {
 		r.RegisterRoutes()
 		addr := ":" + r.httpPort
 		r.httpServer = &http.Server{
 			Addr:    addr,
-			Handler: r.svr,
+			Handler: common.NewOtelHttpHandler(r.svr, "web_http"),
 		}
 		log.Infoln("http server listening on ", addr)
 		err := r.httpServer.ListenAndServe()

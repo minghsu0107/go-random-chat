@@ -8,6 +8,7 @@ package wire
 
 import (
 	"github.com/minghsu0107/go-random-chat/pkg/chat"
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 	"github.com/minghsu0107/go-random-chat/pkg/uploader"
 	"github.com/minghsu0107/go-random-chat/pkg/web"
@@ -20,8 +21,9 @@ func InitializeWebRouter() (*web.Router, error) {
 	if err != nil {
 		return nil, err
 	}
+	observibilityInjector := common.NewObservibilityInjector(configConfig)
 	engine := web.NewGinServer()
-	router := web.NewRouter(configConfig, engine)
+	router := web.NewRouter(configConfig, observibilityInjector, engine)
 	return router, nil
 }
 
@@ -30,6 +32,7 @@ func InitializeChatRouter() (*chat.Router, error) {
 	if err != nil {
 		return nil, err
 	}
+	observibilityInjector := common.NewObservibilityInjector(configConfig)
 	engine := chat.NewGinServer(configConfig)
 	melodyMatchConn := chat.NewMelodyMatchConn()
 	melodyChatConn := chat.NewMelodyChatConn(configConfig)
@@ -66,7 +69,7 @@ func InitializeChatRouter() (*chat.Router, error) {
 	channelRepo := chat.NewRedisChannelRepo(redisCache)
 	matchingService := chat.NewMatchingService(matchingRepo, channelRepo, idGenerator)
 	channelService := chat.NewChannelService(channelRepo, userRepo)
-	router := chat.NewRouter(configConfig, engine, melodyMatchConn, melodyChatConn, matchSubscriber, messageSubscriber, userService, messageService, matchingService, channelService)
+	router := chat.NewRouter(configConfig, observibilityInjector, engine, melodyMatchConn, melodyChatConn, matchSubscriber, messageSubscriber, userService, messageService, matchingService, channelService)
 	return router, nil
 }
 
@@ -75,7 +78,8 @@ func InitializeUploaderRouter() (*uploader.Router, error) {
 	if err != nil {
 		return nil, err
 	}
+	observibilityInjector := common.NewObservibilityInjector(configConfig)
 	engine := uploader.NewGinServer()
-	router := uploader.NewRouter(configConfig, engine)
+	router := uploader.NewRouter(configConfig, observibilityInjector, engine)
 	return router, nil
 }
