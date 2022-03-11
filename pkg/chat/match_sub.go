@@ -16,8 +16,8 @@ type MatchSubscriber struct {
 	sub      message.Subscriber
 }
 
-func NewMatchSubscriber(m MelodyMatchConn, userRepo UserRepo, sub message.Subscriber) (*MatchSubscriber, error) {
-	router, err := infra.NewMessageRouter()
+func NewMatchSubscriber(name string, m MelodyMatchConn, userRepo UserRepo, sub message.Subscriber) (*MatchSubscriber, error) {
+	router, err := infra.NewBrokerRouter(name)
 	if err != nil {
 		return nil, err
 	}

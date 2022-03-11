@@ -50,11 +50,11 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	matchSubscriber, err := chat.NewMatchSubscriber(melodyMatchConn, userRepo, subscriber)
+	matchSubscriber, err := chat.NewMatchSubscriber(name, melodyMatchConn, userRepo, subscriber)
 	if err != nil {
 		return nil, err
 	}
-	messageSubscriber, err := chat.NewMessageSubscriber(subscriber, melodyChatConn)
+	messageSubscriber, err := chat.NewMessageSubscriber(name, subscriber, melodyChatConn)
 	if err != nil {
 		return nil, err
 	}

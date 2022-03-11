@@ -1,15 +1,18 @@
 package infra
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/Shopify/sarama"
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-kafka/v2/pkg/kafka"
+	"github.com/ThreeDotsLabs/watermill/components/metrics"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
+	prom "github.com/prometheus/client_golang/prometheus"
 )
 
 var (
@@ -60,11 +63,18 @@ func NewKafkaSubscriber(config *config.Config) (message.Subscriber, error) {
 	return kafkaSubscriber, nil
 }
 
-func NewMessageRouter() (*message.Router, error) {
+func NewBrokerRouter(name string) (*message.Router, error) {
 	router, err := message.NewRouter(message.RouterConfig{}, logger)
 	if err != nil {
 		return nil, err
 	}
+
+	registry, ok := prom.DefaultGatherer.(*prom.Registry)
+	if !ok {
+		return nil, fmt.Errorf("prometheus type casting error")
+	}
+	metricsBuilder := metrics.NewPrometheusMetricsBuilder(registry, name, "pubsub")
+	metricsBuilder.AddPrometheusRouterMetrics(router)
 
 	router.AddMiddleware(
 		middleware.CorrelationID,

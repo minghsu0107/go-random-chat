@@ -14,8 +14,8 @@ type MessageSubscriber struct {
 	m      MelodyChatConn
 }
 
-func NewMessageSubscriber(sub message.Subscriber, m MelodyChatConn) (*MessageSubscriber, error) {
-	router, err := infra.NewMessageRouter()
+func NewMessageSubscriber(name string, sub message.Subscriber, m MelodyChatConn) (*MessageSubscriber, error) {
+	router, err := infra.NewBrokerRouter(name)
 	if err != nil {
 		return nil, err
 	}
