@@ -47,13 +47,14 @@ func NewRouter(config *config.Config, svr *gin.Engine) *Router {
 
 	s3Endpoint := config.Uploader.S3.Endpoint
 	s3Bucket := config.Uploader.S3.Bucket
+	disableSSL := config.Uploader.S3.DisableSSL
 	creds := credentials.NewStaticCredentials(config.Uploader.S3.AccessKey, config.Uploader.S3.SecretKey, "")
 
 	awsConfig := &aws.Config{
 		Credentials:      creds,
 		Endpoint:         aws.String(s3Endpoint),
 		Region:           aws.String(config.Uploader.S3.Region),
-		DisableSSL:       aws.Bool(true),
+		DisableSSL:       aws.Bool(disableSSL),
 		S3ForcePathStyle: aws.Bool(true),
 		MaxRetries:       aws.Int(3),
 	}

@@ -45,11 +45,12 @@ type UploaderConfig struct {
 		Port string
 	}
 	S3 struct {
-		Endpoint  string
-		Region    string
-		Bucket    string
-		AccessKey string
-		SecretKey string
+		Endpoint   string
+		DisableSSL bool
+		Region     string
+		Bucket     string
+		AccessKey  string
+		SecretKey  string
 	}
 	JWT struct {
 		Secret string
@@ -73,6 +74,7 @@ func setDefault() {
 
 	viper.SetDefault("uploader.http.port", "5001")
 	viper.SetDefault("uploader.s3.endpoint", "http://localhost:9000")
+	viper.SetDefault("uploader.s3.disableSSL", false)
 	viper.SetDefault("uploader.s3.region", "us-east-1")
 	viper.SetDefault("uploader.s3.bucket", "myfilebucket")
 	viper.SetDefault("uploader.s3.accessKey", "")

@@ -23,6 +23,7 @@ uploader:
     port: "80"
   s3:
     endpoint: http://localhost:9000
+    disableSSL: true
     region: us-east-1
     bucket: myfilebucket
     accessKey: testaccesskey

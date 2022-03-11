@@ -61,6 +61,7 @@ services:
     environment:
       UPLOADER_HTTP_PORT: "80"
       UPLOADER_S3_ENDPOINT: http://minio:9000
+      UPLOADER_S3_DISABLESSL: "true"
       UPLOADER_S3_REGION: us-east-1
       UPLOADER_S3_BUCKET: myfilebucket
       UPLOADER_S3_ACCESSKEY: testaccesskey
