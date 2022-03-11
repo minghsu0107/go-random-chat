@@ -5,13 +5,10 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
-	"strconv"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	log "github.com/sirupsen/logrus"
 )
@@ -61,16 +58,4 @@ func (r *HttpServer) putFileToS3(ctx context.Context, bucket, fileName string, f
 		return err
 	}
 	return nil
-}
-
-func newObjectKey(channelID uint64, extension string) string {
-	return joinStrs(strconv.FormatUint(channelID, 10), "/", uuid.New().String(), extension)
-}
-
-func joinStrs(strs ...string) string {
-	var sb strings.Builder
-	for _, str := range strs {
-		sb.WriteString(str)
-	}
-	return sb.String()
 }
