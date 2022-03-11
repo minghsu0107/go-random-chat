@@ -61,6 +61,8 @@ func NewMelodyChatConn(config *config.Config) MelodyChatConn {
 }
 
 func NewGinServer(config *config.Config) *gin.Engine {
+	common.InitLogging()
+
 	svr := gin.New()
 	svr.Use(gin.Recovery())
 	svr.Use(common.LoggingMiddleware())
@@ -77,7 +79,6 @@ func NewGinServer(config *config.Config) *gin.Engine {
 }
 
 func NewRouter(config *config.Config, obsInjector *common.ObservibilityInjector, svr *gin.Engine, mm MelodyMatchConn, mc MelodyChatConn, matchSubscriber *MatchSubscriber, msgSubscriber *MessageSubscriber, userSvc UserService, msgSvc MessageService, matchSvc MatchingService, chanSvc ChannelService) *Router {
-	common.InitLogging()
 	initJWT(config)
 
 	return &Router{
