@@ -14,12 +14,9 @@ chat:
   message:
     maxNum: 500
     maxSizeByte: 4096
-    worker: 4
   jwt:
     secret: mysecret
     expirationSecond: 86400
-  match:
-    worker: 4
 uploader:
   http:
     port: "80"

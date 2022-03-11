@@ -32,14 +32,10 @@ type ChatConfig struct {
 	Message struct {
 		MaxNum      int64
 		MaxSizeByte int64
-		Worker      int
 	}
 	JWT struct {
 		Secret           string
 		ExpirationSecond int64
-	}
-	Match struct {
-		Worker int
 	}
 }
 
@@ -70,10 +66,8 @@ func setDefault() {
 	viper.SetDefault("chat.redis.expirationHour", 24)
 	viper.SetDefault("chat.message.maxNum", 500)
 	viper.SetDefault("chat.message.maxSizeByte", 4096)
-	viper.SetDefault("chat.message.worker", 4)
 	viper.SetDefault("chat.jwt.secret", "replaceme")
 	viper.SetDefault("chat.jwt.expirationSecond", 86400)
-	viper.SetDefault("chat.match.worker", 4)
 
 	viper.SetDefault("uploader.http.port", "5001")
 	viper.SetDefault("uploader.s3.endpoint", "http://localhost:9000")
