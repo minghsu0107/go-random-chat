@@ -6,6 +6,7 @@ package wire
 import (
 	"github.com/google/wire"
 	"github.com/minghsu0107/go-random-chat/pkg/chat"
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 	"github.com/minghsu0107/go-random-chat/pkg/uploader"
 	"github.com/minghsu0107/go-random-chat/pkg/web"
@@ -14,6 +15,7 @@ import (
 func InitializeWebRouter() (*web.Router, error) {
 	wire.Build(
 		config.NewConfig,
+		common.NewObservibilityInjector,
 		web.NewGinServer,
 		web.NewRouter,
 	)
@@ -23,7 +25,7 @@ func InitializeWebRouter() (*web.Router, error) {
 func InitializeChatRouter() (*chat.Router, error) {
 	wire.Build(
 		config.NewConfig,
-		chat.NewGinServer,
+		common.NewObservibilityInjector,
 
 		chat.NewRedisClient,
 		chat.NewRedisCache,
@@ -46,6 +48,7 @@ func InitializeChatRouter() (*chat.Router, error) {
 		chat.NewMelodyMatchConn,
 		chat.NewMelodyChatConn,
 
+		chat.NewGinServer,
 		chat.NewRouter,
 	)
 	return &chat.Router{}, nil
@@ -54,6 +57,7 @@ func InitializeChatRouter() (*chat.Router, error) {
 func InitializeUploaderRouter() (*uploader.Router, error) {
 	wire.Build(
 		config.NewConfig,
+		common.NewObservibilityInjector,
 		uploader.NewGinServer,
 		uploader.NewRouter,
 	)

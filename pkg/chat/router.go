@@ -8,6 +8,9 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 	log "github.com/sirupsen/logrus"
+	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
+	prommiddleware "github.com/slok/go-http-metrics/middleware"
+	ginmiddleware "github.com/slok/go-http-metrics/middleware/gin"
 	"gopkg.in/olahol/melody.v1"
 )
 
@@ -27,6 +30,7 @@ type MelodyChatConn struct {
 }
 
 type Router struct {
+	obsInjector     *common.ObservibilityInjector
 	svr             *gin.Engine
 	mm              MelodyMatchConn
 	mc              MelodyChatConn
@@ -38,10 +42,6 @@ type Router struct {
 	msgSvc          MessageService
 	matchSvc        MatchingService
 	chanSvc         ChannelService
-}
-
-func init() {
-	gin.SetMode(gin.ReleaseMode)
 }
 
 func NewMelodyMatchConn() MelodyMatchConn {
@@ -61,15 +61,27 @@ func NewMelodyChatConn(config *config.Config) MelodyChatConn {
 }
 
 func NewGinServer(config *config.Config) *gin.Engine {
-	svr := gin.Default()
+	svr := gin.New()
+	svr.Use(gin.Recovery())
+	svr.Use(common.LoggingMiddleware())
 	svr.Use(common.MaxAllowed(config.Chat.Http.MaxConn))
 	svr.Use(common.CORSMiddleware())
+
+	mdlw := prommiddleware.New(prommiddleware.Config{
+		Recorder: metrics.NewRecorder(metrics.Config{
+			Prefix: "chat",
+		}),
+	})
+	svr.Use(ginmiddleware.Handler("", mdlw))
 	return svr
 }
 
-func NewRouter(config *config.Config, svr *gin.Engine, mm MelodyMatchConn, mc MelodyChatConn, matchSubscriber MatchSubscriber, msgSubscriber MessageSubscriber, userSvc UserService, msgSvc MessageService, matchSvc MatchingService, chanSvc ChannelService) *Router {
+func NewRouter(config *config.Config, obsInjector *common.ObservibilityInjector, svr *gin.Engine, mm MelodyMatchConn, mc MelodyChatConn, matchSubscriber MatchSubscriber, msgSubscriber MessageSubscriber, userSvc UserService, msgSvc MessageService, matchSvc MatchingService, chanSvc ChannelService) *Router {
+	common.InitLogging()
 	initJWT(config)
+
 	return &Router{
+		obsInjector:     obsInjector,
 		svr:             svr,
 		mm:              mm,
 		mc:              mc,
@@ -119,12 +131,15 @@ func (r *Router) RegisterRoutes() {
 }
 
 func (r *Router) Run() {
+	if err := r.obsInjector.Register("chat"); err != nil {
+		log.Error(err)
+	}
 	go func() {
 		r.RegisterRoutes()
 		addr := ":" + r.httpPort
 		r.httpServer = &http.Server{
 			Addr:    addr,
-			Handler: r.svr,
+			Handler: common.NewOtelHttpHandler(r.svr, "chat_http"),
 		}
 		log.Infoln("http server listening on ", addr)
 		err := r.httpServer.ListenAndServe()

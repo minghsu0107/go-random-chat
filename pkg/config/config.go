@@ -5,9 +5,10 @@ import (
 )
 
 type Config struct {
-	Web      *WebConfig      `mapstructure:"web"`
-	Chat     *ChatConfig     `mapstructure:"chat"`
-	Uploader *UploaderConfig `mapstructure:"uploader"`
+	Web           *WebConfig           `mapstructure:"web"`
+	Chat          *ChatConfig          `mapstructure:"chat"`
+	Uploader      *UploaderConfig      `mapstructure:"uploader"`
+	Observability *ObservabilityConfig `mapstructure:"observability"`
 }
 
 type WebConfig struct {
@@ -57,10 +58,19 @@ type UploaderConfig struct {
 	}
 }
 
-func setDefault() {
-	viper.SetDefault("web.http.port", "5002")
+type ObservabilityConfig struct {
+	Prometheus struct {
+		Port string
+	}
+	Tracing struct {
+		JaegerUrl string
+	}
+}
 
-	viper.SetDefault("chat.http.port", "5000")
+func setDefault() {
+	viper.SetDefault("web.http.port", "5000")
+
+	viper.SetDefault("chat.http.port", "5001")
 	viper.SetDefault("chat.http.maxConn", 200)
 	viper.SetDefault("chat.redis.password", "")
 	viper.SetDefault("chat.redis.addrs", "localhost:6379")
@@ -72,7 +82,7 @@ func setDefault() {
 	viper.SetDefault("chat.jwt.expirationSecond", 86400)
 	viper.SetDefault("chat.match.worker", 4)
 
-	viper.SetDefault("uploader.http.port", "5001")
+	viper.SetDefault("uploader.http.port", "5002")
 	viper.SetDefault("uploader.s3.endpoint", "http://localhost:9000")
 	viper.SetDefault("uploader.s3.disableSSL", false)
 	viper.SetDefault("uploader.s3.region", "us-east-1")
@@ -80,6 +90,9 @@ func setDefault() {
 	viper.SetDefault("uploader.s3.accessKey", "")
 	viper.SetDefault("uploader.s3.secretKey", "")
 	viper.SetDefault("uploader.jwt.secret", "replaceme")
+
+	viper.SetDefault("observability.prometheus.port", "8080")
+	viper.SetDefault("observability.tracing.jaegerUrl", "")
 }
 
 func NewConfig() (*Config, error) {

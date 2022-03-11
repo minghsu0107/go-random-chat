@@ -18,12 +18,13 @@ import (
 )
 
 type Router struct {
-	svr        *gin.Engine
-	s3Endpoint string
-	s3Bucket   string
-	uploader   *s3manager.Uploader
-	httpPort   string
-	httpServer *http.Server
+	obsInjector *common.ObservibilityInjector
+	svr         *gin.Engine
+	s3Endpoint  string
+	s3Bucket    string
+	uploader    *s3manager.Uploader
+	httpPort    string
+	httpServer  *http.Server
 }
 
 func NewGinServer() *gin.Engine {
@@ -41,7 +42,7 @@ func NewGinServer() *gin.Engine {
 	return svr
 }
 
-func NewRouter(config *config.Config, svr *gin.Engine) *Router {
+func NewRouter(config *config.Config, obsInjector *common.ObservibilityInjector, svr *gin.Engine) *Router {
 	common.InitLogging()
 	initJWT(config)
 
@@ -61,11 +62,12 @@ func NewRouter(config *config.Config, svr *gin.Engine) *Router {
 
 	sess := session.Must(session.NewSession(awsConfig))
 	return &Router{
-		svr:        svr,
-		s3Endpoint: s3Endpoint,
-		s3Bucket:   s3Bucket,
-		uploader:   s3manager.NewUploader(sess),
-		httpPort:   config.Uploader.Http.Port,
+		obsInjector: obsInjector,
+		svr:         svr,
+		s3Endpoint:  s3Endpoint,
+		s3Bucket:    s3Bucket,
+		uploader:    s3manager.NewUploader(sess),
+		httpPort:    config.Uploader.Http.Port,
 	}
 }
 
@@ -82,12 +84,15 @@ func (r *Router) RegisterRoutes() {
 }
 
 func (r *Router) Run() {
+	if err := r.obsInjector.Register("uploader"); err != nil {
+		log.Error(err)
+	}
 	go func() {
 		r.RegisterRoutes()
 		addr := ":" + r.httpPort
 		r.httpServer = &http.Server{
 			Addr:    addr,
-			Handler: r.svr,
+			Handler: common.NewOtelHttpHandler(r.svr, "uploader_http"),
 		}
 		log.Infoln("http server listening on ", addr)
 		err := r.httpServer.ListenAndServe()

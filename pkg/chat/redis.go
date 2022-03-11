@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/go-redis/redis/extra/redisotel/v8"
 	"github.com/go-redis/redis/v8"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
@@ -110,6 +111,7 @@ func NewRedisClient(config *config.Config) (redis.UniversalClient, error) {
 	if err == redis.Nil || err != nil {
 		return nil, err
 	}
+	RedisClient.AddHook(redisotel.NewTracingHook())
 	return RedisClient, nil
 }
 
