@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 
 	retry "github.com/avast/retry-go"
@@ -21,7 +22,7 @@ type MatchSubscriberImpl struct {
 	client       redis.UniversalClient
 	m            MelodyMatchConn
 	numberWorker int
-	pool         *Pool
+	pool         *common.Pool
 	userRepo     UserRepo
 }
 
@@ -42,7 +43,7 @@ func (s *MatchSubscriberImpl) Subscribe() error {
 		return err
 	}
 	channel := pubsub.Channel()
-	s.pool = NewPool(ctx, Option{NumberWorker: s.numberWorker})
+	s.pool = common.NewPool(ctx, common.Option{NumberWorker: s.numberWorker})
 	s.pool.Start()
 
 	for msg := range channel {
@@ -60,8 +61,8 @@ func (s *MatchSubscriberImpl) Close() {
 	s.pool.Stop()
 }
 
-func (s *MatchSubscriberImpl) sendMatchResult(ctx context.Context, result *MatchResult) *Task {
-	return NewTask(ctx, func(ctx context.Context) (interface{}, error) {
+func (s *MatchSubscriberImpl) sendMatchResult(ctx context.Context, result *MatchResult) *common.Task {
+	return common.NewTask(ctx, func(ctx context.Context) (interface{}, error) {
 		return nil, retry.Do(
 			func() error {
 				return s.m.BroadcastFilter(result.ToPresenter().Encode(), func(sess *melody.Session) bool {
