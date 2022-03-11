@@ -12,6 +12,9 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 	log "github.com/sirupsen/logrus"
+	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
+	prommiddleware "github.com/slok/go-http-metrics/middleware"
+	ginmiddleware "github.com/slok/go-http-metrics/middleware/gin"
 )
 
 type Router struct {
@@ -23,17 +26,23 @@ type Router struct {
 	httpServer *http.Server
 }
 
-func init() {
-	gin.SetMode(gin.ReleaseMode)
-}
-
 func NewGinServer() *gin.Engine {
-	svr := gin.Default()
+	svr := gin.New()
+	svr.Use(gin.Recovery())
+	svr.Use(common.LoggingMiddleware())
 	svr.Use(common.CORSMiddleware())
+
+	mdlw := prommiddleware.New(prommiddleware.Config{
+		Recorder: metrics.NewRecorder(metrics.Config{
+			Prefix: "uploader",
+		}),
+	})
+	svr.Use(ginmiddleware.Handler("", mdlw))
 	return svr
 }
 
 func NewRouter(config *config.Config, svr *gin.Engine) *Router {
+	common.InitLogging()
 	initJWT(config)
 
 	s3Endpoint := config.Uploader.S3.Endpoint
