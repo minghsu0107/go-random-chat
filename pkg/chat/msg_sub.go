@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/minghsu0107/go-random-chat/pkg/infra"
 	"gopkg.in/olahol/melody.v1"
 )
 
@@ -14,7 +15,7 @@ type MessageSubscriber struct {
 }
 
 func NewMessageSubscriber(sub message.Subscriber, m MelodyChatConn) (*MessageSubscriber, error) {
-	router, err := NewMessageRouter()
+	router, err := infra.NewMessageRouter()
 	if err != nil {
 		return nil, err
 	}

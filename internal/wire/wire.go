@@ -8,6 +8,7 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/chat"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
+	"github.com/minghsu0107/go-random-chat/pkg/infra"
 	"github.com/minghsu0107/go-random-chat/pkg/uploader"
 	"github.com/minghsu0107/go-random-chat/pkg/web"
 )
@@ -30,11 +31,11 @@ func InitializeChatServer(name string) (*common.Server, error) {
 		config.NewConfig,
 		common.NewObservibilityInjector,
 
-		chat.NewRedisClient,
-		chat.NewRedisCache,
+		infra.NewRedisClient,
+		infra.NewRedisCache,
 
-		chat.NewKafkaPublisher,
-		chat.NewKafkaSubscriber,
+		infra.NewKafkaPublisher,
+		infra.NewKafkaSubscriber,
 
 		chat.NewRedisUserRepo,
 		chat.NewMessageRepo,

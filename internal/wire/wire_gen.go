@@ -10,6 +10,7 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/chat"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
+	"github.com/minghsu0107/go-random-chat/pkg/infra"
 	"github.com/minghsu0107/go-random-chat/pkg/uploader"
 	"github.com/minghsu0107/go-random-chat/pkg/web"
 )
@@ -39,13 +40,13 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	engine := chat.NewGinServer(name, configConfig)
 	melodyMatchConn := chat.NewMelodyMatchConn()
 	melodyChatConn := chat.NewMelodyChatConn(configConfig)
-	universalClient, err := chat.NewRedisClient(configConfig)
+	universalClient, err := infra.NewRedisClient(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	redisCache := chat.NewRedisCache(universalClient)
+	redisCache := infra.NewRedisCache(universalClient)
 	userRepo := chat.NewRedisUserRepo(redisCache)
-	subscriber, err := chat.NewKafkaSubscriber(configConfig)
+	subscriber, err := infra.NewKafkaSubscriber(configConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +63,7 @@ func InitializeChatServer(name string) (*common.Server, error) {
 		return nil, err
 	}
 	userService := chat.NewUserService(userRepo, idGenerator)
-	publisher, err := chat.NewKafkaPublisher(configConfig)
+	publisher, err := infra.NewKafkaPublisher(configConfig)
 	if err != nil {
 		return nil, err
 	}

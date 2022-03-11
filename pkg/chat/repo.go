@@ -10,6 +10,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
+	"github.com/minghsu0107/go-random-chat/pkg/infra"
 )
 
 var (
@@ -62,10 +63,10 @@ type MatchingRepo interface {
 }
 
 type RedisUserRepo struct {
-	r RedisCache
+	r infra.RedisCache
 }
 
-func NewRedisUserRepo(r RedisCache) UserRepo {
+func NewRedisUserRepo(r infra.RedisCache) UserRepo {
 	return &RedisUserRepo{r}
 }
 func (repo *RedisUserRepo) CreateUser(ctx context.Context, user *User) (*User, error) {
@@ -165,27 +166,27 @@ func (repo *RedisUserRepo) DeleteAllOnlineUsers(ctx context.Context, channelID u
 }
 
 type MessageRepoImpl struct {
-	r           RedisCache
+	r           infra.RedisCache
 	p           message.Publisher
 	maxMessages int64
 }
 
-func NewMessageRepo(config *config.Config, r RedisCache, p message.Publisher) MessageRepo {
+func NewMessageRepo(config *config.Config, r infra.RedisCache, p message.Publisher) MessageRepo {
 	return &MessageRepoImpl{r, p, config.Chat.Message.MaxNum}
 }
 
 func (repo *MessageRepoImpl) InsertMessage(ctx context.Context, msg *Message) error {
-	cmds := []RedisCmd{
+	cmds := []infra.RedisCmd{
 		{
-			OpType: RPUSH,
-			Payload: RedisRpushPayload{
+			OpType: infra.RPUSH,
+			Payload: infra.RedisRpushPayload{
 				Key: constructKey(messagesPrefix, msg.ChannelID),
 				Val: msg.Encode(),
 			},
 		},
 		{
-			OpType: HSETONE,
-			Payload: RedisHsetOnePayload{
+			OpType: infra.HSETONE,
+			Payload: infra.RedisHsetOnePayload{
 				Key:   constructKey(seenMessagesPrefix, msg.ChannelID),
 				Field: strconv.FormatUint(msg.MessageID, 10),
 				Val:   0,
@@ -248,10 +249,10 @@ func (repo *MessageRepoImpl) ListMessages(ctx context.Context, channelID uint64)
 }
 
 type RedisChannelRepo struct {
-	r RedisCache
+	r infra.RedisCache
 }
 
-func NewRedisChannelRepo(r RedisCache) ChannelRepo {
+func NewRedisChannelRepo(r infra.RedisCache) ChannelRepo {
 	return &RedisChannelRepo{r}
 }
 
@@ -268,16 +269,16 @@ func (repo *RedisChannelRepo) IsChannelExist(ctx context.Context, channelID uint
 	return repo.r.Get(ctx, constructKey(channelPrefix, channelID), &dummy)
 }
 func (repo *RedisChannelRepo) DeleteChannel(ctx context.Context, channelID uint64) error {
-	cmds := []RedisCmd{
+	cmds := []infra.RedisCmd{
 		{
-			OpType: DELETE,
-			Payload: RedisDeletePayload{
+			OpType: infra.DELETE,
+			Payload: infra.RedisDeletePayload{
 				Key: constructKey(channelPrefix, channelID),
 			},
 		},
 		{
-			OpType: DELETE,
-			Payload: RedisDeletePayload{
+			OpType: infra.DELETE,
+			Payload: infra.RedisDeletePayload{
 				Key: constructKey(channelUsersPrefix, channelID),
 			},
 		},
@@ -286,11 +287,11 @@ func (repo *RedisChannelRepo) DeleteChannel(ctx context.Context, channelID uint6
 }
 
 type MatchingRepoImpl struct {
-	r RedisCache
+	r infra.RedisCache
 	p message.Publisher
 }
 
-func NewMatchingRepo(r RedisCache, p message.Publisher) MatchingRepo {
+func NewMatchingRepo(r infra.RedisCache, p message.Publisher) MatchingRepo {
 	return &MatchingRepoImpl{r, p}
 }
 func (repo *MatchingRepoImpl) PopOrPushWaitList(ctx context.Context, userID uint64) (bool, uint64, error) {
