@@ -11,7 +11,7 @@ import (
 	"gopkg.in/olahol/melody.v1"
 )
 
-func (r *Router) Match(c *gin.Context) {
+func (r *HttpServer) Match(c *gin.Context) {
 	uid := c.Query("uid")
 	userID, err := strconv.ParseUint(uid, 10, 64)
 	if err != nil {
@@ -31,7 +31,7 @@ func (r *Router) Match(c *gin.Context) {
 	r.mm.HandleRequest(c.Writer, c.Request)
 }
 
-func (r *Router) StartChat(c *gin.Context) {
+func (r *HttpServer) StartChat(c *gin.Context) {
 	uid := c.Query("uid")
 	userID, err := strconv.ParseUint(uid, 10, 64)
 	if err != nil {
@@ -66,7 +66,7 @@ func (r *Router) StartChat(c *gin.Context) {
 	r.mc.HandleRequest(c.Writer, c.Request)
 }
 
-func (r *Router) CreateUser(c *gin.Context) {
+func (r *HttpServer) CreateUser(c *gin.Context) {
 	var userPresenter UserPresenter
 	if err := c.ShouldBindJSON(&userPresenter); err != nil {
 		response(c, http.StatusBadRequest, common.ErrInvalidParam)
@@ -84,7 +84,7 @@ func (r *Router) CreateUser(c *gin.Context) {
 	})
 }
 
-func (r *Router) GetChannelUsers(c *gin.Context) {
+func (r *HttpServer) GetChannelUsers(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
 		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
@@ -109,7 +109,7 @@ func (r *Router) GetChannelUsers(c *gin.Context) {
 	})
 }
 
-func (r *Router) GetOnlineUsers(c *gin.Context) {
+func (r *HttpServer) GetOnlineUsers(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
 		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
@@ -134,7 +134,7 @@ func (r *Router) GetOnlineUsers(c *gin.Context) {
 	})
 }
 
-func (r *Router) GetUserName(c *gin.Context) {
+func (r *HttpServer) GetUserName(c *gin.Context) {
 	id := c.Param("uid")
 	userID, err := strconv.ParseUint(id, 10, 64)
 	if err != nil {
@@ -157,7 +157,7 @@ func (r *Router) GetUserName(c *gin.Context) {
 	})
 }
 
-func (r *Router) ListMessages(c *gin.Context) {
+func (r *HttpServer) ListMessages(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
 		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
@@ -182,7 +182,7 @@ func (r *Router) ListMessages(c *gin.Context) {
 	})
 }
 
-func (r *Router) DeleteChannel(c *gin.Context) {
+func (r *HttpServer) DeleteChannel(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
 		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
@@ -223,7 +223,7 @@ func (r *Router) DeleteChannel(c *gin.Context) {
 	})
 }
 
-func (r *Router) HandleMatchOnConnect(sess *melody.Session) {
+func (r *HttpServer) HandleMatchOnConnect(sess *melody.Session) {
 	userID, err := strconv.ParseUint(sess.Request.URL.Query().Get("uid"), 10, 64)
 	if err != nil {
 		log.Error(err)
@@ -248,11 +248,11 @@ func (r *Router) HandleMatchOnConnect(sess *melody.Session) {
 		return
 	}
 }
-func (r *Router) initializeMatchSession(sess *melody.Session, userID uint64) error {
+func (r *HttpServer) initializeMatchSession(sess *melody.Session, userID uint64) error {
 	sess.Set(sessUidKey, userID)
 	return nil
 }
-func (r *Router) HandleMatchOnClose(sess *melody.Session, i int, s string) error {
+func (r *HttpServer) HandleMatchOnClose(sess *melody.Session, i int, s string) error {
 	userID, err := strconv.ParseUint(sess.Request.URL.Query().Get("uid"), 10, 64)
 	if err != nil {
 		log.Error(err)
@@ -261,7 +261,7 @@ func (r *Router) HandleMatchOnClose(sess *melody.Session, i int, s string) error
 	return r.matchSvc.RemoveUserFromWaitList(context.Background(), userID)
 }
 
-func (r *Router) HandleChatOnConnect(sess *melody.Session) {
+func (r *HttpServer) HandleChatOnConnect(sess *melody.Session) {
 	userID, err := strconv.ParseUint(sess.Request.URL.Query().Get("uid"), 10, 64)
 	if err != nil {
 		log.Error(err)
@@ -289,7 +289,7 @@ func (r *Router) HandleChatOnConnect(sess *melody.Session) {
 	}
 }
 
-func (r *Router) initializeChatSession(sess *melody.Session, channelID, userID uint64) error {
+func (r *HttpServer) initializeChatSession(sess *melody.Session, channelID, userID uint64) error {
 	ctx := context.Background()
 	if err := r.userSvc.AddOnlineUser(ctx, channelID, userID); err != nil {
 		return err
@@ -298,7 +298,7 @@ func (r *Router) initializeChatSession(sess *melody.Session, channelID, userID u
 	return nil
 }
 
-func (r *Router) HandleChatOnMessage(sess *melody.Session, data []byte) {
+func (r *HttpServer) HandleChatOnMessage(sess *melody.Session, data []byte) {
 	msgPresenter, err := DecodeToMessagePresenter(data)
 	if err != nil {
 		log.Error(err)
@@ -336,7 +336,7 @@ func (r *Router) HandleChatOnMessage(sess *melody.Session, data []byte) {
 	}
 }
 
-func (r *Router) HandleChatOnClose(sess *melody.Session, i int, s string) error {
+func (r *HttpServer) HandleChatOnClose(sess *melody.Session, i int, s string) error {
 	userID, err := strconv.ParseUint(sess.Request.URL.Query().Get("uid"), 10, 64)
 	if err != nil {
 		log.Error(err)

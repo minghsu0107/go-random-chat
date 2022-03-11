@@ -42,7 +42,7 @@ func (injector *ObservibilityInjector) Register(service string) error {
 	}
 	if injector.promPort != "" {
 		go func() {
-			log.Infof("starting prom metrics on PROM_PORT=[%s]", injector.promPort)
+			log.Infof("starting prom metrics on  :%s", injector.promPort)
 			err := http.ListenAndServe(fmt.Sprintf(":%s", injector.promPort), promhttp.Handler())
 			if err != nil {
 				log.Fatal(err)
