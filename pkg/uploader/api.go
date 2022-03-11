@@ -16,7 +16,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (r *Router) UploadFile(c *gin.Context) {
+func (r *HttpServer) UploadFile(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
 		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
@@ -50,7 +50,7 @@ func (r *Router) UploadFile(c *gin.Context) {
 	})
 }
 
-func (r *Router) putFileToS3(ctx context.Context, bucket, fileName string, f io.Reader) error {
+func (r *HttpServer) putFileToS3(ctx context.Context, bucket, fileName string, f io.Reader) error {
 	_, err := r.uploader.UploadWithContext(ctx, &s3manager.UploadInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(fileName),

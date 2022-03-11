@@ -12,17 +12,20 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/web"
 )
 
-func InitializeWebRouter() (*web.Router, error) {
+func InitializeWebServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
 		common.NewObservibilityInjector,
 		web.NewGinServer,
+		web.NewHttpServer,
 		web.NewRouter,
+		web.NewInfraCloser,
+		common.NewServer,
 	)
-	return &web.Router{}, nil
+	return &common.Server{}, nil
 }
 
-func InitializeChatRouter() (*chat.Router, error) {
+func InitializeChatServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
 		common.NewObservibilityInjector,
@@ -52,17 +55,23 @@ func InitializeChatRouter() (*chat.Router, error) {
 		chat.NewMelodyChatConn,
 
 		chat.NewGinServer,
+		chat.NewHttpServer,
 		chat.NewRouter,
+		chat.NewInfraCloser,
+		common.NewServer,
 	)
-	return &chat.Router{}, nil
+	return &common.Server{}, nil
 }
 
-func InitializeUploaderRouter() (*uploader.Router, error) {
+func InitializeUploaderServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
 		common.NewObservibilityInjector,
 		uploader.NewGinServer,
+		uploader.NewHttpServer,
 		uploader.NewRouter,
+		uploader.NewInfraCloser,
+		common.NewServer,
 	)
-	return &uploader.Router{}, nil
+	return &common.Server{}, nil
 }

@@ -16,24 +16,27 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeWebRouter() (*web.Router, error) {
+func InitializeWebServer(name string) (*common.Server, error) {
 	configConfig, err := config.NewConfig()
 	if err != nil {
 		return nil, err
 	}
+	engine := web.NewGinServer(name)
+	httpServer := web.NewHttpServer(name, configConfig, engine)
+	router := web.NewRouter(httpServer)
+	infraCloser := web.NewInfraCloser()
 	observibilityInjector := common.NewObservibilityInjector(configConfig)
-	engine := web.NewGinServer()
-	router := web.NewRouter(configConfig, observibilityInjector, engine)
-	return router, nil
+	server := common.NewServer(name, router, infraCloser, observibilityInjector)
+	return server, nil
 }
 
-func InitializeChatRouter() (*chat.Router, error) {
+func InitializeChatServer(name string) (*common.Server, error) {
 	configConfig, err := config.NewConfig()
 	if err != nil {
 		return nil, err
 	}
 	observibilityInjector := common.NewObservibilityInjector(configConfig)
-	engine := chat.NewGinServer(configConfig)
+	engine := chat.NewGinServer(name, configConfig)
 	melodyMatchConn := chat.NewMelodyMatchConn()
 	melodyChatConn := chat.NewMelodyChatConn(configConfig)
 	universalClient, err := chat.NewRedisClient(configConfig)
@@ -69,17 +72,23 @@ func InitializeChatRouter() (*chat.Router, error) {
 	channelRepo := chat.NewRedisChannelRepo(redisCache)
 	matchingService := chat.NewMatchingService(matchingRepo, channelRepo, idGenerator)
 	channelService := chat.NewChannelService(channelRepo, userRepo)
-	router := chat.NewRouter(configConfig, observibilityInjector, engine, melodyMatchConn, melodyChatConn, matchSubscriber, messageSubscriber, userService, messageService, matchingService, channelService)
-	return router, nil
+	httpServer := chat.NewHttpServer(configConfig, observibilityInjector, engine, melodyMatchConn, melodyChatConn, matchSubscriber, messageSubscriber, userService, messageService, matchingService, channelService)
+	router := chat.NewRouter(httpServer)
+	infraCloser := chat.NewInfraCloser()
+	server := common.NewServer(name, router, infraCloser, observibilityInjector)
+	return server, nil
 }
 
-func InitializeUploaderRouter() (*uploader.Router, error) {
+func InitializeUploaderServer(name string) (*common.Server, error) {
 	configConfig, err := config.NewConfig()
 	if err != nil {
 		return nil, err
 	}
+	engine := uploader.NewGinServer(name)
+	httpServer := uploader.NewHttpServer(name, configConfig, engine)
+	router := uploader.NewRouter(httpServer)
+	infraCloser := uploader.NewInfraCloser()
 	observibilityInjector := common.NewObservibilityInjector(configConfig)
-	engine := uploader.NewGinServer()
-	router := uploader.NewRouter(configConfig, observibilityInjector, engine)
-	return router, nil
+	server := common.NewServer(name, router, infraCloser, observibilityInjector)
+	return server, nil
 }
