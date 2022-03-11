@@ -28,6 +28,8 @@ type Router struct {
 }
 
 func NewGinServer() *gin.Engine {
+	common.InitLogging()
+
 	svr := gin.New()
 	svr.Use(gin.Recovery())
 	svr.Use(common.LoggingMiddleware())
@@ -43,7 +45,6 @@ func NewGinServer() *gin.Engine {
 }
 
 func NewRouter(config *config.Config, obsInjector *common.ObservibilityInjector, svr *gin.Engine) *Router {
-	common.InitLogging()
 	initJWT(config)
 
 	s3Endpoint := config.Uploader.S3.Endpoint
