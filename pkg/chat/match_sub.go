@@ -10,22 +10,22 @@ import (
 )
 
 type MatchSubscriber struct {
-	m        MelodyMatchConn
-	router   *message.Router
-	userRepo UserRepo
-	sub      message.Subscriber
+	m       MelodyMatchConn
+	router  *message.Router
+	userSvc UserService
+	sub     message.Subscriber
 }
 
-func NewMatchSubscriber(name string, m MelodyMatchConn, userRepo UserRepo, sub message.Subscriber) (*MatchSubscriber, error) {
+func NewMatchSubscriber(name string, m MelodyMatchConn, userSvc UserService, sub message.Subscriber) (*MatchSubscriber, error) {
 	router, err := infra.NewBrokerRouter(name)
 	if err != nil {
 		return nil, err
 	}
 	return &MatchSubscriber{
-		m:        m,
-		router:   router,
-		userRepo: userRepo,
-		sub:      sub,
+		m:       m,
+		router:  router,
+		userSvc: userSvc,
+		sub:     sub,
 	}, nil
 }
 
@@ -63,7 +63,7 @@ func (s *MatchSubscriber) sendMatchResult(ctx context.Context, result *MatchResu
 		}
 		userID := uid.(uint64)
 		if (userID == result.PeerID) || (userID == result.UserID) {
-			if err := s.userRepo.AddUserToChannel(ctx, result.ChannelID, userID); err != nil {
+			if err := s.userSvc.AddUserToChannel(ctx, result.ChannelID, userID); err != nil {
 				log.Error(err)
 				return false
 			}

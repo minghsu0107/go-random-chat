@@ -46,11 +46,16 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	}
 	redisCache := infra.NewRedisCache(universalClient)
 	userRepo := chat.NewRedisUserRepo(redisCache)
+	idGenerator, err := chat.NewSonyFlake()
+	if err != nil {
+		return nil, err
+	}
+	userService := chat.NewUserService(userRepo, idGenerator)
 	subscriber, err := infra.NewKafkaSubscriber(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	matchSubscriber, err := chat.NewMatchSubscriber(name, melodyMatchConn, userRepo, subscriber)
+	matchSubscriber, err := chat.NewMatchSubscriber(name, melodyMatchConn, userService, subscriber)
 	if err != nil {
 		return nil, err
 	}
@@ -58,11 +63,6 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	idGenerator, err := chat.NewSonyFlake()
-	if err != nil {
-		return nil, err
-	}
-	userService := chat.NewUserService(userRepo, idGenerator)
 	publisher, err := infra.NewKafkaPublisher(configConfig)
 	if err != nil {
 		return nil, err
