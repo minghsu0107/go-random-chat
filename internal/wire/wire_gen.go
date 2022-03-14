@@ -45,13 +45,13 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	}
 	redisCache := infra.NewRedisCache(universalClient)
 	userRepo := chat.NewRedisUserRepo(redisCache)
-	matchSubscriber := chat.NewMatchSubscriber(configConfig, universalClient, melodyMatchConn, userRepo)
-	messageSubscriber := chat.NewMessageSubscriber(configConfig, universalClient, melodyChatConn)
 	idGenerator, err := chat.NewSonyFlake()
 	if err != nil {
 		return nil, err
 	}
 	userService := chat.NewUserService(userRepo, idGenerator)
+	matchSubscriber := chat.NewMatchSubscriber(configConfig, universalClient, melodyMatchConn, userService)
+	messageSubscriber := chat.NewMessageSubscriber(configConfig, universalClient, melodyChatConn)
 	messageRepo := chat.NewRedisMessageRepo(configConfig, redisCache)
 	messageService := chat.NewMessageService(messageRepo, userRepo, idGenerator)
 	matchingRepo := chat.NewRedisMatchingRepo(redisCache)

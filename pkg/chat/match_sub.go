@@ -23,15 +23,15 @@ type MatchSubscriberImpl struct {
 	m            MelodyMatchConn
 	numberWorker int
 	pool         *common.Pool
-	userRepo     UserRepo
+	userSvc      UserService
 }
 
-func NewMatchSubscriber(config *config.Config, client redis.UniversalClient, m MelodyMatchConn, userRepo UserRepo) MatchSubscriber {
+func NewMatchSubscriber(config *config.Config, client redis.UniversalClient, m MelodyMatchConn, userSvc UserService) MatchSubscriber {
 	return &MatchSubscriberImpl{
 		client:       client,
 		m:            m,
 		numberWorker: config.Chat.Match.Worker,
-		userRepo:     userRepo,
+		userSvc:      userSvc,
 	}
 }
 
@@ -72,7 +72,7 @@ func (s *MatchSubscriberImpl) sendMatchResult(ctx context.Context, result *Match
 					}
 					userID := uid.(uint64)
 					if (userID == result.PeerID) || (userID == result.UserID) {
-						if err := s.userRepo.AddUserToChannel(ctx, result.ChannelID, userID); err != nil {
+						if err := s.userSvc.AddUserToChannel(ctx, result.ChannelID, userID); err != nil {
 							log.Error(err)
 							return false
 						}
