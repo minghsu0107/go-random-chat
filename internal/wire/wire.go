@@ -9,6 +9,7 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 	"github.com/minghsu0107/go-random-chat/pkg/infra"
+	"github.com/minghsu0107/go-random-chat/pkg/match"
 	"github.com/minghsu0107/go-random-chat/pkg/uploader"
 	"github.com/minghsu0107/go-random-chat/pkg/web"
 )
@@ -17,6 +18,7 @@ func InitializeWebServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
 		common.NewObservibilityInjector,
+		common.NewHttpLogrus,
 		web.NewGinServer,
 		web.NewHttpServer,
 		web.NewRouter,
@@ -26,34 +28,64 @@ func InitializeWebServer(name string) (*common.Server, error) {
 	return &common.Server{}, nil
 }
 
-func InitializeChatServer(name string) (*common.Server, error) {
+func InitializeMatchServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
 		common.NewObservibilityInjector,
+		common.NewHttpLogrus,
 
 		infra.NewRedisClient,
 		infra.NewRedisCache,
 
-		chat.NewRedisUserRepo,
-		chat.NewRedisMessageRepo,
-		chat.NewRedisChannelRepo,
-		chat.NewRedisMatchingRepo,
+		match.NewChatClientConn,
+
+		match.NewChannelRepo,
+		match.NewUserRepo,
+		match.NewMatchingRepo,
+
+		match.NewMatchSubscriber,
+
+		match.NewUserService,
+		match.NewMatchingService,
+
+		match.NewMelodyMatchConn,
+
+		match.NewGinServer,
+		match.NewHttpServer,
+		match.NewRouter,
+		match.NewInfraCloser,
+		common.NewServer,
+	)
+	return &common.Server{}, nil
+}
+
+func InitializeChatServer(name string) (*common.Server, error) {
+	wire.Build(
+		config.NewConfig,
+		common.NewObservibilityInjector,
+		common.NewHttpLogrus,
+		common.NewGrpcLogrus,
+
+		infra.NewRedisClient,
+		infra.NewRedisCache,
+
+		chat.NewUserRepo,
+		chat.NewMessageRepo,
+		chat.NewChannelRepo,
 
 		chat.NewMessageSubscriber,
-		chat.NewMatchSubscriber,
 
 		chat.NewSonyFlake,
 
 		chat.NewUserService,
 		chat.NewMessageService,
-		chat.NewMatchingService,
 		chat.NewChannelService,
 
-		chat.NewMelodyMatchConn,
 		chat.NewMelodyChatConn,
 
 		chat.NewGinServer,
 		chat.NewHttpServer,
+		chat.NewGrpcServer,
 		chat.NewRouter,
 		chat.NewInfraCloser,
 		common.NewServer,
@@ -65,6 +97,7 @@ func InitializeUploaderServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
 		common.NewObservibilityInjector,
+		common.NewHttpLogrus,
 		uploader.NewGinServer,
 		uploader.NewHttpServer,
 		uploader.NewRouter,

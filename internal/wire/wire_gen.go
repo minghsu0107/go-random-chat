@@ -11,6 +11,7 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 	"github.com/minghsu0107/go-random-chat/pkg/infra"
+	"github.com/minghsu0107/go-random-chat/pkg/match"
 	"github.com/minghsu0107/go-random-chat/pkg/uploader"
 	"github.com/minghsu0107/go-random-chat/pkg/web"
 )
@@ -18,12 +19,13 @@ import (
 // Injectors from wire.go:
 
 func InitializeWebServer(name string) (*common.Server, error) {
+	httpLogrus := common.NewHttpLogrus()
 	configConfig, err := config.NewConfig()
 	if err != nil {
 		return nil, err
 	}
-	engine := web.NewGinServer(name)
-	httpServer := web.NewHttpServer(name, configConfig, engine)
+	engine := web.NewGinServer(name, httpLogrus)
+	httpServer := web.NewHttpServer(name, httpLogrus, configConfig, engine)
 	router := web.NewRouter(httpServer)
 	infraCloser := web.NewInfraCloser()
 	observibilityInjector := common.NewObservibilityInjector(configConfig)
@@ -31,35 +33,65 @@ func InitializeWebServer(name string) (*common.Server, error) {
 	return server, nil
 }
 
-func InitializeChatServer(name string) (*common.Server, error) {
+func InitializeMatchServer(name string) (*common.Server, error) {
+	httpLogrus := common.NewHttpLogrus()
 	configConfig, err := config.NewConfig()
 	if err != nil {
 		return nil, err
 	}
-	engine := chat.NewGinServer(name, configConfig)
-	melodyMatchConn := chat.NewMelodyMatchConn()
+	engine := match.NewGinServer(name, httpLogrus, configConfig)
+	melodyMatchConn := match.NewMelodyMatchConn()
+	universalClient, err := infra.NewRedisClient(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	chatClientConn, err := match.NewChatClientConn(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	userRepo := match.NewUserRepo(chatClientConn)
+	userService := match.NewUserService(userRepo)
+	matchSubscriber := match.NewMatchSubscriber(configConfig, universalClient, melodyMatchConn, userService)
+	redisCache := infra.NewRedisCache(universalClient)
+	matchingRepo := match.NewMatchingRepo(redisCache)
+	channelRepo := match.NewChannelRepo(chatClientConn)
+	matchingService := match.NewMatchingService(matchingRepo, channelRepo)
+	httpServer := match.NewHttpServer(name, httpLogrus, configConfig, engine, melodyMatchConn, matchSubscriber, userService, matchingService)
+	router := match.NewRouter(httpServer)
+	infraCloser := match.NewInfraCloser()
+	observibilityInjector := common.NewObservibilityInjector(configConfig)
+	server := common.NewServer(name, router, infraCloser, observibilityInjector)
+	return server, nil
+}
+
+func InitializeChatServer(name string) (*common.Server, error) {
+	httpLogrus := common.NewHttpLogrus()
+	configConfig, err := config.NewConfig()
+	if err != nil {
+		return nil, err
+	}
+	engine := chat.NewGinServer(name, httpLogrus, configConfig)
 	melodyChatConn := chat.NewMelodyChatConn(configConfig)
 	universalClient, err := infra.NewRedisClient(configConfig)
 	if err != nil {
 		return nil, err
 	}
+	messageSubscriber := chat.NewMessageSubscriber(configConfig, universalClient, melodyChatConn)
 	redisCache := infra.NewRedisCache(universalClient)
-	userRepo := chat.NewRedisUserRepo(redisCache)
+	userRepo := chat.NewUserRepo(redisCache)
 	idGenerator, err := chat.NewSonyFlake()
 	if err != nil {
 		return nil, err
 	}
 	userService := chat.NewUserService(userRepo, idGenerator)
-	matchSubscriber := chat.NewMatchSubscriber(configConfig, universalClient, melodyMatchConn, userService)
-	messageSubscriber := chat.NewMessageSubscriber(configConfig, universalClient, melodyChatConn)
-	messageRepo := chat.NewRedisMessageRepo(configConfig, redisCache)
+	messageRepo := chat.NewMessageRepo(configConfig, redisCache)
 	messageService := chat.NewMessageService(messageRepo, userRepo, idGenerator)
-	matchingRepo := chat.NewRedisMatchingRepo(redisCache)
-	channelRepo := chat.NewRedisChannelRepo(redisCache)
-	matchingService := chat.NewMatchingService(matchingRepo, channelRepo, idGenerator)
-	channelService := chat.NewChannelService(channelRepo, userRepo)
-	httpServer := chat.NewHttpServer(name, configConfig, engine, melodyMatchConn, melodyChatConn, matchSubscriber, messageSubscriber, userService, messageService, matchingService, channelService)
-	router := chat.NewRouter(httpServer)
+	channelRepo := chat.NewChannelRepo(redisCache)
+	channelService := chat.NewChannelService(channelRepo, userRepo, idGenerator)
+	httpServer := chat.NewHttpServer(name, httpLogrus, configConfig, engine, melodyChatConn, messageSubscriber, userService, messageService, channelService)
+	grpcLogrus := common.NewGrpcLogrus()
+	grpcServer := chat.NewGrpcServer(grpcLogrus, configConfig, userService, channelService)
+	router := chat.NewRouter(httpServer, grpcServer)
 	infraCloser := chat.NewInfraCloser()
 	observibilityInjector := common.NewObservibilityInjector(configConfig)
 	server := common.NewServer(name, router, infraCloser, observibilityInjector)
@@ -67,12 +99,13 @@ func InitializeChatServer(name string) (*common.Server, error) {
 }
 
 func InitializeUploaderServer(name string) (*common.Server, error) {
+	httpLogrus := common.NewHttpLogrus()
 	configConfig, err := config.NewConfig()
 	if err != nil {
 		return nil, err
 	}
-	engine := uploader.NewGinServer(name)
-	httpServer := uploader.NewHttpServer(name, configConfig, engine)
+	engine := uploader.NewGinServer(name, httpLogrus, configConfig)
+	httpServer := uploader.NewHttpServer(name, httpLogrus, configConfig, engine)
 	router := uploader.NewRouter(httpServer)
 	infraCloser := uploader.NewInfraCloser()
 	observibilityInjector := common.NewObservibilityInjector(configConfig)

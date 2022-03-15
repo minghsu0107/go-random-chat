@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type HTTPContextKey string
@@ -30,7 +30,7 @@ func MaxAllowed(n int64) gin.HandlerFunc {
 	}
 }
 
-func LoggingMiddleware() gin.HandlerFunc {
+func LoggingMiddleware(logger HttpLogrus) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Start timer
 		start := time.Now()
@@ -41,7 +41,7 @@ func LoggingMiddleware() gin.HandlerFunc {
 		// Stop timer
 		duration := getDurationInMillseconds(start)
 
-		entry := log.WithFields(log.Fields{
+		entry := logger.WithFields(logrus.Fields{
 			"duration_ms": duration,
 			"method":      c.Request.Method,
 			"path":        c.Request.RequestURI,
@@ -71,6 +71,13 @@ func CORSMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		c.Next()
+	}
+}
+
+func LimitBodySize(maxBodyBytes int64) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxBodyBytes)
 		c.Next()
 	}
 }

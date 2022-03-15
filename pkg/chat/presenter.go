@@ -16,14 +16,6 @@ type MessagePresenter struct {
 	Time      int64  `json:"time"`
 }
 
-type ChannelPresenter struct {
-	ID string `json:"id"`
-}
-
-type ChannelCreation struct {
-	UserID string `json:"user_id"`
-}
-
 type UserPresenter struct {
 	ID   string `json:"id"`
 	Name string `json:"name" binding:"required"`
@@ -35,15 +27,6 @@ type UserIDsPresenter struct {
 
 type MessagesPresenter struct {
 	Messages []MessagePresenter `json:"messages"`
-}
-
-type MatchResultPresenter struct {
-	AccessToken string `json:"access_token"`
-}
-
-func (m *MatchResultPresenter) Encode() []byte {
-	result, _ := json.Marshal(m)
-	return result
 }
 
 func (m *MessagePresenter) Encode() []byte {

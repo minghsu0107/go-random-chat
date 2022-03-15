@@ -21,14 +21,6 @@ func NewSonyFlake() (IDGenerator, error) {
 	return sf, nil
 }
 
-func DecodeToMatchResult(data []byte) (*MatchResult, error) {
-	var result MatchResult
-	if err := json.Unmarshal(data, &result); err != nil {
-		return nil, err
-	}
-	return &result, nil
-}
-
 func DecodeToMessagePresenter(data []byte) (*MessagePresenter, error) {
 	var msg MessagePresenter
 	if err := json.Unmarshal(data, &msg); err != nil {

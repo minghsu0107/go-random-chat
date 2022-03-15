@@ -7,29 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/olahol/melody.v1"
 )
-
-func (r *HttpServer) Match(c *gin.Context) {
-	uid := c.Query("uid")
-	userID, err := strconv.ParseUint(uid, 10, 64)
-	if err != nil {
-		response(c, http.StatusBadRequest, common.ErrInvalidParam)
-		return
-	}
-	_, err = r.userSvc.GetUser(c.Request.Context(), userID)
-	if err != nil {
-		if err == ErrUserNotFound {
-			response(c, http.StatusNotFound, ErrUserNotFound)
-			return
-		}
-		log.Error(err)
-		response(c, http.StatusInternalServerError, common.ErrServer)
-		return
-	}
-	r.mm.HandleRequest(c.Writer, c.Request)
-}
 
 func (r *HttpServer) StartChat(c *gin.Context) {
 	uid := c.Query("uid")
@@ -43,18 +22,18 @@ func (r *HttpServer) StartChat(c *gin.Context) {
 		AccessToken: accessToken,
 	})
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
 	if authResult.Expired {
-		log.Error(common.ErrTokenExpired)
+		r.logger.Error(common.ErrTokenExpired)
 		response(c, http.StatusUnauthorized, common.ErrTokenExpired)
 	}
 	channelID := authResult.ChannelID
 	exist, err := r.userSvc.IsChannelUserExist(c.Request.Context(), channelID, userID)
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -74,7 +53,7 @@ func (r *HttpServer) CreateUser(c *gin.Context) {
 	}
 	user, err := r.userSvc.CreateUser(c.Request.Context(), userPresenter.Name)
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -92,7 +71,7 @@ func (r *HttpServer) GetChannelUsers(c *gin.Context) {
 	}
 	userIDs, err := r.userSvc.GetChannelUserIDs(c.Request.Context(), channelID)
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		if err == ErrChannelNotFound {
 			response(c, http.StatusNotFound, ErrChannelNotFound)
 			return
@@ -121,7 +100,7 @@ func (r *HttpServer) GetOnlineUsers(c *gin.Context) {
 			response(c, http.StatusNotFound, ErrChannelNotFound)
 			return
 		}
-		log.Error(err)
+		r.logger.Error(err)
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -147,7 +126,7 @@ func (r *HttpServer) GetUserName(c *gin.Context) {
 			response(c, http.StatusNotFound, ErrUserNotFound)
 			return
 		}
-		log.Error(err)
+		r.logger.Error(err)
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -165,7 +144,7 @@ func (r *HttpServer) ListMessages(c *gin.Context) {
 	}
 	msgs, err := r.msgSvc.ListMessages(c.Request.Context(), channelID)
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		if err == ErrChannelNotFound {
 			response(c, http.StatusNotFound, ErrChannelNotFound)
 			return
@@ -197,7 +176,7 @@ func (r *HttpServer) DeleteChannel(c *gin.Context) {
 
 	exist, err := r.userSvc.IsChannelUserExist(c.Request.Context(), channelID, userID)
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -208,13 +187,13 @@ func (r *HttpServer) DeleteChannel(c *gin.Context) {
 
 	err = r.msgSvc.BroadcastActionMessage(c.Request.Context(), channelID, userID, LeavedMessage)
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
 	err = r.chanSvc.DeleteChannel(c.Request.Context(), channelID)
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -223,48 +202,10 @@ func (r *HttpServer) DeleteChannel(c *gin.Context) {
 	})
 }
 
-func (r *HttpServer) HandleMatchOnConnect(sess *melody.Session) {
-	userID, err := strconv.ParseUint(sess.Request.URL.Query().Get("uid"), 10, 64)
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	err = r.initializeMatchSession(sess, userID)
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	ctx := context.Background()
-	matchResult, err := r.matchSvc.Match(ctx, userID)
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	if !matchResult.Matched {
-		return
-	}
-	if err := r.matchSvc.BroadcastMatchResult(ctx, matchResult); err != nil {
-		log.Error(err)
-		return
-	}
-}
-func (r *HttpServer) initializeMatchSession(sess *melody.Session, userID uint64) error {
-	sess.Set(sessUidKey, userID)
-	return nil
-}
-func (r *HttpServer) HandleMatchOnClose(sess *melody.Session, i int, s string) error {
-	userID, err := strconv.ParseUint(sess.Request.URL.Query().Get("uid"), 10, 64)
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-	return r.matchSvc.RemoveUserFromWaitList(context.Background(), userID)
-}
-
 func (r *HttpServer) HandleChatOnConnect(sess *melody.Session) {
 	userID, err := strconv.ParseUint(sess.Request.URL.Query().Get("uid"), 10, 64)
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		return
 	}
 	accessToken := sess.Request.URL.Query().Get("access_token")
@@ -272,19 +213,19 @@ func (r *HttpServer) HandleChatOnConnect(sess *melody.Session) {
 		AccessToken: accessToken,
 	})
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 	}
 	if authResult.Expired {
-		log.Error(common.ErrTokenExpired)
+		r.logger.Error(common.ErrTokenExpired)
 	}
 	channelID := authResult.ChannelID
 	err = r.initializeChatSession(sess, channelID, userID)
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		return
 	}
 	if err := r.msgSvc.BroadcastConnectMessage(context.Background(), channelID, userID); err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		return
 	}
 }
@@ -301,45 +242,45 @@ func (r *HttpServer) initializeChatSession(sess *melody.Session, channelID, user
 func (r *HttpServer) HandleChatOnMessage(sess *melody.Session, data []byte) {
 	msgPresenter, err := DecodeToMessagePresenter(data)
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		return
 	}
 	msg, err := msgPresenter.ToMessage(sess.Request.URL.Query().Get("access_token"))
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		return
 	}
 	switch msg.Event {
 	case EventText:
 		if err := r.msgSvc.BroadcastTextMessage(context.Background(), msg.ChannelID, msg.UserID, msg.Payload); err != nil {
-			log.Error(err)
+			r.logger.Error(err)
 		}
 	case EventAction:
 		if err := r.msgSvc.BroadcastActionMessage(context.Background(), msg.ChannelID, msg.UserID, Action(msg.Payload)); err != nil {
-			log.Error(err)
+			r.logger.Error(err)
 		}
 	case EventSeen:
 		messageID, err := strconv.ParseUint(msg.Payload, 10, 64)
 		if err != nil {
-			log.Error(err)
+			r.logger.Error(err)
 			return
 		}
 		if err := r.msgSvc.MarkMessageSeen(context.Background(), msg.ChannelID, msg.UserID, messageID); err != nil {
-			log.Error(err)
+			r.logger.Error(err)
 		}
 	case EventFile:
 		if err := r.msgSvc.BroadcastFileMessage(context.Background(), msg.ChannelID, msg.UserID, msg.Payload); err != nil {
-			log.Error(err)
+			r.logger.Error(err)
 		}
 	default:
-		log.Errorf("invailid event type: %v", msg.Event)
+		r.logger.Errorf("invailid event type: %v", msg.Event)
 	}
 }
 
 func (r *HttpServer) HandleChatOnClose(sess *melody.Session, i int, s string) error {
 	userID, err := strconv.ParseUint(sess.Request.URL.Query().Get("uid"), 10, 64)
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		return err
 	}
 	accessToken := sess.Request.URL.Query().Get("access_token")
@@ -347,17 +288,17 @@ func (r *HttpServer) HandleChatOnClose(sess *melody.Session, i int, s string) er
 		AccessToken: accessToken,
 	})
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		return err
 	}
 	if authResult.Expired {
-		log.Error(common.ErrTokenExpired)
+		r.logger.Error(common.ErrTokenExpired)
 		return common.ErrTokenExpired
 	}
 	channelID := authResult.ChannelID
 	err = r.userSvc.DeleteOnlineUser(context.Background(), channelID, userID)
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		return err
 	}
 	return r.msgSvc.BroadcastActionMessage(context.Background(), channelID, userID, OfflineMessage)

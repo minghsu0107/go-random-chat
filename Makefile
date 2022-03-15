@@ -5,6 +5,8 @@ GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
 GOINSTALL=$(GOCMD) install
 
+.PHONY: proto
+
 all: build test
 test:
 	$(GOTEST) -gcflags=-l -v -cover -coverpkg=./... -coverprofile=cover.out ./...
@@ -14,6 +16,8 @@ dep: wire
 	$(shell $(GOCMD) env GOPATH)/bin/wire ./internal/wire
 wire:
 	GO111MODULE=on $(GOINSTALL) github.com/google/wire/cmd/wire@v0.4.0
+proto:
+	protoc proto/*/*.proto --go_out=plugins=grpc:.
 clean:
 	$(GOCLEAN)
 	rm -f server

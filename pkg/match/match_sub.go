@@ -1,4 +1,4 @@
-package chat
+package match
 
 import (
 	"context"
@@ -30,7 +30,7 @@ func NewMatchSubscriber(config *config.Config, client redis.UniversalClient, m M
 	return &MatchSubscriberImpl{
 		client:       client,
 		m:            m,
-		numberWorker: config.Chat.Match.Worker,
+		numberWorker: config.Match.Worker,
 		userSvc:      userSvc,
 	}
 }

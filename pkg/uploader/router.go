@@ -15,6 +15,7 @@ func NewRouter(httpServer common.HttpServer) common.Router {
 }
 
 func (r *Router) Run() {
+	r.httpServer.RegisterRoutes()
 	r.httpServer.Run()
 }
 func (r *Router) GracefulStop(ctx context.Context) error {

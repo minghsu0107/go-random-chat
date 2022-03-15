@@ -1,26 +1,40 @@
 web:
   http:
-    port: "80"
+    server:
+      port: "80"
 chat:
   http:
-    port: "80"
-    maxConn: 200
-  redis:
-    password: pass.123
-    addrs: localhost:6379
-    expirationHour: 24
+    server:
+      port: "80"
+      maxConn: 200
+  grpc:
+    server:
+      port: "4000"
   message:
     maxNum: 500
     maxSizeByte: 4096
     worker: 4
   jwt:
     secret: mysecret
+match:
+  http:
+    server:
+      port: "80"
+      maxConn: 200
+  grpc:
+    client:
+      chat:
+        endpoint: "localhost:4000"
+  jwt:
+    secret: mysecret
     expirationSecond: 86400
-  match:
-    worker: 4
+  worker: 4
 uploader:
   http:
-    port: "80"
+    server:
+      port: "80"
+      maxBodyByte: 67108864
+      maxMemoryByte: 16777216
   s3:
     endpoint: http://localhost:9000
     disableSSL: true
@@ -30,6 +44,10 @@ uploader:
     secretKey: testsecret
   jwt:
     secret: mysecret
+redis:
+    password: pass.123
+    addrs: localhost:6379
+    expirationHour: 24
 observability:
   prometheus:
     port: "8080"
