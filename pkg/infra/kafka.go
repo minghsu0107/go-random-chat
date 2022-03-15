@@ -25,7 +25,7 @@ var (
 func NewKafkaPublisher(config *config.Config) (message.Publisher, error) {
 	kafkaPublisher, err := kafka.NewPublisher(
 		kafka.PublisherConfig{
-			Brokers:   common.GetServerAddrs(config.Chat.Kafka.Addrs),
+			Brokers:   common.GetServerAddrs(config.Kafka.Addrs),
 			Marshaler: kafka.DefaultMarshaler{},
 		},
 		logger,
@@ -45,7 +45,7 @@ func NewKafkaSubscriber(config *config.Config) (message.Subscriber, error) {
 
 	kafkaSubscriber, err := kafka.NewSubscriber(
 		kafka.SubscriberConfig{
-			Brokers:       common.GetServerAddrs(config.Chat.Kafka.Addrs),
+			Brokers:       common.GetServerAddrs(config.Kafka.Addrs),
 			Unmarshaler:   kafka.DefaultMarshaler{},
 			ConsumerGroup: watermill.NewUUID(),
 			InitializeTopicDetails: &sarama.TopicDetail{

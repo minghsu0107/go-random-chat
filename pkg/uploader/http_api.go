@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/gin-gonic/gin"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
-	log "github.com/sirupsen/logrus"
 )
 
 func (r *HttpServer) UploadFile(c *gin.Context) {
@@ -19,16 +18,17 @@ func (r *HttpServer) UploadFile(c *gin.Context) {
 		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
 		return
 	}
+	c.Request.ParseMultipartForm(r.maxMemory)
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		response(c, http.StatusBadRequest, ErrReceiveFile)
 		return
 	}
 
 	f, err := fileHeader.Open()
 	if err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		response(c, http.StatusBadRequest, ErrOpenFile)
 		return
 	}
@@ -36,7 +36,7 @@ func (r *HttpServer) UploadFile(c *gin.Context) {
 	extension := filepath.Ext(fileHeader.Filename)
 	newFileName := newObjectKey(channelID, extension)
 	if err := r.putFileToS3(c.Request.Context(), r.s3Bucket, newFileName, f); err != nil {
-		log.Error(err)
+		r.logger.Error(err)
 		response(c, http.StatusServiceUnavailable, ErrUploadFile)
 		return
 	}

@@ -4,8 +4,6 @@ import (
 	"context"
 	"strconv"
 	"time"
-
-	"github.com/minghsu0107/go-random-chat/pkg/common"
 )
 
 type MessageService interface {
@@ -15,12 +13,6 @@ type MessageService interface {
 	BroadcastFileMessage(ctx context.Context, channelID, userID uint64, payload string) error
 	MarkMessageSeen(ctx context.Context, channelID, userID, messageID uint64) error
 	ListMessages(ctx context.Context, channelID uint64) ([]*Message, error)
-}
-
-type MatchingService interface {
-	Match(ctx context.Context, userID uint64) (*MatchResult, error)
-	BroadcastMatchResult(ctx context.Context, result *MatchResult) error
-	RemoveUserFromWaitList(ctx context.Context, userID uint64) error
 }
 
 type UserService interface {
@@ -35,6 +27,7 @@ type UserService interface {
 }
 
 type ChannelService interface {
+	CreateChannel(ctx context.Context) (*Channel, error)
 	DeleteChannel(ctx context.Context, channelID uint64) error
 }
 
@@ -131,52 +124,6 @@ func (svc *MessageServiceImpl) ListMessages(ctx context.Context, channelID uint6
 	return svc.msgRepo.ListMessages(ctx, channelID)
 }
 
-type MatchingServiceImpl struct {
-	matchRepo MatchingRepo
-	chanRepo  ChannelRepo
-	sf        IDGenerator
-}
-
-func NewMatchingService(matchRepo MatchingRepo, chanRepo ChannelRepo, sf IDGenerator) MatchingService {
-	return &MatchingServiceImpl{matchRepo, chanRepo, sf}
-}
-func (svc *MatchingServiceImpl) Match(ctx context.Context, userID uint64) (*MatchResult, error) {
-	matched, peerID, err := svc.matchRepo.PopOrPushWaitList(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	if matched {
-		newChannelID, err := svc.sf.NextID()
-		if err != nil {
-			return nil, err
-		}
-		_, err = svc.chanRepo.CreateChannel(ctx, newChannelID)
-		if err != nil {
-			return nil, err
-		}
-		accessToken, err := common.NewJWT(newChannelID)
-		if err != nil {
-			return nil, err
-		}
-		return &MatchResult{
-			Matched:     true,
-			UserID:      userID,
-			PeerID:      peerID,
-			ChannelID:   newChannelID,
-			AccessToken: accessToken,
-		}, nil
-	}
-	return &MatchResult{
-		Matched: false,
-	}, nil
-}
-func (svc *MatchingServiceImpl) BroadcastMatchResult(ctx context.Context, result *MatchResult) error {
-	return svc.matchRepo.PublishMatchResult(ctx, result)
-}
-func (svc *MatchingServiceImpl) RemoveUserFromWaitList(ctx context.Context, userID uint64) error {
-	return svc.matchRepo.RemoveFromWaitList(ctx, userID)
-}
-
 type UserServiceImpl struct {
 	userRepo UserRepo
 	sf       IDGenerator
@@ -220,10 +167,18 @@ func (svc *UserServiceImpl) GetOnlineUserIDs(ctx context.Context, channelID uint
 type ChannelServiceImpl struct {
 	chanRepo ChannelRepo
 	userRepo UserRepo
+	sf       IDGenerator
 }
 
-func NewChannelService(chanRepo ChannelRepo, userRepo UserRepo) ChannelService {
-	return &ChannelServiceImpl{chanRepo, userRepo}
+func NewChannelService(chanRepo ChannelRepo, userRepo UserRepo, sf IDGenerator) ChannelService {
+	return &ChannelServiceImpl{chanRepo, userRepo, sf}
+}
+func (svc *ChannelServiceImpl) CreateChannel(ctx context.Context) (*Channel, error) {
+	channelID, err := svc.sf.NextID()
+	if err != nil {
+		return nil, err
+	}
+	return svc.chanRepo.CreateChannel(ctx, channelID)
 }
 func (svc *ChannelServiceImpl) DeleteChannel(ctx context.Context, channelID uint64) error {
 	if err := svc.chanRepo.DeleteChannel(ctx, channelID); err != nil {

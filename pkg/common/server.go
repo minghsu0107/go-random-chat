@@ -16,6 +16,12 @@ type HttpServer interface {
 	GracefulStop(ctx context.Context) error
 }
 
+type GrpcServer interface {
+	Register()
+	Run()
+	GracefulStop()
+}
+
 type Router interface {
 	Run()
 	GracefulStop(ctx context.Context) error

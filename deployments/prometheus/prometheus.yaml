@@ -10,6 +10,9 @@ scrape_configs:
   - job_name: 'web_monitor'
     static_configs:
     - targets: ['deployments_web_1:8080']
+  - job_name: 'match_monitor'
+    static_configs:
+    - targets: ['deployments_match_1:8080']
   - job_name: 'chat_monitor'
     static_configs:
     - targets: ['deployments_random-chat_1:8080','deployments_random-chat_2:8080','deployments_random-chat_3:8080']

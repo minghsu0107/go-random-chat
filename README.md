@@ -5,8 +5,11 @@ Modern real-time random chat with high performance and linear scalability, writt
 
 Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
-- Microservices architecture
-  - `web` (frontend server), `chat` (messaging server) and `uploader` (file uploader). All of them can be horizontally scaled on demand.
+- Microservices architecture. All services can be horizontally scaled on demand.
+  - `web`: frontend server
+  - `match`: user matching server
+  - `chat`: messaging server
+  - `uploader`: file uploader
 - Use [cobra](https://github.com/spf13/cobra) and [viper](https://github.com/spf13/viper) for CLI and configuration management respectively.
 - Dependency injection using [wire](https://github.com/google/wire).
 - Observability using [client_golang](https://github.com/prometheus/client_golang) and [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go).

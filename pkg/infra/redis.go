@@ -98,11 +98,11 @@ type RedisPipelineCmd struct {
 }
 
 func NewRedisClient(config *config.Config) (redis.UniversalClient, error) {
-	expirationHour = config.Chat.Redis.ExpirationHour
+	expirationHour = config.Redis.ExpirationHour
 	expiration = time.Duration(expirationHour) * time.Hour
 	RedisClient = redis.NewClusterClient(&redis.ClusterOptions{
-		Addrs:         common.GetServerAddrs(config.Chat.Redis.Addrs),
-		Password:      config.Chat.Redis.Password,
+		Addrs:         common.GetServerAddrs(config.Redis.Addrs),
+		Password:      config.Redis.Password,
 		ReadOnly:      true,
 		RouteRandomly: true,
 	})

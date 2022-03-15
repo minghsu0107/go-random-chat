@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"strconv"
-	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -14,12 +13,10 @@ import (
 )
 
 var (
-	matchPubSubTopic   = "rc_match"
 	messagePubSubTopic = "rc_msg"
 
 	messagesPrefix     = "rc:msgs"
 	channelPrefix      = "rc:chan"
-	userWaitList       = "rc:userwait"
 	userPrefix         = "rc:user"
 	channelUsersPrefix = "rc:chanusers"
 	onlineUsersPrefix  = "rc:onlineusers"
@@ -56,20 +53,14 @@ type ChannelRepo interface {
 	DeleteChannel(ctx context.Context, channelID uint64) error
 }
 
-type MatchingRepo interface {
-	PopOrPushWaitList(ctx context.Context, userID uint64) (bool, uint64, error)
-	PublishMatchResult(ctx context.Context, result *MatchResult) error
-	RemoveFromWaitList(ctx context.Context, userID uint64) error
-}
-
-type RedisUserRepo struct {
+type UserRepoImpl struct {
 	r infra.RedisCache
 }
 
-func NewRedisUserRepo(r infra.RedisCache) UserRepo {
-	return &RedisUserRepo{r}
+func NewUserRepo(r infra.RedisCache) UserRepo {
+	return &UserRepoImpl{r}
 }
-func (repo *RedisUserRepo) CreateUser(ctx context.Context, user *User) (*User, error) {
+func (repo *UserRepoImpl) CreateUser(ctx context.Context, user *User) (*User, error) {
 	data, err := json.Marshal(user)
 	if err != nil {
 		return nil, err
@@ -83,7 +74,7 @@ func (repo *RedisUserRepo) CreateUser(ctx context.Context, user *User) (*User, e
 		Name: user.Name,
 	}, nil
 }
-func (repo *RedisUserRepo) GetUserByID(ctx context.Context, userID uint64) (*User, error) {
+func (repo *UserRepoImpl) GetUserByID(ctx context.Context, userID uint64) (*User, error) {
 	key := constructKey(userPrefix, userID)
 	var user User
 	exist, err := repo.r.Get(ctx, key, &user)
@@ -95,16 +86,16 @@ func (repo *RedisUserRepo) GetUserByID(ctx context.Context, userID uint64) (*Use
 	}
 	return &user, nil
 }
-func (repo *RedisUserRepo) AddUserToChannel(ctx context.Context, channelID uint64, userID uint64) error {
+func (repo *UserRepoImpl) AddUserToChannel(ctx context.Context, channelID uint64, userID uint64) error {
 	key := constructKey(channelUsersPrefix, channelID)
 	return repo.r.HSet(ctx, key, strconv.FormatUint(userID, 10), 0)
 }
-func (repo *RedisUserRepo) IsChannelUserExist(ctx context.Context, channelID, userID uint64) (bool, error) {
+func (repo *UserRepoImpl) IsChannelUserExist(ctx context.Context, channelID, userID uint64) (bool, error) {
 	key := constructKey(channelUsersPrefix, channelID)
 	var dummy int
 	return repo.r.HGet(ctx, key, strconv.FormatUint(userID, 10), &dummy)
 }
-func (repo *RedisUserRepo) GetChannelUserIDs(ctx context.Context, channelID uint64) ([]uint64, error) {
+func (repo *UserRepoImpl) GetChannelUserIDs(ctx context.Context, channelID uint64) ([]uint64, error) {
 	var dummy int
 	exist, err := repo.r.Get(ctx, constructKey(channelPrefix, channelID), &dummy)
 	if err != nil {
@@ -128,16 +119,16 @@ func (repo *RedisUserRepo) GetChannelUserIDs(ctx context.Context, channelID uint
 	}
 	return userIDs, nil
 }
-func (repo *RedisUserRepo) AddOnlineUser(ctx context.Context, channelID uint64, userID uint64) error {
+func (repo *UserRepoImpl) AddOnlineUser(ctx context.Context, channelID uint64, userID uint64) error {
 	key := constructKey(onlineUsersPrefix, channelID)
 	return repo.r.HSet(ctx, key, strconv.FormatUint(userID, 10), 0)
 }
-func (repo *RedisUserRepo) DeleteOnlineUser(ctx context.Context, channelID, userID uint64) error {
+func (repo *UserRepoImpl) DeleteOnlineUser(ctx context.Context, channelID, userID uint64) error {
 	key := constructKey(onlineUsersPrefix, channelID)
 	userKey := strconv.FormatUint(userID, 10)
 	return repo.r.HDel(ctx, key, userKey)
 }
-func (repo *RedisUserRepo) GetOnlineUserIDs(ctx context.Context, channelID uint64) ([]uint64, error) {
+func (repo *UserRepoImpl) GetOnlineUserIDs(ctx context.Context, channelID uint64) ([]uint64, error) {
 	var dummy int
 	exist, err := repo.r.Get(ctx, constructKey(channelPrefix, channelID), &dummy)
 	if err != nil {
@@ -161,7 +152,7 @@ func (repo *RedisUserRepo) GetOnlineUserIDs(ctx context.Context, channelID uint6
 	}
 	return userIDs, nil
 }
-func (repo *RedisUserRepo) DeleteAllOnlineUsers(ctx context.Context, channelID uint64) error {
+func (repo *UserRepoImpl) DeleteAllOnlineUsers(ctx context.Context, channelID uint64) error {
 	return repo.r.Delete(ctx, constructKey(onlineUsersPrefix, channelID))
 }
 
@@ -248,15 +239,15 @@ func (repo *MessageRepoImpl) ListMessages(ctx context.Context, channelID uint64)
 	return messages, nil
 }
 
-type RedisChannelRepo struct {
+type ChannelRepoImpl struct {
 	r infra.RedisCache
 }
 
-func NewRedisChannelRepo(r infra.RedisCache) ChannelRepo {
-	return &RedisChannelRepo{r}
+func NewChannelRepo(r infra.RedisCache) ChannelRepo {
+	return &ChannelRepoImpl{r}
 }
 
-func (repo *RedisChannelRepo) CreateChannel(ctx context.Context, channelID uint64) (*Channel, error) {
+func (repo *ChannelRepoImpl) CreateChannel(ctx context.Context, channelID uint64) (*Channel, error) {
 	if err := repo.r.Set(ctx, constructKey(channelPrefix, channelID), 0); err != nil {
 		return nil, err
 	}
@@ -264,11 +255,11 @@ func (repo *RedisChannelRepo) CreateChannel(ctx context.Context, channelID uint6
 		ID: channelID,
 	}, nil
 }
-func (repo *RedisChannelRepo) IsChannelExist(ctx context.Context, channelID uint64) (bool, error) {
+func (repo *ChannelRepoImpl) IsChannelExist(ctx context.Context, channelID uint64) (bool, error) {
 	var dummy int
 	return repo.r.Get(ctx, constructKey(channelPrefix, channelID), &dummy)
 }
-func (repo *RedisChannelRepo) DeleteChannel(ctx context.Context, channelID uint64) error {
+func (repo *ChannelRepoImpl) DeleteChannel(ctx context.Context, channelID uint64) error {
 	cmds := []infra.RedisCmd{
 		{
 			OpType: infra.DELETE,
@@ -284,38 +275,6 @@ func (repo *RedisChannelRepo) DeleteChannel(ctx context.Context, channelID uint6
 		},
 	}
 	return repo.r.ExecPipeLine(ctx, &cmds)
-}
-
-type MatchingRepoImpl struct {
-	r infra.RedisCache
-	p message.Publisher
-}
-
-func NewMatchingRepo(r infra.RedisCache, p message.Publisher) MatchingRepo {
-	return &MatchingRepoImpl{r, p}
-}
-func (repo *MatchingRepoImpl) PopOrPushWaitList(ctx context.Context, userID uint64) (bool, uint64, error) {
-	match, peerIDStr, err := repo.r.ZPopMinOrAddOne(ctx, userWaitList, float64(time.Now().Unix()), userID)
-	if err != nil {
-		return false, 0, err
-	}
-	if !match {
-		return false, 0, nil
-	}
-	peerID, err := strconv.ParseUint(peerIDStr, 10, 64)
-	if err != nil {
-		return false, 0, err
-	}
-	return true, peerID, nil
-}
-func (repo *MatchingRepoImpl) RemoveFromWaitList(ctx context.Context, userID uint64) error {
-	return repo.r.ZRemOne(ctx, userWaitList, userID)
-}
-func (repo *MatchingRepoImpl) PublishMatchResult(ctx context.Context, result *MatchResult) error {
-	return repo.p.Publish(matchPubSubTopic, message.NewMessage(
-		watermill.NewUUID(),
-		result.Encode(),
-	))
 }
 
 func constructKey(prefix string, id uint64) string {
