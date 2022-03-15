@@ -10,6 +10,7 @@ Features:
   - `match`: user matching server
   - `chat`: messaging server
   - `uploader`: file uploader
+- Use gRPC for inter-service communication
 - Use [cobra](https://github.com/spf13/cobra) and [viper](https://github.com/spf13/viper) for CLI and configuration management respectively.
 - Dependency injection using [wire](https://github.com/google/wire).
 - Observability using [client_golang](https://github.com/prometheus/client_golang) and [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go).
