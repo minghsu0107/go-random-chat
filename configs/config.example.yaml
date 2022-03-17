@@ -48,6 +48,10 @@ redis:
   password: pass.123
   addrs: localhost:6379
   expirationHour: 24
+  minIdleConn: 30
+  poolSize: 500
+  readTimeoutMilliSecond: 500
+  writeTimeoutMilliSecond: 500
 observability:
   prometheus:
     port: "8080"

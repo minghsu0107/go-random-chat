@@ -89,9 +89,13 @@ type KafkaConfig struct {
 }
 
 type RedisConfig struct {
-	Password       string
-	Addrs          string
-	ExpirationHour int64
+	Password                string
+	Addrs                   string
+	ExpirationHour          int64
+	MinIdleConn             int
+	PoolSize                int
+	ReadTimeoutMilliSecond  int64
+	WriteTimeoutMilliSecond int64
 }
 
 type ObservabilityConfig struct {
@@ -135,6 +139,10 @@ func setDefault() {
 	viper.SetDefault("redis.password", "")
 	viper.SetDefault("redis.addrs", "localhost:6379")
 	viper.SetDefault("redis.expirationHour", 24)
+	viper.SetDefault("redis.minIdleConn", 30)
+	viper.SetDefault("redis.poolSize", 500)
+	viper.SetDefault("redis.readTimeoutMilliSecond", 500)
+	viper.SetDefault("redis.writeTimeoutMilliSecond", 500)
 
 	viper.SetDefault("observability.prometheus.port", "8080")
 	viper.SetDefault("observability.tracing.jaegerUrl", "")
