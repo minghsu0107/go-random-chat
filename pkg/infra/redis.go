@@ -101,10 +101,15 @@ func NewRedisClient(config *config.Config) (redis.UniversalClient, error) {
 	expirationHour = config.Redis.ExpirationHour
 	expiration = time.Duration(expirationHour) * time.Hour
 	RedisClient = redis.NewClusterClient(&redis.ClusterOptions{
-		Addrs:         common.GetServerAddrs(config.Redis.Addrs),
-		Password:      config.Redis.Password,
-		ReadOnly:      true,
-		RouteRandomly: true,
+		Addrs:          common.GetServerAddrs(config.Redis.Addrs),
+		Password:       config.Redis.Password,
+		ReadOnly:       true,
+		RouteByLatency: true,
+		MinIdleConns:   config.Redis.MinIdleConn,
+		PoolSize:       config.Redis.PoolSize,
+		ReadTimeout:    time.Duration(config.Redis.ReadTimeoutMilliSecond) * time.Millisecond,
+		WriteTimeout:   time.Duration(config.Redis.WriteTimeoutMilliSecond) * time.Millisecond,
+		PoolTimeout:    60 * time.Second,
 	})
 	ctx := context.Background()
 	_, err := RedisClient.Ping(ctx).Result()
