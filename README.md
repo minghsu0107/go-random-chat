@@ -22,6 +22,11 @@ Features:
 - Automatic websocket reconnection.
 - File uploads using object storage.
 - Responsive web design.
+
+System architecture:
+
+<img width="723" alt="image" src="https://user-images.githubusercontent.com/50090692/159188893-6036a8a7-4318-48d2-a281-3567a12071bd.png">
+
 ## Usage
 To run locally, execute the following command:
 ```bash
