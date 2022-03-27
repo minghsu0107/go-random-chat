@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/kit/endpoint"
 	chatpb "github.com/minghsu0107/go-random-chat/internal/proto_gen/chat"
+	userpb "github.com/minghsu0107/go-random-chat/internal/proto_gen/user"
 	"github.com/minghsu0107/go-random-chat/pkg/infra"
 	"github.com/minghsu0107/go-random-chat/pkg/transport"
 )
@@ -40,10 +41,10 @@ type ChannelRepoImpl struct {
 	createChannel endpoint.Endpoint
 }
 
-func NewChannelRepo(conn *ChatClientConn) ChannelRepo {
+func NewChannelRepo(chatConn *ChatClientConn) ChannelRepo {
 	return &ChannelRepoImpl{
 		createChannel: transport.NewGrpcEndpoint(
-			conn.Conn,
+			chatConn.Conn,
 			"chat",
 			"chat.ChannelService",
 			"CreateChannel",
@@ -65,17 +66,17 @@ type UserRepoImpl struct {
 	addUserToChannel endpoint.Endpoint
 }
 
-func NewUserRepo(conn *ChatClientConn) UserRepo {
+func NewUserRepo(userConn *UserClientConn, chatConn *ChatClientConn) UserRepo {
 	return &UserRepoImpl{
 		getUser: transport.NewGrpcEndpoint(
-			conn.Conn,
-			"chat",
-			"chat.UserService",
+			userConn.Conn,
+			"user",
+			"user.UserService",
 			"GetUser",
-			&chatpb.GetUserResponse{},
+			&userpb.GetUserResponse{},
 		),
 		addUserToChannel: transport.NewGrpcEndpoint(
-			conn.Conn,
+			chatConn.Conn,
 			"chat",
 			"chat.UserService",
 			"AddUserToChannel",
@@ -85,13 +86,13 @@ func NewUserRepo(conn *ChatClientConn) UserRepo {
 }
 
 func (repo *UserRepoImpl) GetUserByID(ctx context.Context, userID uint64) (*User, error) {
-	res, err := repo.getUser(ctx, &chatpb.GetUserRequest{
+	res, err := repo.getUser(ctx, &userpb.GetUserRequest{
 		UserId: userID,
 	})
 	if err != nil {
 		return nil, err
 	}
-	pbUser := res.(*chatpb.GetUserResponse)
+	pbUser := res.(*userpb.GetUserResponse)
 	return &User{
 		ID:   pbUser.User.Id,
 		Name: pbUser.User.Name,

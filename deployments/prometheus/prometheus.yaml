@@ -19,3 +19,6 @@ scrape_configs:
   - job_name: 'uploader_monitor'
     static_configs:
     - targets: ['deployments-uploader-1:8080']
+  - job_name: 'user_monitor'
+    static_configs:
+    - targets: ['deployments-user-1:8080']

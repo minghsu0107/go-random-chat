@@ -86,16 +86,11 @@ func initJWT(config *config.Config) {
 func (r *HttpServer) RegisterRoutes() {
 	r.svr.GET("/api/chat", r.StartChat)
 
-	userGroup := r.svr.Group("/api/user")
+	chanUsersGroup := r.svr.Group("/api/chanusers")
+	chanUsersGroup.Use(common.JWTAuth())
 	{
-		userGroup.POST("", r.CreateUser)
-		userGroup.GET("/:uid/name", r.GetUserName)
-	}
-	usersGroup := r.svr.Group("/api/users")
-	usersGroup.Use(common.JWTAuth())
-	{
-		usersGroup.GET("", r.GetChannelUsers)
-		usersGroup.GET("/online", r.GetOnlineUsers)
+		chanUsersGroup.GET("", r.GetChannelUsers)
+		chanUsersGroup.GET("/online", r.GetOnlineUsers)
 	}
 	channelGroup := r.svr.Group("/api/channel")
 	channelGroup.Use(common.JWTAuth())

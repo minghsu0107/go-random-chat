@@ -11,6 +11,7 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/infra"
 	"github.com/minghsu0107/go-random-chat/pkg/match"
 	"github.com/minghsu0107/go-random-chat/pkg/uploader"
+	"github.com/minghsu0107/go-random-chat/pkg/user"
 	"github.com/minghsu0107/go-random-chat/pkg/web"
 )
 
@@ -38,6 +39,7 @@ func InitializeMatchServer(name string) (*common.Server, error) {
 		infra.NewRedisCache,
 
 		match.NewChatClientConn,
+		match.NewUserClientConn,
 
 		match.NewChannelRepo,
 		match.NewUserRepo,
@@ -75,7 +77,7 @@ func InitializeChatServer(name string) (*common.Server, error) {
 
 		chat.NewMessageSubscriber,
 
-		chat.NewSonyFlake,
+		common.NewSonyFlake,
 
 		chat.NewUserService,
 		chat.NewMessageService,
@@ -102,6 +104,32 @@ func InitializeUploaderServer(name string) (*common.Server, error) {
 		uploader.NewHttpServer,
 		uploader.NewRouter,
 		uploader.NewInfraCloser,
+		common.NewServer,
+	)
+	return &common.Server{}, nil
+}
+
+func InitializeUserServer(name string) (*common.Server, error) {
+	wire.Build(
+		config.NewConfig,
+		common.NewObservibilityInjector,
+		common.NewHttpLogrus,
+		common.NewGrpcLogrus,
+
+		infra.NewRedisClient,
+		infra.NewRedisCache,
+
+		user.NewUserRepo,
+
+		common.NewSonyFlake,
+
+		user.NewUserService,
+
+		user.NewGinServer,
+		user.NewHttpServer,
+		user.NewGrpcServer,
+		user.NewRouter,
+		user.NewInfraCloser,
 		common.NewServer,
 	)
 	return &common.Server{}, nil

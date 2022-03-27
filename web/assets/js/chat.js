@@ -317,7 +317,7 @@ function sendBrowserNotification(msg) {
 }
 
 async function getAllChannelUserNames() {
-    return fetch(`/api/users`, {
+    return fetch(`/api/chanusers`, {
         method: 'GET',
         headers: new Headers({
             'Authorization': 'Bearer ' + ACCESS_TOKEN
@@ -488,7 +488,7 @@ async function setPeerName(peerID) {
 }
 
 async function updateOnlineUsers() {
-    return fetch(`/api/users/online`, {
+    return fetch(`/api/chanusers/online`, {
         method: 'GET',
         headers: new Headers({
             'Authorization': 'Bearer ' + ACCESS_TOKEN
