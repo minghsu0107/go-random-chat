@@ -24,6 +24,8 @@ match:
     client:
       chat:
         endpoint: "localhost:4000"
+      user:
+        endpoint: "localhost:4001"
   jwt:
     secret: mysecret
     expirationSecond: 86400
@@ -42,6 +44,13 @@ uploader:
     secretKey: testsecret
   jwt:
     secret: mysecret
+user:
+  http:
+    server:
+      port: "80"
+  grpc:
+    server:
+      port: "4001"
 kafka:
   addrs: localhost:9092
 redis:

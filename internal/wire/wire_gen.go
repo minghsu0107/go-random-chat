@@ -13,6 +13,7 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/infra"
 	"github.com/minghsu0107/go-random-chat/pkg/match"
 	"github.com/minghsu0107/go-random-chat/pkg/uploader"
+	"github.com/minghsu0107/go-random-chat/pkg/user"
 	"github.com/minghsu0107/go-random-chat/pkg/web"
 )
 
@@ -55,16 +56,16 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	}
 	redisCache := infra.NewRedisCache(universalClient)
 	userRepo := chat.NewUserRepo(redisCache)
-	idGenerator, err := chat.NewSonyFlake()
-	if err != nil {
-		return nil, err
-	}
-	userService := chat.NewUserService(userRepo, idGenerator)
+	userService := chat.NewUserService(userRepo)
 	publisher, err := infra.NewKafkaPublisher(configConfig)
 	if err != nil {
 		return nil, err
 	}
 	messageRepo := chat.NewMessageRepo(configConfig, redisCache, publisher)
+	idGenerator, err := common.NewSonyFlake()
+	if err != nil {
+		return nil, err
+	}
 	messageService := chat.NewMessageService(messageRepo, userRepo, idGenerator)
 	channelRepo := chat.NewChannelRepo(redisCache)
 	channelService := chat.NewChannelService(channelRepo, userRepo, idGenerator)
@@ -86,11 +87,15 @@ func InitializeMatchServer(name string) (*common.Server, error) {
 	}
 	engine := match.NewGinServer(name, httpLogrus, configConfig)
 	melodyMatchConn := match.NewMelodyMatchConn()
+	userClientConn, err := match.NewUserClientConn(configConfig)
+	if err != nil {
+		return nil, err
+	}
 	chatClientConn, err := match.NewChatClientConn(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	userRepo := match.NewUserRepo(chatClientConn)
+	userRepo := match.NewUserRepo(userClientConn, chatClientConn)
 	userService := match.NewUserService(userRepo)
 	subscriber, err := infra.NewKafkaSubscriber(configConfig)
 	if err != nil {
@@ -130,6 +135,34 @@ func InitializeUploaderServer(name string) (*common.Server, error) {
 	httpServer := uploader.NewHttpServer(name, httpLogrus, configConfig, engine)
 	router := uploader.NewRouter(httpServer)
 	infraCloser := uploader.NewInfraCloser()
+	observibilityInjector := common.NewObservibilityInjector(configConfig)
+	server := common.NewServer(name, router, infraCloser, observibilityInjector)
+	return server, nil
+}
+
+func InitializeUserServer(name string) (*common.Server, error) {
+	httpLogrus := common.NewHttpLogrus()
+	configConfig, err := config.NewConfig()
+	if err != nil {
+		return nil, err
+	}
+	engine := user.NewGinServer(name, httpLogrus, configConfig)
+	universalClient, err := infra.NewRedisClient(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	redisCache := infra.NewRedisCache(universalClient)
+	userRepo := user.NewUserRepo(redisCache)
+	idGenerator, err := common.NewSonyFlake()
+	if err != nil {
+		return nil, err
+	}
+	userService := user.NewUserService(userRepo, idGenerator)
+	httpServer := user.NewHttpServer(name, httpLogrus, configConfig, engine, userService)
+	grpcLogrus := common.NewGrpcLogrus()
+	grpcServer := user.NewGrpcServer(grpcLogrus, configConfig, userService)
+	router := user.NewRouter(httpServer, grpcServer)
+	infraCloser := user.NewInfraCloser()
 	observibilityInjector := common.NewObservibilityInjector(configConfig)
 	server := common.NewServer(name, router, infraCloser, observibilityInjector)
 	return server, nil

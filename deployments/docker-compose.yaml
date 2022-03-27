@@ -81,6 +81,7 @@ services:
       MATCH_HTTP_SERVER_PORT: "80"
       MATCH_HTTP_SERVER_MAXCONN: "200"
       MATCH_GRPC_CLIENT_CHAT_ENDPOINT: "reverse-proxy:80"
+      MATCH_GRPC_CLIENT_USER_ENDPOINT: "reverse-proxy:80"
       MATCH_JWT_SECRET: ${JWT_SECRET}
       MATCH_JWT_EXPIRATIONSECOND: "86400"
       KAFKA_ADDRS: kafka:9092
@@ -123,6 +124,32 @@ services:
       - "traefik.http.routers.uploader.entrypoints=web"
       - "traefik.http.routers.uploader.service=uploader"
       - "traefik.http.services.uploader.loadbalancer.server.port=80"
+  user:
+    image: minghsu0107/random-chat-api:main
+    restart: always
+    expose:
+      - "80"
+    command:
+      - user
+    environment:
+      USER_HTTP_SERVER_PORT: "80"
+      USER_GRPC_SERVER_PORT: "4000"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_ADDRS: redis-node1:7000,redis-node2:7001,redis-node3:7002,redis-node4:7003,redis-node5:7004,redis-node6:7005
+      REDIS_EXPIRATIONHOUR: "24"
+      OBSERVABILITY_PROMETHEUS_PORT: "8080"
+      OBSERVABILITY_TRACING_JAEGERURL: http://jaeger:14268/api/traces
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.user.rule=PathPrefix(`/api/user`)"
+      - "traefik.http.routers.user.entrypoints=web"
+      - "traefik.http.routers.user.service=user"
+      - "traefik.http.services.user.loadbalancer.server.port=80"
+      - "traefik.http.routers.user-grpc.rule=Headers(`content-type`,`application/grpc`) && Headers(`service-id`, `user`)"
+      - "traefik.http.routers.user-grpc.entrypoints=web"
+      - "traefik.http.routers.user-grpc.service=user-grpc"
+      - "traefik.http.services.user-grpc.loadbalancer.server.port=4000"
+      - "traefik.http.services.user-grpc.loadbalancer.server.scheme=h2c"
   minio:
     image: minio/minio:RELEASE.2021-03-17T02-33-02Z@sha256:d33b2e9559ee59acf7591cd83cb7238837158a316956e6140e6692a8e4e12fe9
     volumes:

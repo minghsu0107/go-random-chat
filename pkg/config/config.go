@@ -9,6 +9,7 @@ type Config struct {
 	Chat          *ChatConfig          `mapstructure:"chat"`
 	Match         *MatchConfig         `mapstructure:"match"`
 	Uploader      *UploaderConfig      `mapstructure:"uploader"`
+	User          *UserConfig          `mapstructure:"user"`
 	Kafka         *KafkaConfig         `mapstructure:"kafka"`
 	Redis         *RedisConfig         `mapstructure:"redis"`
 	Observability *ObservabilityConfig `mapstructure:"observability"`
@@ -55,6 +56,9 @@ type MatchConfig struct {
 			Chat struct {
 				Endpoint string
 			}
+			User struct {
+				Endpoint string
+			}
 		}
 	}
 	JWT struct {
@@ -81,6 +85,19 @@ type UploaderConfig struct {
 	}
 	JWT struct {
 		Secret string
+	}
+}
+
+type UserConfig struct {
+	Http struct {
+		Server struct {
+			Port string
+		}
+	}
+	Grpc struct {
+		Server struct {
+			Port string
+		}
 	}
 }
 
@@ -120,6 +137,7 @@ func setDefault() {
 	viper.SetDefault("match.http.server.port", "5002")
 	viper.SetDefault("match.http.server.maxConn", 200)
 	viper.SetDefault("match.grpc.client.chat.endpoint", "localhost:4000")
+	viper.SetDefault("match.grpc.client.user.endpoint", "localhost:4001")
 	viper.SetDefault("match.jwt.secret", "replaceme")
 	viper.SetDefault("match.jwt.expirationSecond", 86400)
 
@@ -133,6 +151,9 @@ func setDefault() {
 	viper.SetDefault("uploader.s3.accessKey", "")
 	viper.SetDefault("uploader.s3.secretKey", "")
 	viper.SetDefault("uploader.jwt.secret", "replaceme")
+
+	viper.SetDefault("user.http.server.port", "5004")
+	viper.SetDefault("user.grpc.server.port", "4001")
 
 	viper.SetDefault("kafka.addrs", "localhost:9092")
 

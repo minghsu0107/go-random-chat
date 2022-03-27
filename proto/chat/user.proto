@@ -4,20 +4,6 @@ package chat;
 
 option go_package = "internal/proto_gen/chat;chat";
 
-message User {
-    uint64 id = 1;
-    string name = 2;
-}
-
-message GetUserRequest {
-    uint64 user_id = 1;
-}
-
-message GetUserResponse {
-    bool exist = 1;
-    User user = 2;
-}
-
 message AddUserRequest {
     uint64 channel_id = 1;
     uint64 user_id = 2;
@@ -27,6 +13,5 @@ message AddUserResponse {
 }
 
 service UserService {
-    rpc GetUser (GetUserRequest) returns (GetUserResponse) {};
     rpc AddUserToChannel(AddUserRequest) returns (AddUserResponse) {};
 }

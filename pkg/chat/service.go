@@ -4,6 +4,8 @@ import (
 	"context"
 	"strconv"
 	"time"
+
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 )
 
 type MessageService interface {
@@ -16,8 +18,6 @@ type MessageService interface {
 }
 
 type UserService interface {
-	CreateUser(ctx context.Context, userName string) (*User, error)
-	GetUser(ctx context.Context, uid uint64) (*User, error)
 	AddUserToChannel(ctx context.Context, channelID, userID uint64) error
 	IsChannelUserExist(ctx context.Context, channelID, userID uint64) (bool, error)
 	GetChannelUserIDs(ctx context.Context, channelID uint64) ([]uint64, error)
@@ -34,10 +34,10 @@ type ChannelService interface {
 type MessageServiceImpl struct {
 	msgRepo  MessageRepo
 	userRepo UserRepo
-	sf       IDGenerator
+	sf       common.IDGenerator
 }
 
-func NewMessageService(msgRepo MessageRepo, userRepo UserRepo, sf IDGenerator) MessageService {
+func NewMessageService(msgRepo MessageRepo, userRepo UserRepo, sf common.IDGenerator) MessageService {
 	return &MessageServiceImpl{msgRepo, userRepo, sf}
 }
 func (svc *MessageServiceImpl) BroadcastTextMessage(ctx context.Context, channelID, userID uint64, payload string) error {
@@ -126,24 +126,10 @@ func (svc *MessageServiceImpl) ListMessages(ctx context.Context, channelID uint6
 
 type UserServiceImpl struct {
 	userRepo UserRepo
-	sf       IDGenerator
 }
 
-func NewUserService(userRepo UserRepo, sf IDGenerator) UserService {
-	return &UserServiceImpl{userRepo, sf}
-}
-func (svc *UserServiceImpl) CreateUser(ctx context.Context, userName string) (*User, error) {
-	userID, err := svc.sf.NextID()
-	if err != nil {
-		return nil, err
-	}
-	return svc.userRepo.CreateUser(ctx, &User{
-		ID:   userID,
-		Name: userName,
-	})
-}
-func (svc *UserServiceImpl) GetUser(ctx context.Context, uid uint64) (*User, error) {
-	return svc.userRepo.GetUserByID(ctx, uid)
+func NewUserService(userRepo UserRepo) UserService {
+	return &UserServiceImpl{userRepo}
 }
 func (svc *UserServiceImpl) AddUserToChannel(ctx context.Context, channelID, userID uint64) error {
 	return svc.userRepo.AddUserToChannel(ctx, channelID, userID)
@@ -167,10 +153,10 @@ func (svc *UserServiceImpl) GetOnlineUserIDs(ctx context.Context, channelID uint
 type ChannelServiceImpl struct {
 	chanRepo ChannelRepo
 	userRepo UserRepo
-	sf       IDGenerator
+	sf       common.IDGenerator
 }
 
-func NewChannelService(chanRepo ChannelRepo, userRepo UserRepo, sf IDGenerator) ChannelService {
+func NewChannelService(chanRepo ChannelRepo, userRepo UserRepo, sf common.IDGenerator) ChannelService {
 	return &ChannelServiceImpl{chanRepo, userRepo, sf}
 }
 func (svc *ChannelServiceImpl) CreateChannel(ctx context.Context) (*Channel, error) {

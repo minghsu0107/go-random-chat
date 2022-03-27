@@ -7,6 +7,7 @@ Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
 - Microservices architecture. All services can be horizontally scaled on demand.
   - `web`: frontend server
+  - `user`: user account server
   - `match`: user matching server
   - `chat`: messaging server
   - `uploader`: file uploader
@@ -28,12 +29,15 @@ System architecture:
 <img width="723" alt="image" src="https://user-images.githubusercontent.com/50090692/159188893-6036a8a7-4318-48d2-a281-3567a12071bd.png">
 
 ## Usage
+Prerequisite:
+- Docker-Compose v2
+- root permission
+
 To run locally, execute the following command:
 ```bash
 cd deployments
 sudo ./run.sh run
 ```
-cd deployments
 `run.sh` needs root permission to alias `minio` to `localhost` in `/etc/hosts`.
 
 This will spin up all services declared in `docker-compose.yaml`. Visit `http://localhost` and you will see the application home page.

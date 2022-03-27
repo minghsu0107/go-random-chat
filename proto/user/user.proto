@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "internal/proto_gen/user;user";
+
+message User {
+    uint64 id = 1;
+    string name = 2;
+}
+
+message GetUserRequest {
+    uint64 user_id = 1;
+}
+
+message GetUserResponse {
+    bool exist = 1;
+    User user = 2;
+}
+
+service UserService {
+    rpc GetUser (GetUserRequest) returns (GetUserResponse) {};
+}

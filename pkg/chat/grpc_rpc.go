@@ -19,26 +19,6 @@ func (srv *GrpcServer) CreateChannel(ctx context.Context, req *chatpb.CreateChan
 	}, nil
 }
 
-func (srv *GrpcServer) GetUser(ctx context.Context, req *chatpb.GetUserRequest) (*chatpb.GetUserResponse, error) {
-	user, err := srv.userSvc.GetUser(ctx, req.UserId)
-	if err != nil {
-		if err == ErrUserNotFound {
-			return &chatpb.GetUserResponse{
-				Exist: false,
-			}, nil
-		}
-		srv.logger.Error(err)
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-	return &chatpb.GetUserResponse{
-		Exist: true,
-		User: &chatpb.User{
-			Id:   user.ID,
-			Name: user.Name,
-		},
-	}, nil
-}
-
 func (srv *GrpcServer) AddUserToChannel(ctx context.Context, req *chatpb.AddUserRequest) (*chatpb.AddUserResponse, error) {
 	if err := srv.userSvc.AddUserToChannel(ctx, req.ChannelId, req.UserId); err != nil {
 		srv.logger.Error(err)
