@@ -26,12 +26,12 @@ Features:
 
 System architecture:
 
-<img width="723" alt="image" src="https://user-images.githubusercontent.com/50090692/159188893-6036a8a7-4318-48d2-a281-3567a12071bd.png">
+<img width="807" alt="image" src="https://user-images.githubusercontent.com/50090692/160285139-81fc63ad-76ef-41a7-8b33-c67f633f738d.png">
 
 ## Usage
 Prerequisite:
 - Docker-Compose v2
-- root permission
+- Root permission
 
 To run locally, execute the following command:
 ```bash
