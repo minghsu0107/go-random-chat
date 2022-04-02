@@ -29,8 +29,8 @@ func InitializeWebServer(name string) (*common.Server, error) {
 	httpServer := web.NewHttpServer(name, httpLogrus, configConfig, engine)
 	router := web.NewRouter(httpServer)
 	infraCloser := web.NewInfraCloser()
-	observibilityInjector := common.NewObservibilityInjector(configConfig)
-	server := common.NewServer(name, router, infraCloser, observibilityInjector)
+	observabilityInjector := common.NewObservabilityInjector(configConfig)
+	server := common.NewServer(name, router, infraCloser, observabilityInjector)
 	return server, nil
 }
 
@@ -74,8 +74,8 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	grpcServer := chat.NewGrpcServer(grpcLogrus, configConfig, userService, channelService)
 	router := chat.NewRouter(httpServer, grpcServer)
 	infraCloser := chat.NewInfraCloser()
-	observibilityInjector := common.NewObservibilityInjector(configConfig)
-	server := common.NewServer(name, router, infraCloser, observibilityInjector)
+	observabilityInjector := common.NewObservabilityInjector(configConfig)
+	server := common.NewServer(name, router, infraCloser, observabilityInjector)
 	return server, nil
 }
 
@@ -120,8 +120,8 @@ func InitializeMatchServer(name string) (*common.Server, error) {
 	httpServer := match.NewHttpServer(name, httpLogrus, configConfig, engine, melodyMatchConn, matchSubscriber, userService, matchingService)
 	router := match.NewRouter(httpServer)
 	infraCloser := match.NewInfraCloser()
-	observibilityInjector := common.NewObservibilityInjector(configConfig)
-	server := common.NewServer(name, router, infraCloser, observibilityInjector)
+	observabilityInjector := common.NewObservabilityInjector(configConfig)
+	server := common.NewServer(name, router, infraCloser, observabilityInjector)
 	return server, nil
 }
 
@@ -135,8 +135,8 @@ func InitializeUploaderServer(name string) (*common.Server, error) {
 	httpServer := uploader.NewHttpServer(name, httpLogrus, configConfig, engine)
 	router := uploader.NewRouter(httpServer)
 	infraCloser := uploader.NewInfraCloser()
-	observibilityInjector := common.NewObservibilityInjector(configConfig)
-	server := common.NewServer(name, router, infraCloser, observibilityInjector)
+	observabilityInjector := common.NewObservabilityInjector(configConfig)
+	server := common.NewServer(name, router, infraCloser, observabilityInjector)
 	return server, nil
 }
 
@@ -163,7 +163,7 @@ func InitializeUserServer(name string) (*common.Server, error) {
 	grpcServer := user.NewGrpcServer(grpcLogrus, configConfig, userService)
 	router := user.NewRouter(httpServer, grpcServer)
 	infraCloser := user.NewInfraCloser()
-	observibilityInjector := common.NewObservibilityInjector(configConfig)
-	server := common.NewServer(name, router, infraCloser, observibilityInjector)
+	observabilityInjector := common.NewObservabilityInjector(configConfig)
+	server := common.NewServer(name, router, infraCloser, observabilityInjector)
 	return server, nil
 }

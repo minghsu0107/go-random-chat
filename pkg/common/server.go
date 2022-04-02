@@ -35,10 +35,10 @@ type Server struct {
 	name        string
 	router      Router
 	infraCloser InfraCloser
-	obsInjector *ObservibilityInjector
+	obsInjector *ObservabilityInjector
 }
 
-func NewServer(name string, router Router, infraCloser InfraCloser, obsInjector *ObservibilityInjector) *Server {
+func NewServer(name string, router Router, infraCloser InfraCloser, obsInjector *ObservabilityInjector) *Server {
 	return &Server{name, router, infraCloser, obsInjector}
 }
 

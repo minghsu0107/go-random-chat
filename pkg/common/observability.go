@@ -19,19 +19,19 @@ import (
 
 var TracerProvider *tracesdk.TracerProvider
 
-type ObservibilityInjector struct {
+type ObservabilityInjector struct {
 	promPort  string
 	jaegerUrl string
 }
 
-func NewObservibilityInjector(config *config.Config) *ObservibilityInjector {
-	return &ObservibilityInjector{
+func NewObservabilityInjector(config *config.Config) *ObservabilityInjector {
+	return &ObservabilityInjector{
 		promPort:  config.Observability.Prometheus.Port,
 		jaegerUrl: config.Observability.Tracing.JaegerUrl,
 	}
 }
 
-func (injector *ObservibilityInjector) Register(service string) error {
+func (injector *ObservabilityInjector) Register(service string) error {
 	if injector.jaegerUrl != "" {
 		err := initTracerProvider(injector.jaegerUrl, service)
 		if err != nil {
