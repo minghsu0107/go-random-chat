@@ -18,7 +18,7 @@ import (
 func InitializeWebServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
-		common.NewObservibilityInjector,
+		common.NewObservabilityInjector,
 		common.NewHttpLogrus,
 		web.NewGinServer,
 		web.NewHttpServer,
@@ -32,7 +32,7 @@ func InitializeWebServer(name string) (*common.Server, error) {
 func InitializeMatchServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
-		common.NewObservibilityInjector,
+		common.NewObservabilityInjector,
 		common.NewHttpLogrus,
 
 		infra.NewRedisClient,
@@ -64,7 +64,7 @@ func InitializeMatchServer(name string) (*common.Server, error) {
 func InitializeChatServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
-		common.NewObservibilityInjector,
+		common.NewObservabilityInjector,
 		common.NewHttpLogrus,
 		common.NewGrpcLogrus,
 
@@ -98,7 +98,7 @@ func InitializeChatServer(name string) (*common.Server, error) {
 func InitializeUploaderServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
-		common.NewObservibilityInjector,
+		common.NewObservabilityInjector,
 		common.NewHttpLogrus,
 		uploader.NewGinServer,
 		uploader.NewHttpServer,
@@ -112,7 +112,7 @@ func InitializeUploaderServer(name string) (*common.Server, error) {
 func InitializeUserServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
-		common.NewObservibilityInjector,
+		common.NewObservabilityInjector,
 		common.NewHttpLogrus,
 		common.NewGrpcLogrus,
 
