@@ -16,6 +16,7 @@ Features:
 - Dependency injection using [wire](https://github.com/google/wire).
 - Observability using [client_golang](https://github.com/prometheus/client_golang) and [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go).
 - At-least-once delivery for message Pub/Sub using [Kafka](https://kafka.apache.org).
+- Use [Traefik FowardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) for authentication when uploading files.
 - Message retention for a certain period.
 - User matching with idempotency.
 - Message seen feature.
