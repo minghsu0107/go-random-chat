@@ -3,6 +3,7 @@ package common
 import (
 	"context"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -110,7 +111,12 @@ func JWTAuth() gin.HandlerFunc {
 
 func JWTForwardAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), ChannelKey, c.Request.Header.Get(ChannelIdHeader)))
+		channelID, err := strconv.ParseUint(c.Request.Header.Get(ChannelIdHeader), 10, 64)
+		if err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), ChannelKey, channelID))
 		c.Next()
 	}
 }
