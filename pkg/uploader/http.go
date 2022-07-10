@@ -47,8 +47,6 @@ func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) 
 }
 
 func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine) common.HttpServer {
-	initJWT(config)
-
 	s3Endpoint := config.Uploader.S3.Endpoint
 	s3Bucket := config.Uploader.S3.Bucket
 	disableSSL := config.Uploader.S3.DisableSSL
@@ -76,13 +74,9 @@ func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config,
 	}
 }
 
-func initJWT(config *config.Config) {
-	common.JwtSecret = config.Uploader.JWT.Secret
-}
-
 func (r *HttpServer) RegisterRoutes() {
 	uploadGroup := r.svr.Group("/api/file")
-	uploadGroup.Use(common.JWTAuth())
+	uploadGroup.Use(common.JWTForwardAuth())
 	{
 		uploadGroup.POST("", r.UploadFile)
 	}

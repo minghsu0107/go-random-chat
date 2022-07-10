@@ -81,7 +81,16 @@ func initJWT(config *config.Config) {
 }
 
 func (r *HttpServer) RegisterRoutes() {
-	r.svr.GET("/api/match", r.Match)
+	matchGroup := r.svr.Group("/api/match")
+	{
+		matchGroup.GET("", r.Match)
+
+		forwardAuthGroup := matchGroup.Group("/forwardauth")
+		forwardAuthGroup.Use(common.JWTAuth())
+		{
+			forwardAuthGroup.Any("", r.ForwardAuth)
+		}
+	}
 
 	r.mm.HandleConnect(r.HandleMatchOnConnect)
 	r.mm.HandleClose(r.HandleMatchOnClose)

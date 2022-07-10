@@ -83,9 +83,6 @@ type UploaderConfig struct {
 		AccessKey  string
 		SecretKey  string
 	}
-	JWT struct {
-		Secret string
-	}
 }
 
 type UserConfig struct {
@@ -150,7 +147,6 @@ func setDefault() {
 	viper.SetDefault("uploader.s3.bucket", "myfilebucket")
 	viper.SetDefault("uploader.s3.accessKey", "")
 	viper.SetDefault("uploader.s3.secretKey", "")
-	viper.SetDefault("uploader.jwt.secret", "replaceme")
 
 	viper.SetDefault("user.http.server.port", "5004")
 	viper.SetDefault("user.grpc.server.port", "4001")

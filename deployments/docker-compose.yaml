@@ -124,6 +124,8 @@ services:
       - "traefik.http.routers.uploader.entrypoints=web"
       - "traefik.http.routers.uploader.service=uploader"
       - "traefik.http.services.uploader.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.channel-auth.forwardauth.address=http://match/api/match/forwardauth"
+      - "traefik.http.middlewares.channel-auth.forwardauth.authResponseHeaders=X-Channel-Id"
   user:
     image: minghsu0107/random-chat-api:main
     restart: always

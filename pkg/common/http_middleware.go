@@ -13,9 +13,10 @@ import (
 type HTTPContextKey string
 
 var (
-	JWTAuthHeader                = "Authorization"
-	JaegerHeader                 = "Uber-Trace-Id"
-	ChannelKey    HTTPContextKey = "channel_key"
+	JWTAuthHeader                  = "Authorization"
+	JaegerHeader                   = "Uber-Trace-Id"
+	ChannelIdHeader                = "X-Channel-Id"
+	ChannelKey      HTTPContextKey = "channel_key"
 )
 
 func MaxAllowed(n int64) gin.HandlerFunc {
@@ -103,6 +104,13 @@ func JWTAuth() gin.HandlerFunc {
 			return
 		}
 		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), ChannelKey, authResult.ChannelID))
+		c.Next()
+	}
+}
+
+func JWTForwardAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), ChannelKey, c.Request.Header.Get(ChannelIdHeader)))
 		c.Next()
 	}
 }

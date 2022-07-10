@@ -42,8 +42,6 @@ uploader:
     bucket: myfilebucket
     accessKey: testaccesskey
     secretKey: testsecret
-  jwt:
-    secret: mysecret
 user:
   http:
     server:

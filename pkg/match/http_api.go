@@ -10,6 +10,16 @@ import (
 	"gopkg.in/olahol/melody.v1"
 )
 
+func (r *HttpServer) ForwardAuth(c *gin.Context) {
+	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
+	if !ok {
+		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
+		return
+	}
+	c.Writer.Header().Set(common.ChannelIdHeader, strconv.FormatUint(channelID, 10))
+	c.Status(http.StatusOK)
+}
+
 func (r *HttpServer) Match(c *gin.Context) {
 	uid := c.Query("uid")
 	userID, err := strconv.ParseUint(uid, 10, 64)
