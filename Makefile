@@ -21,3 +21,9 @@ proto:
 clean:
 	$(GOCLEAN)
 	rm -f server
+
+docker: docker-api docker-web
+docker-api:
+	docker build -f ./build/Dockerfile.api --build-arg VERSION=v0.0.0 -t minghsu0107/random-chat-api:main .
+docker-web:
+	docker build -f ./build/Dockerfile.web --build-arg VERSION=v0.0.0 -t minghsu0107/random-chat-web:main .
