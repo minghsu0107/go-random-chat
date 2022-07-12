@@ -66,6 +66,7 @@ func initTracerProvider(jaegerUrl, service string) error {
 		return err
 	}
 	TracerProvider = tracesdk.NewTracerProvider(
+		tracesdk.WithSampler(tracesdk.ParentBased(tracesdk.TraceIDRatioBased(0.0001))),
 		// Always be sure to batch in production.
 		tracesdk.WithBatcher(exp),
 		// Record information about this application in a Resource.
