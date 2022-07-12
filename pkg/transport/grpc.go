@@ -10,6 +10,8 @@ import (
 
 	"github.com/go-kit/kit/circuitbreaker"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/go-kit/kit/sd"
+	"github.com/go-kit/kit/sd/lb"
 	grpctransport "github.com/go-kit/kit/transport/grpc"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
@@ -143,7 +145,10 @@ func InitializeGrpcClient(svcHost string) (*grpc.ClientConn, error) {
 
 func NewGrpcEndpoint(conn *grpc.ClientConn, serviceID, serviceName, method string, grpcReply interface{}) endpoint.Endpoint {
 	var options []grpctransport.ClientOption
-	var ep endpoint.Endpoint
+	var (
+		ep         endpoint.Endpoint
+		endpointer sd.FixedEndpointer
+	)
 
 	ep = grpctransport.NewClient(
 		conn,
@@ -158,6 +163,8 @@ func NewGrpcEndpoint(conn *grpc.ClientConn, serviceID, serviceName, method strin
 		Name:    serviceName + "." + method,
 		Timeout: 60 * time.Second,
 	}))(ep)
+	endpointer = append(endpointer, ep)
+	ep = lb.Retry(1, 5*time.Second, lb.NewRoundRobin(endpointer))
 
 	return ep
 }
