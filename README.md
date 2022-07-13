@@ -42,7 +42,9 @@ sudo ./run.sh run
 ```
 `run.sh` needs root permission to alias `minio` to `localhost` in `/etc/hosts`.
 
-This will spin up all services declared in `docker-compose.yaml`. Visit `http://localhost` and you will see the application home page. Visit `http://localhost/api/<svc>/swagger/index.html` for API documentation, `<svc>` could be `user`, `match`, `chat`, or `uploader`.
+This will spin up all services declared in `docker-compose.yaml`. Visit `http://localhost` and you will see the application home page. 
+
+Visit `http://localhost/api/<svc>/swagger/index.html` for API documentation, where `<svc>` could be `user`, `match`, `chat`, or `uploader`.
 
 Example configuration: [config.example.yaml](configs/config.example.yaml).
 ## Deploy with SSL
