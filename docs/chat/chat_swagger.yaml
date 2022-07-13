@@ -1,0 +1,215 @@
+basePath: /api
+definitions:
+  chat.MessagePresenter:
+    properties:
+      event:
+        type: integer
+      message_id:
+        type: string
+      payload:
+        type: string
+      seen:
+        type: boolean
+      time:
+        type: integer
+      user_id:
+        type: string
+    type: object
+  chat.MessagesPresenter:
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/chat.MessagePresenter'
+        type: array
+    type: object
+  chat.UserIDsPresenter:
+    properties:
+      user_ids:
+        items:
+          type: string
+        type: array
+    type: object
+  common.SuccessMessage:
+    properties:
+      msg:
+        example: ok
+        type: string
+    type: object
+info:
+  contact:
+    email: minghsu0107@gmail.com
+    name: Ming Hsu
+  description: Chat service API
+  title: Chat Service Swagger API
+  version: "2.0"
+paths:
+  /chat:
+    get:
+      description: Websocket initialization endpoint for starting a chat
+      parameters:
+      - description: user id
+        in: query
+        name: uid
+        required: true
+        type: integer
+      - description: access token of the channel
+        in: query
+        name: access_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            type: none
+        "401":
+          description: Unauthorized
+          schema:
+            type: none
+        "404":
+          description: Not Found
+          schema:
+            type: none
+        "500":
+          description: Internal Server Error
+          schema:
+            type: none
+      summary: Start a chat
+      tags:
+      - chat
+  /chat/channel:
+    delete:
+      description: Delete a channel
+      parameters:
+      - description: channel authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: id of the user that performs the deletion
+        in: query
+        name: delby
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/common.SuccessMessage'
+        "400":
+          description: Bad Request
+          schema:
+            type: none
+        "401":
+          description: Unauthorized
+          schema:
+            type: none
+        "404":
+          description: Not Found
+          schema:
+            type: none
+        "500":
+          description: Internal Server Error
+          schema:
+            type: none
+      summary: Delete channel
+      tags:
+      - chat
+  /chat/channel/messages:
+    get:
+      description: List messages of a channel
+      parameters:
+      - description: channel authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/chat.MessagesPresenter'
+        "401":
+          description: Unauthorized
+          schema:
+            type: none
+        "404":
+          description: Not Found
+          schema:
+            type: none
+        "500":
+          description: Internal Server Error
+          schema:
+            type: none
+      summary: List channel messages
+      tags:
+      - chat
+  /chat/chanusers:
+    get:
+      description: Get all users of a channel
+      parameters:
+      - description: channel authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/chat.UserIDsPresenter'
+        "401":
+          description: Unauthorized
+          schema:
+            type: none
+        "404":
+          description: Not Found
+          schema:
+            type: none
+        "500":
+          description: Internal Server Error
+          schema:
+            type: none
+      summary: Get channel users
+      tags:
+      - chat
+  /chat/chanusers/online:
+    get:
+      description: Get all online users of a channel
+      parameters:
+      - description: channel authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/chat.UserIDsPresenter'
+        "401":
+          description: Unauthorized
+          schema:
+            type: none
+        "404":
+          description: Not Found
+          schema:
+            type: none
+        "500":
+          description: Internal Server Error
+          schema:
+            type: none
+      summary: Get online users
+      tags:
+      - chat
+swagger: "2.0"

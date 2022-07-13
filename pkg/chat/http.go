@@ -11,6 +11,10 @@ import (
 	prommiddleware "github.com/slok/go-http-metrics/middleware"
 	ginmiddleware "github.com/slok/go-http-metrics/middleware/gin"
 	"gopkg.in/olahol/melody.v1"
+
+	doc "github.com/minghsu0107/go-random-chat/docs/chat"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 var (
@@ -34,6 +38,7 @@ type HttpServer struct {
 	userSvc       UserService
 	msgSvc        MessageService
 	chanSvc       ChannelService
+	serveSwag     bool
 }
 
 func NewMelodyChatConn(config *config.Config) MelodyChatConn {
@@ -76,6 +81,7 @@ func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config,
 		userSvc:       userSvc,
 		msgSvc:        msgSvc,
 		chanSvc:       chanSvc,
+		serveSwag:     config.Chat.Http.Server.Swag,
 	}
 }
 
@@ -83,25 +89,39 @@ func initJWT(config *config.Config) {
 	common.JwtSecret = config.Chat.JWT.Secret
 }
 
+// @title           Chat Service Swagger API
+// @version         2.0
+// @description     Chat service API
+
+// @contact.name   Ming Hsu
+// @contact.email  minghsu0107@gmail.com
+
+// @BasePath  /api
 func (r *HttpServer) RegisterRoutes() {
-	r.svr.GET("/api/chat", r.StartChat)
-
-	chanUsersGroup := r.svr.Group("/api/chanusers")
-	chanUsersGroup.Use(common.JWTAuth())
+	chatGroup := r.svr.Group("/api/chat")
 	{
-		chanUsersGroup.GET("", r.GetChannelUsers)
-		chanUsersGroup.GET("/online", r.GetOnlineUsers)
-	}
-	channelGroup := r.svr.Group("/api/channel")
-	channelGroup.Use(common.JWTAuth())
-	{
-		channelGroup.GET("/messages", r.ListMessages)
-		channelGroup.DELETE("", r.DeleteChannel)
-	}
+		chatGroup.GET("", r.StartChat)
 
+		chanUsersGroup := chatGroup.Group("/chanusers")
+		chanUsersGroup.Use(common.JWTAuth())
+		{
+			chanUsersGroup.GET("", r.GetChannelUsers)
+			chanUsersGroup.GET("/online", r.GetOnlineUsers)
+		}
+		channelGroup := chatGroup.Group("/channel")
+		channelGroup.Use(common.JWTAuth())
+		{
+			channelGroup.GET("/messages", r.ListMessages)
+			channelGroup.DELETE("", r.DeleteChannel)
+		}
+	}
 	r.mc.HandleMessage(r.HandleChatOnMessage)
 	r.mc.HandleConnect(r.HandleChatOnConnect)
 	r.mc.HandleClose(r.HandleChatOnClose)
+
+	if r.serveSwag {
+		chatGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.InstanceName(doc.SwaggerInfochat.InfoInstanceName)))
+	}
 }
 
 func (r *HttpServer) Run() {

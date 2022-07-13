@@ -10,6 +10,16 @@ import (
 	"gopkg.in/olahol/melody.v1"
 )
 
+// @Summary Forward auth
+// @Description Traefik forward auth endpoint for channel authentication
+// @Tags match
+// @Produce json
+// @param Authorization header string true "channel authorization"
+// @Success 200 {none} nil
+// @Failure 401 {none} nil
+// @Failure 404 {none} nil
+// @Failure 500 {none} nil
+// @Router /match/forwardauth [get]
 func (r *HttpServer) ForwardAuth(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
@@ -20,6 +30,15 @@ func (r *HttpServer) ForwardAuth(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// @Summary Match another user
+// @Description Websocket initialization endpoint for matching another user
+// @Tags match
+// @Produce json
+// @Param uid query int true "self user id"
+// @Failure 400 {none} nil
+// @Failure 404 {none} nil
+// @Failure 500 {none} nil
+// @Router /match [get]
 func (r *HttpServer) Match(c *gin.Context) {
 	uid := c.Query("uid")
 	userID, err := strconv.ParseUint(uid, 10, 64)

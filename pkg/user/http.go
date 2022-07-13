@@ -10,6 +10,10 @@ import (
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	prommiddleware "github.com/slok/go-http-metrics/middleware"
 	ginmiddleware "github.com/slok/go-http-metrics/middleware/gin"
+
+	doc "github.com/minghsu0107/go-random-chat/docs/user"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type HttpServer struct {
@@ -19,6 +23,7 @@ type HttpServer struct {
 	httpPort   string
 	httpServer *http.Server
 	userSvc    UserService
+	serveSwag  bool
 }
 
 func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) *gin.Engine {
@@ -40,19 +45,31 @@ func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) 
 
 func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine, userSvc UserService) common.HttpServer {
 	return &HttpServer{
-		name:     name,
-		logger:   logger,
-		svr:      svr,
-		httpPort: config.User.Http.Server.Port,
-		userSvc:  userSvc,
+		name:      name,
+		logger:    logger,
+		svr:       svr,
+		httpPort:  config.User.Http.Server.Port,
+		userSvc:   userSvc,
+		serveSwag: config.User.Http.Server.Swag,
 	}
 }
 
+// @title           User Service Swagger API
+// @version         2.0
+// @description     User service API
+
+// @contact.name   Ming Hsu
+// @contact.email  minghsu0107@gmail.com
+
+// @BasePath  /api
 func (r *HttpServer) RegisterRoutes() {
 	userGroup := r.svr.Group("/api/user")
 	{
 		userGroup.POST("", r.CreateUser)
 		userGroup.GET("/:uid/name", r.GetUserName)
+	}
+	if r.serveSwag {
+		userGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.InstanceName(doc.SwaggerInfouser.InfoInstanceName)))
 	}
 }
 

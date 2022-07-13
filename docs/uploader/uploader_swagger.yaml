@@ -1,0 +1,53 @@
+basePath: /api
+definitions:
+  gin.H:
+    additionalProperties:
+      type: any
+    type: object
+info:
+  contact:
+    email: minghsu0107@gmail.com
+    name: Ming Hsu
+  description: Uploader service API
+  title: Uploader Service Swagger API
+  version: "2.0"
+paths:
+  /uploader/file:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a file to S3 bucket
+      parameters:
+      - description: file to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: channel authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            type: none
+        "401":
+          description: Unauthorized
+          schema:
+            type: none
+        "503":
+          description: Service Unavailable
+          schema:
+            type: none
+      summary: Upload a file
+      tags:
+      - uploader
+swagger: "2.0"

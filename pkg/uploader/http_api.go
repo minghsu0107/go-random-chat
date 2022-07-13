@@ -12,6 +12,18 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 )
 
+// @Summary Upload a file
+// @Description Upload a file to S3 bucket
+// @Tags uploader
+// @Accept mpfd
+// @param file formData file true "file to upload"
+// @Produce json
+// @param Authorization header string true "channel authorization"
+// @Success 201 {object} gin.H
+// @Failure 400 {none} nil
+// @Failure 401 {none} nil
+// @Failure 503 {none} nil
+// @Router /uploader/file [post]
 func (r *HttpServer) UploadFile(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {

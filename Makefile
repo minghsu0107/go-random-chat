@@ -5,10 +5,12 @@ GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
 GOINSTALL=$(GOCMD) install
 
-.PHONY: proto
+SVCS=chat match uploader user
+
+.PHONY: proto doc
 
 all: build test
-test:
+test: build
 	$(GOTEST) -gcflags=-l -v -cover -coverpkg=./... -coverprofile=cover.out ./...
 build: dep
 	$(GOBUILD) -ldflags="-X github.com/minghsu0107/go-random-chat/cmd.Version=v0.0.0 -w -s" -o server ./randomchat.go
@@ -16,8 +18,15 @@ dep: wire
 	$(shell $(GOCMD) env GOPATH)/bin/wire ./internal/wire
 wire:
 	GO111MODULE=on $(GOINSTALL) github.com/google/wire/cmd/wire@v0.4.0
+
 proto:
 	protoc proto/*/*.proto --go_out=plugins=grpc:.
+doc: swag
+	for svc in $(SVCS); do \
+		$(shell $(GOCMD) env GOPATH)/bin/swag init -g http.go -d pkg/$$svc -o docs/$$svc --instanceName $$svc --parseDependency --parseInternal; \
+	done
+swag:
+	GO111MODULE=on $(GOINSTALL) github.com/swaggo/swag/cmd/swag@v1.8.3
 
 docker: docker-api docker-web
 docker-api:

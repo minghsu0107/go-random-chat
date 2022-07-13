@@ -10,6 +10,17 @@ import (
 	"gopkg.in/olahol/melody.v1"
 )
 
+// @Summary Start a chat
+// @Description Websocket initialization endpoint for starting a chat
+// @Tags chat
+// @Produce json
+// @Param uid query int true "user id"
+// @Param access_token query string true "access token of the channel"
+// @Failure 400 {none} nil
+// @Failure 401 {none} nil
+// @Failure 404 {none} nil
+// @Failure 500 {none} nil
+// @Router /chat [get]
 func (r *HttpServer) StartChat(c *gin.Context) {
 	uid := c.Query("uid")
 	userID, err := strconv.ParseUint(uid, 10, 64)
@@ -45,6 +56,16 @@ func (r *HttpServer) StartChat(c *gin.Context) {
 	r.mc.HandleRequest(c.Writer, c.Request)
 }
 
+// @Summary Get channel users
+// @Description Get all users of a channel
+// @Tags chat
+// @Produce json
+// @param Authorization header string true "channel authorization"
+// @Success 200 {object} UserIDsPresenter
+// @Failure 401 {none} nil
+// @Failure 404 {none} nil
+// @Failure 500 {none} nil
+// @Router /chat/chanusers [get]
 func (r *HttpServer) GetChannelUsers(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
@@ -70,6 +91,16 @@ func (r *HttpServer) GetChannelUsers(c *gin.Context) {
 	})
 }
 
+// @Summary Get online users
+// @Description Get all online users of a channel
+// @Tags chat
+// @Produce json
+// @param Authorization header string true "channel authorization"
+// @Success 200 {object} UserIDsPresenter
+// @Failure 401 {none} nil
+// @Failure 404 {none} nil
+// @Failure 500 {none} nil
+// @Router /chat/chanusers/online [get]
 func (r *HttpServer) GetOnlineUsers(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
@@ -95,6 +126,16 @@ func (r *HttpServer) GetOnlineUsers(c *gin.Context) {
 	})
 }
 
+// @Summary List channel messages
+// @Description List messages of a channel
+// @Tags chat
+// @Produce json
+// @param Authorization header string true "channel authorization"
+// @Success 200 {object} MessagesPresenter
+// @Failure 401 {none} nil
+// @Failure 404 {none} nil
+// @Failure 500 {none} nil
+// @Router /chat/channel/messages [get]
 func (r *HttpServer) ListMessages(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
@@ -120,6 +161,18 @@ func (r *HttpServer) ListMessages(c *gin.Context) {
 	})
 }
 
+// @Summary Delete channel
+// @Description Delete a channel
+// @Tags chat
+// @Produce json
+// @param Authorization header string true "channel authorization"
+// @Param delby query string true "id of the user that performs the deletion"
+// @Success 204 {object} common.SuccessMessage
+// @Failure 400 {none} nil
+// @Failure 401 {none} nil
+// @Failure 404 {none} nil
+// @Failure 500 {none} nil
+// @Router /chat/channel [delete]
 func (r *HttpServer) DeleteChannel(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {

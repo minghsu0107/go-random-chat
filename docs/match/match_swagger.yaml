@@ -1,0 +1,68 @@
+basePath: /api
+info:
+  contact:
+    email: minghsu0107@gmail.com
+    name: Ming Hsu
+  description: Match service API
+  title: Match Service Swagger API
+  version: "2.0"
+paths:
+  /match:
+    get:
+      description: Websocket initialization endpoint for matching another user
+      parameters:
+      - description: self user id
+        in: query
+        name: uid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            type: none
+        "404":
+          description: Not Found
+          schema:
+            type: none
+        "500":
+          description: Internal Server Error
+          schema:
+            type: none
+      summary: Match another user
+      tags:
+      - match
+  /match/forwardauth:
+    get:
+      description: Traefik forward auth endpoint for channel authentication
+      parameters:
+      - description: channel authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: none
+        "401":
+          description: Unauthorized
+          schema:
+            type: none
+        "404":
+          description: Not Found
+          schema:
+            type: none
+        "500":
+          description: Internal Server Error
+          schema:
+            type: none
+      summary: Forward auth
+      tags:
+      - match
+swagger: "2.0"

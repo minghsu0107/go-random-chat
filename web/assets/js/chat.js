@@ -121,7 +121,7 @@ function markMessagesAsSeen() {
 function uploadFile(file) {
     let fd = new FormData()
     fd.append('file', file)
-    fetch('/api/file', {
+    fetch('/api/uploader/file', {
         method: 'POST',
         headers: new Headers({
             'Authorization': 'Bearer ' + ACCESS_TOKEN
@@ -317,7 +317,7 @@ function sendBrowserNotification(msg) {
 }
 
 async function getAllChannelUserNames() {
-    return fetch(`/api/chanusers`, {
+    return fetch(`/api/chat/chanusers`, {
         method: 'GET',
         headers: new Headers({
             'Authorization': 'Bearer ' + ACCESS_TOKEN
@@ -342,7 +342,7 @@ async function getAllChannelUserNames() {
 }
 
 async function fetchMessages() {
-    let response = await fetch(`/api/channel/messages`, {
+    let response = await fetch(`/api/chat/channel/messages`, {
         method: 'GET',
         headers: new Headers({
             'Authorization': 'Bearer ' + ACCESS_TOKEN
@@ -488,7 +488,7 @@ async function setPeerName(peerID) {
 }
 
 async function updateOnlineUsers() {
-    return fetch(`/api/chanusers/online`, {
+    return fetch(`/api/chat/chanusers/online`, {
         method: 'GET',
         headers: new Headers({
             'Authorization': 'Bearer ' + ACCESS_TOKEN
@@ -542,7 +542,7 @@ async function updateOnlineUsers() {
 }
 
 async function deleteChannel() {
-    return fetch(`/api/channel?delby=${USER_ID}`, {
+    return fetch(`/api/chat/channel?delby=${USER_ID}`, {
         method: 'DELETE',
         headers: new Headers({
             'Authorization': 'Bearer ' + ACCESS_TOKEN

@@ -17,6 +17,7 @@ Features:
 - Observability using [client_golang](https://github.com/prometheus/client_golang) and [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go).
 - At-least-once delivery for message Pub/Sub using [Kafka](https://kafka.apache.org).
 - Use [Traefik FowardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) for authentication when uploading files.
+- Automatically generate RESTful API documentation with Swagger 2.0.
 - Message retention for a certain period.
 - User matching with idempotency.
 - Message seen feature.
@@ -41,7 +42,7 @@ sudo ./run.sh run
 ```
 `run.sh` needs root permission to alias `minio` to `localhost` in `/etc/hosts`.
 
-This will spin up all services declared in `docker-compose.yaml`. Visit `http://localhost` and you will see the application home page.
+This will spin up all services declared in `docker-compose.yaml`. Visit `http://localhost` and you will see the application home page. Visit `http://localhost/api/<svc>/swagger/index.html` for API documentation, `<svc>` could be `user`, `match`, `chat`, or `uploader`.
 
 Example configuration: [config.example.yaml](configs/config.example.yaml).
 ## Deploy with SSL

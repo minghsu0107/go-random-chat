@@ -1,0 +1,103 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Match service API",
+        "title": "Match Service Swagger API",
+        "contact": {
+            "name": "Ming Hsu",
+            "email": "minghsu0107@gmail.com"
+        },
+        "version": "2.0"
+    },
+    "basePath": "/api",
+    "paths": {
+        "/match": {
+            "get": {
+                "description": "Websocket initialization endpoint for matching another user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "match"
+                ],
+                "summary": "Match another user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "self user id",
+                        "name": "uid",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "none"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "none"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "none"
+                        }
+                    }
+                }
+            }
+        },
+        "/match/forwardauth": {
+            "get": {
+                "description": "Traefik forward auth endpoint for channel authentication",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "match"
+                ],
+                "summary": "Forward auth",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "channel authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "none"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "none"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "none"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "none"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -11,6 +11,10 @@ import (
 	prommiddleware "github.com/slok/go-http-metrics/middleware"
 	ginmiddleware "github.com/slok/go-http-metrics/middleware/gin"
 	"gopkg.in/olahol/melody.v1"
+
+	doc "github.com/minghsu0107/go-random-chat/docs/match"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 var (
@@ -33,6 +37,7 @@ type HttpServer struct {
 	matchSubscriber *MatchSubscriber
 	userSvc         UserService
 	matchSvc        MatchingService
+	serveSwag       bool
 }
 
 func NewMelodyMatchConn() MelodyMatchConn {
@@ -72,6 +77,7 @@ func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config,
 		matchSubscriber: matchSubscriber,
 		userSvc:         userSvc,
 		matchSvc:        matchSvc,
+		serveSwag:       config.Match.Http.Server.Swag,
 	}
 }
 
@@ -80,6 +86,14 @@ func initJWT(config *config.Config) {
 	common.JwtExpirationSecond = config.Match.JWT.ExpirationSecond
 }
 
+// @title           Match Service Swagger API
+// @version         2.0
+// @description     Match service API
+
+// @contact.name   Ming Hsu
+// @contact.email  minghsu0107@gmail.com
+
+// @BasePath  /api
 func (r *HttpServer) RegisterRoutes() {
 	matchGroup := r.svr.Group("/api/match")
 	{
@@ -94,6 +108,10 @@ func (r *HttpServer) RegisterRoutes() {
 
 	r.mm.HandleConnect(r.HandleMatchOnConnect)
 	r.mm.HandleClose(r.HandleMatchOnClose)
+
+	if r.serveSwag {
+		matchGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.InstanceName(doc.SwaggerInfomatch.InfoInstanceName)))
+	}
 }
 
 func (r *HttpServer) Run() {

@@ -28,6 +28,7 @@ type ChatConfig struct {
 		Server struct {
 			Port    string
 			MaxConn int64
+			Swag    bool
 		}
 	}
 	Grpc struct {
@@ -49,6 +50,7 @@ type MatchConfig struct {
 		Server struct {
 			Port    string
 			MaxConn int64
+			Swag    bool
 		}
 	}
 	Grpc struct {
@@ -71,6 +73,7 @@ type UploaderConfig struct {
 	Http struct {
 		Server struct {
 			Port          string
+			Swag          bool
 			MaxBodyByte   int64
 			MaxMemoryByte int64
 		}
@@ -89,6 +92,7 @@ type UserConfig struct {
 	Http struct {
 		Server struct {
 			Port string
+			Swag bool
 		}
 	}
 	Grpc struct {
@@ -126,6 +130,7 @@ func setDefault() {
 
 	viper.SetDefault("chat.http.server.port", "5001")
 	viper.SetDefault("chat.http.server.maxConn", 200)
+	viper.SetDefault("chat.http.server.swag", false)
 	viper.SetDefault("chat.grpc.server.port", "4000")
 	viper.SetDefault("chat.message.maxNum", 500)
 	viper.SetDefault("chat.message.maxSizeByte", 4096)
@@ -133,12 +138,14 @@ func setDefault() {
 
 	viper.SetDefault("match.http.server.port", "5002")
 	viper.SetDefault("match.http.server.maxConn", 200)
+	viper.SetDefault("match.http.server.swag", false)
 	viper.SetDefault("match.grpc.client.chat.endpoint", "localhost:4000")
 	viper.SetDefault("match.grpc.client.user.endpoint", "localhost:4001")
 	viper.SetDefault("match.jwt.secret", "replaceme")
 	viper.SetDefault("match.jwt.expirationSecond", 86400)
 
 	viper.SetDefault("uploader.http.server.port", "5003")
+	viper.SetDefault("uploader.http.server.swag", false)
 	viper.SetDefault("uploader.http.server.maxBodyByte", "67108864")   // 64MB
 	viper.SetDefault("uploader.http.server.maxMemoryByte", "16777216") // 16MB
 	viper.SetDefault("uploader.s3.endpoint", "http://localhost:9000")
@@ -149,6 +156,7 @@ func setDefault() {
 	viper.SetDefault("uploader.s3.secretKey", "")
 
 	viper.SetDefault("user.http.server.port", "5004")
+	viper.SetDefault("user.http.server.swag", false)
 	viper.SetDefault("user.grpc.server.port", "4001")
 
 	viper.SetDefault("kafka.addrs", "localhost:9092")

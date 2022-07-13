@@ -14,6 +14,10 @@ import (
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
 	prommiddleware "github.com/slok/go-http-metrics/middleware"
 	ginmiddleware "github.com/slok/go-http-metrics/middleware/gin"
+
+	doc "github.com/minghsu0107/go-random-chat/docs/uploader"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type HttpServer struct {
@@ -26,6 +30,7 @@ type HttpServer struct {
 	uploader   *s3manager.Uploader
 	httpPort   string
 	httpServer *http.Server
+	serveSwag  bool
 }
 
 func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) *gin.Engine {
@@ -71,14 +76,29 @@ func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config,
 		maxMemory:  config.Uploader.Http.Server.MaxMemoryByte,
 		uploader:   s3manager.NewUploader(sess),
 		httpPort:   config.Uploader.Http.Server.Port,
+		serveSwag:  config.Uploader.Http.Server.Swag,
 	}
 }
 
+// @title           Uploader Service Swagger API
+// @version         2.0
+// @description     Uploader service API
+
+// @contact.name   Ming Hsu
+// @contact.email  minghsu0107@gmail.com
+
+// @BasePath  /api
 func (r *HttpServer) RegisterRoutes() {
-	uploadGroup := r.svr.Group("/api/file")
-	uploadGroup.Use(common.JWTForwardAuth())
+	uploaderGroup := r.svr.Group("/api/uploader")
 	{
-		uploadGroup.POST("", r.UploadFile)
+		fileGroup := uploaderGroup.Group("/file")
+		fileGroup.Use(common.JWTForwardAuth())
+		{
+			fileGroup.POST("", r.UploadFile)
+		}
+	}
+	if r.serveSwag {
+		uploaderGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.InstanceName(doc.SwaggerInfouploader.InfoInstanceName)))
 	}
 }
 
