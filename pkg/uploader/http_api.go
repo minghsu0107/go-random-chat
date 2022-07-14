@@ -20,9 +20,9 @@ import (
 // @Produce json
 // @param Authorization header string true "channel authorization"
 // @Success 201 {object} gin.H
-// @Failure 400 {none} nil
-// @Failure 401 {none} nil
-// @Failure 503 {none} nil
+// @Failure 400 {object} common.ErrResponse
+// @Failure 401 {object} common.ErrResponse
+// @Failure 503 {object} common.ErrResponse
 // @Router /uploader/file [post]
 func (r *HttpServer) UploadFile(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)

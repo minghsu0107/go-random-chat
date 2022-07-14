@@ -29,6 +29,11 @@ definitions:
           type: string
         type: array
     type: object
+  common.ErrResponse:
+    properties:
+      msg:
+        type: string
+    type: object
   common.SuccessMessage:
     properties:
       msg:
@@ -63,19 +68,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "401":
           description: Unauthorized
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "404":
           description: Not Found
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
       summary: Start a chat
       tags:
       - chat
@@ -103,19 +108,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "401":
           description: Unauthorized
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "404":
           description: Not Found
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
       summary: Delete channel
       tags:
       - chat
@@ -138,15 +143,15 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "404":
           description: Not Found
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
       summary: List channel messages
       tags:
       - chat
@@ -169,15 +174,15 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "404":
           description: Not Found
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
       summary: Get channel users
       tags:
       - chat
@@ -200,15 +205,15 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "404":
           description: Not Found
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
       summary: Get online users
       tags:
       - chat

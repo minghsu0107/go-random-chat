@@ -58,19 +58,19 @@ const docTemplateuploader = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "none"
+                            "$ref": "#/definitions/common.ErrResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "none"
+                            "$ref": "#/definitions/common.ErrResponse"
                         }
                     },
                     "503": {
                         "description": "Service Unavailable",
                         "schema": {
-                            "type": "none"
+                            "$ref": "#/definitions/common.ErrResponse"
                         }
                     }
                 }
@@ -78,6 +78,14 @@ const docTemplateuploader = `{
         }
     },
     "definitions": {
+        "common.ErrResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                }
+            }
+        },
         "gin.H": {
             "type": "object",
             "additionalProperties": {

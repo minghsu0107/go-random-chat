@@ -1,5 +1,10 @@
 basePath: /api
 definitions:
+  common.ErrResponse:
+    properties:
+      msg:
+        type: string
+    type: object
   user.CreateUserRequest:
     properties:
       name:
@@ -42,11 +47,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
       summary: Create an user
       tags:
       - user
@@ -69,15 +74,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "404":
           description: Not Found
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
       summary: Get user name
       tags:
       - user

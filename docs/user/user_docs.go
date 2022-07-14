@@ -50,13 +50,13 @@ const docTemplateuser = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "none"
+                            "$ref": "#/definitions/common.ErrResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "none"
+                            "$ref": "#/definitions/common.ErrResponse"
                         }
                     }
                 }
@@ -91,19 +91,19 @@ const docTemplateuser = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "none"
+                            "$ref": "#/definitions/common.ErrResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "none"
+                            "$ref": "#/definitions/common.ErrResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "none"
+                            "$ref": "#/definitions/common.ErrResponse"
                         }
                     }
                 }
@@ -111,6 +111,14 @@ const docTemplateuser = `{
         }
     },
     "definitions": {
+        "common.ErrResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                }
+            }
+        },
         "user.CreateUserRequest": {
             "type": "object",
             "required": [

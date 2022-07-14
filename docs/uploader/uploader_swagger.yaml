@@ -1,5 +1,10 @@
 basePath: /api
 definitions:
+  common.ErrResponse:
+    properties:
+      msg:
+        type: string
+    type: object
   gin.H:
     additionalProperties:
       type: any
@@ -38,15 +43,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "401":
           description: Unauthorized
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "503":
           description: Service Unavailable
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
       summary: Upload a file
       tags:
       - uploader

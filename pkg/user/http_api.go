@@ -14,8 +14,8 @@ import (
 // @Produce json
 // @Param user body CreateUserRequest true "new user"
 // @Success 201 {object} UserPresenter
-// @Failure 400 {none} nil
-// @Failure 500 {none} nil
+// @Failure 400 {object} common.ErrResponse
+// @Failure 500 {object} common.ErrResponse
 // @Router /user [post]
 func (r *HttpServer) CreateUser(c *gin.Context) {
 	var createUserReq CreateUserRequest
@@ -41,9 +41,9 @@ func (r *HttpServer) CreateUser(c *gin.Context) {
 // @Produce json
 // @Param uid path int true "user id"
 // @Success 200 {object} UserPresenter
-// @Failure 400 {none} nil
-// @Failure 404 {none} nil
-// @Failure 500 {none} nil
+// @Failure 400 {object} common.ErrResponse
+// @Failure 404 {object} common.ErrResponse
+// @Failure 500 {object} common.ErrResponse
 // @Router /user/{uid}/name [get]
 func (r *HttpServer) GetUserName(c *gin.Context) {
 	id := c.Param("uid")

@@ -1,4 +1,10 @@
 basePath: /api
+definitions:
+  common.ErrResponse:
+    properties:
+      msg:
+        type: string
+    type: object
 info:
   contact:
     email: minghsu0107@gmail.com
@@ -22,15 +28,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "404":
           description: Not Found
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
       summary: Match another user
       tags:
       - match
@@ -53,15 +59,15 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "404":
           description: Not Found
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: none
+            $ref: '#/definitions/common.ErrResponse'
       summary: Forward auth
       tags:
       - match
