@@ -4,14 +4,23 @@ export REDIS_CLUSTER_IP=$(ifconfig | grep -E "([0-9]{1,3}\.){3}[0-9]{1,3}" \
 export REDIS_PASSWORD=pass.123
 export JWT_SECRET=mysecret
 
-sudo -- sh -c -e "echo '127.0.0.1   minio' >> /etc/hosts"
+addHost() {
+    if grep -q "minio" /etc/hosts; then
+        echo "Minio exists in /etc/hosts"
+    else
+        sudo -- sh -c -e "echo '127.0.0.1   minio' >> /etc/hosts"
+    fi
+}
 
 case "$1" in
-    "run")
-        docker-compose up --scale random-chat=3;;
+    "start")
+        addHost
+        docker-compose up -d --scale random-chat=3;;
     "stop")
         docker-compose stop;;
+    "clean")
+        docker-compose down -v;;
     *)
-        echo "command should be 'run' or 'stop'"
+        echo "command should be 'start', 'stop', or 'clean'"
         exit 1;;
 esac
