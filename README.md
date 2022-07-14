@@ -38,7 +38,7 @@ Prerequisite:
 To run locally, execute the following command:
 ```bash
 cd deployments
-sudo ./run.sh run
+sudo ./run.sh start
 ```
 `run.sh` needs root permission to alias `minio` to `localhost` in `/etc/hosts`.
 
