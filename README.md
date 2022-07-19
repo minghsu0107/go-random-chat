@@ -44,6 +44,16 @@ sudo ./run.sh start
 
 This will spin up all services declared in `docker-compose.yaml`. Visit `http://localhost` and you will see the application home page.
 
+Bucket `myfilebucket` will be created automatically on `minio` by `createbucket`. However, if `createbucket` makes a request while `minio` is still initializing, the bucket creation will fail. If this happens, please run the following command to create the bucket again:
+```bash
+docker restart deployments-createbucket-1
+```
+- Visit `http://localhost` for the application home page.
+- Visit `http://localhost:8080` for Traefik dashboard.
+- VIsit `http://localhost:9000` for Minio dashboard.
+- Visit `http://localhost:9090` for Prometheus dashboard.
+- Visit `http://localhost:16686` for Jaeger dashboard.
+
 Example configuration: [config.example.yaml](configs/config.example.yaml).
 ## Deploy with SSL
 A common scenario is that one deploys the application behind a reverse proxy with SSL termination. If that is your case, remember to correctly configure your proxy for websocket. For example, in Google Cloud Platform, for websocket traffic sent through a Google Cloud external HTTP(S) load balancer, the backend service timeout is interpreted as the maximum amount of time that a WebSocket connection can remain open, whether idle or not. Therefore, you may want to use a `timeoutSec` value larger than the default 30 seconds in your `BackendConfig`.
