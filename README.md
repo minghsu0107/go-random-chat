@@ -42,9 +42,18 @@ sudo ./run.sh start
 ```
 `run.sh` needs root permission to alias `minio` to `localhost` in `/etc/hosts`.
 
-This will spin up all services declared in `docker-compose.yaml`. Visit `http://localhost` and you will see the application home page. 
+This will spin up all services declared in `docker-compose.yaml`. Visit `http://localhost` and you will see the application home page.
 
-Visit `http://localhost/api/<svc>/swagger/index.html` for API documentation, where `<svc>` could be `user`, `match`, `chat`, or `uploader`.
+Bucket `myfilebucket` will be created automatically on `minio` by `createbucket`. However, if `createbucket` makes a request while `minio` is still initializing, the bucket creation will fail. If this happens, please run the following command to create the bucket again:
+```bash
+docker restart deployments-createbucket-1
+```
+- Visit `http://localhost` for the application home page.
+- Visit `http://localhost:8080` for Traefik dashboard.
+- VIsit `http://localhost:9000` for Minio dashboard.
+- Visit `http://localhost:9090` for Prometheus dashboard.
+- Visit `http://localhost:16686` for Jaeger dashboard.
+- Visit `http://localhost/api/<svc>/swagger/index.html` for API documentation, where `<svc>` could be `user`, `match`, `chat`, or `uploader`.
 
 Example configuration: [config.example.yaml](configs/config.example.yaml).
 ## Deploy with SSL
