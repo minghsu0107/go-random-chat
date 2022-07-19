@@ -156,10 +156,12 @@ services:
       - "9000:9000"
   createbucket:
     image: minio/mc
+    restart: on-failure:5
     depends_on:
       - minio
     entrypoint: >
       /bin/sh -c "
+      set -e;
       /usr/bin/mc config host add myminio http://minio:9000 testaccesskey testsecret;
       /usr/bin/mc mb myminio/myfilebucket;
       /usr/bin/mc policy set public myminio/myfilebucket;
