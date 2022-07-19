@@ -4,10 +4,10 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
@@ -27,7 +27,7 @@ type HttpServer struct {
 	s3Endpoint string
 	s3Bucket   string
 	maxMemory  int64
-	uploader   *s3manager.Uploader
+	uploader   *manager.Uploader
 	httpPort   string
 	httpServer *http.Server
 	serveSwag  bool
@@ -54,19 +54,22 @@ func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) 
 func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine) common.HttpServer {
 	s3Endpoint := config.Uploader.S3.Endpoint
 	s3Bucket := config.Uploader.S3.Bucket
-	disableSSL := config.Uploader.S3.DisableSSL
-	creds := credentials.NewStaticCredentials(config.Uploader.S3.AccessKey, config.Uploader.S3.SecretKey, "")
-
-	awsConfig := &aws.Config{
-		Credentials:      creds,
-		Endpoint:         aws.String(s3Endpoint),
-		Region:           aws.String(config.Uploader.S3.Region),
-		DisableSSL:       aws.Bool(disableSSL),
-		S3ForcePathStyle: aws.Bool(true),
-		MaxRetries:       aws.Int(3),
+	creds := credentials.NewStaticCredentialsProvider(config.Uploader.S3.AccessKey, config.Uploader.S3.SecretKey, "")
+	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+		return aws.Endpoint{
+			PartitionID:       "aws",
+			URL:               s3Endpoint,
+			SigningRegion:     config.Uploader.S3.Region,
+			HostnameImmutable: true,
+		}, nil
+	})
+	awsConfig := aws.Config{
+		Credentials:                 creds,
+		EndpointResolverWithOptions: customResolver,
+		Region:                      config.Uploader.S3.Region,
+		RetryMaxAttempts:            3,
 	}
 
-	sess := session.Must(session.NewSession(awsConfig))
 	return &HttpServer{
 		name:       name,
 		logger:     logger,
@@ -74,7 +77,7 @@ func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config,
 		s3Endpoint: s3Endpoint,
 		s3Bucket:   s3Bucket,
 		maxMemory:  config.Uploader.Http.Server.MaxMemoryByte,
-		uploader:   s3manager.NewUploader(sess),
+		uploader:   manager.NewUploader(s3.NewFromConfig(awsConfig)),
 		httpPort:   config.Uploader.Http.Server.Port,
 		serveSwag:  config.Uploader.Http.Server.Swag,
 	}

@@ -79,12 +79,11 @@ type UploaderConfig struct {
 		}
 	}
 	S3 struct {
-		Endpoint   string
-		DisableSSL bool
-		Region     string
-		Bucket     string
-		AccessKey  string
-		SecretKey  string
+		Endpoint  string
+		Region    string
+		Bucket    string
+		AccessKey string
+		SecretKey string
 	}
 }
 
@@ -149,7 +148,6 @@ func setDefault() {
 	viper.SetDefault("uploader.http.server.maxBodyByte", "67108864")   // 64MB
 	viper.SetDefault("uploader.http.server.maxMemoryByte", "16777216") // 16MB
 	viper.SetDefault("uploader.s3.endpoint", "http://localhost:9000")
-	viper.SetDefault("uploader.s3.disableSSL", false)
 	viper.SetDefault("uploader.s3.region", "us-east-1")
 	viper.SetDefault("uploader.s3.bucket", "myfilebucket")
 	viper.SetDefault("uploader.s3.accessKey", "")

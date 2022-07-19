@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/gin-gonic/gin"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 )
@@ -60,10 +61,10 @@ func (r *HttpServer) UploadFile(c *gin.Context) {
 }
 
 func (r *HttpServer) putFileToS3(ctx context.Context, bucket, fileName string, f io.Reader) error {
-	_, err := r.uploader.UploadWithContext(ctx, &s3manager.UploadInput{
+	_, err := r.uploader.Upload(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(fileName),
-		ACL:    aws.String("public-read"),
+		ACL:    types.ObjectCannedACL("public-read"),
 		Body:   f,
 	})
 	if err != nil {
