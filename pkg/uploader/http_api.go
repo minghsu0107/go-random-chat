@@ -64,7 +64,7 @@ func (r *HttpServer) putFileToS3(ctx context.Context, bucket, fileName string, f
 	_, err := r.uploader.Upload(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(fileName),
-		ACL:    types.ObjectCannedACL("public-read"),
+		ACL:    types.ObjectCannedACLPublicRead,
 		Body:   f,
 	})
 	if err != nil {
