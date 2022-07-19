@@ -44,7 +44,7 @@ sudo ./run.sh start
 
 This will spin up all services declared in `docker-compose.yaml`. Visit `http://localhost` and you will see the application home page.
 
-Bucket `myfilebucket` will be created automatically on `minio` by `createbucket`. However, if `createbucket` makes a request while `minio` is still initializing, the bucket creation will fail. If this happens, please run the following command to create the bucket again:
+Bucket `myfilebucket` will be created automatically on `minio` by `createbucket`. However, if `minio` is still initializing after 5 retries of `createbucket`, the bucket creation will fail. If this happens, please run the following command once `minio` is up and running:
 ```bash
 docker restart deployments-createbucket-1
 ```
