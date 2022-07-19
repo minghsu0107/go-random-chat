@@ -172,6 +172,7 @@ services:
       - "9000:9000"
   createbucket:
     image: minio/mc
+    restart: on-failure:5
     depends_on:
       - minio
     entrypoint: >
