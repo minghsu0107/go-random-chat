@@ -9,7 +9,7 @@ RUN go mod download
 COPY . .
 ARG VERSION
 RUN make dep
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-X github.com/minghsu0107/go-random-chat/cmd.Version=`echo $VERSION` -w -s" -o server ./randomchat.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-X github.com/minghsu0107/go-random-chat/cmd.Version=$VERSION -w -s" -o server ./randomchat.go
 
 FROM alpine:3.14
 RUN apk update && apk add --no-cache ca-certificates
