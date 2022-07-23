@@ -45,6 +45,8 @@ func InitializeChatServer(name string) (*common.Server, error) {
 
 		infra.NewCassandraSession,
 
+		chat.NewUserClientConn,
+
 		chat.NewUserRepo,
 		chat.NewMessageRepo,
 		chat.NewChannelRepo,

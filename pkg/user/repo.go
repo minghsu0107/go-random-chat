@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"strconv"
 
 	"github.com/minghsu0107/go-random-chat/pkg/infra"
@@ -11,10 +10,6 @@ import (
 
 var (
 	userPrefix = "rc:user"
-)
-
-var (
-	ErrUserNotFound = errors.New("error user not found")
 )
 
 type UserRepo interface {

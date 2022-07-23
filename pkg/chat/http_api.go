@@ -28,6 +28,17 @@ func (r *HttpServer) StartChat(c *gin.Context) {
 		response(c, http.StatusBadRequest, common.ErrInvalidParam)
 		return
 	}
+	_, err = r.userSvc.GetUser(c.Request.Context(), userID)
+	if err != nil {
+		if err == ErrUserNotFound {
+			response(c, http.StatusNotFound, ErrUserNotFound)
+			return
+		}
+		r.logger.Error(err)
+		response(c, http.StatusInternalServerError, common.ErrServer)
+		return
+	}
+
 	accessToken := c.Query("access_token")
 	authResult, err := common.Auth(&common.AuthPayload{
 		AccessToken: accessToken,

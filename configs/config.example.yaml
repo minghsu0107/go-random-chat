@@ -11,6 +11,9 @@ chat:
   grpc:
     server:
       port: "4000"
+    client:
+      user:
+        endpoint: "localhost:4001"
   message:
     maxNum: 5000
     paginationNum: 5000

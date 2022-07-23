@@ -3,25 +3,25 @@ package chat
 import (
 	"context"
 	b64 "encoding/base64"
-	"errors"
 	"strconv"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/gocql/gocql"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
+
+	"github.com/go-kit/kit/endpoint"
+	userpb "github.com/minghsu0107/go-random-chat/internal/proto_gen/user"
+	"github.com/minghsu0107/go-random-chat/pkg/transport"
 )
 
 var (
 	messagePubSubTopic = "rc_msg"
 )
 
-var (
-	ErrChannelOrUserNotFound = errors.New("error channel or user not found")
-)
-
 type UserRepo interface {
 	AddUserToChannel(ctx context.Context, channelID uint64, userID uint64) error
+	GetUserByID(ctx context.Context, userID uint64) (*User, error)
 	GetChannelUserIDs(ctx context.Context, channelID uint64) ([]uint64, error)
 }
 
@@ -38,11 +38,21 @@ type ChannelRepo interface {
 }
 
 type UserRepoImpl struct {
-	s *gocql.Session
+	s       *gocql.Session
+	getUser endpoint.Endpoint
 }
 
-func NewUserRepo(s *gocql.Session) UserRepo {
-	return &UserRepoImpl{s}
+func NewUserRepo(s *gocql.Session, userConn *UserClientConn) UserRepo {
+	return &UserRepoImpl{
+		s: s,
+		getUser: transport.NewGrpcEndpoint(
+			userConn.Conn,
+			"user",
+			"user.UserService",
+			"GetUser",
+			&userpb.GetUserResponse{},
+		),
+	}
 }
 func (repo *UserRepoImpl) AddUserToChannel(ctx context.Context, channelID uint64, userID uint64) error {
 	if err := repo.s.Query("INSERT INTO channels (id, user_id) VALUES (?, ?)",
@@ -50,6 +60,22 @@ func (repo *UserRepoImpl) AddUserToChannel(ctx context.Context, channelID uint64
 		return err
 	}
 	return nil
+}
+func (repo *UserRepoImpl) GetUserByID(ctx context.Context, userID uint64) (*User, error) {
+	res, err := repo.getUser(ctx, &userpb.GetUserRequest{
+		UserId: userID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	pbUser := res.(*userpb.GetUserResponse)
+	if !pbUser.Exist {
+		return nil, ErrUserNotFound
+	}
+	return &User{
+		ID:   pbUser.User.Id,
+		Name: pbUser.User.Name,
+	}, nil
 }
 func (repo *UserRepoImpl) GetChannelUserIDs(ctx context.Context, channelID uint64) ([]uint64, error) {
 	iter := repo.s.Query("SELECT user_id FROM channels WHERE id = ?", channelID).WithContext(ctx).Iter()

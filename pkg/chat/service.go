@@ -19,6 +19,7 @@ type MessageService interface {
 
 type UserService interface {
 	AddUserToChannel(ctx context.Context, channelID, userID uint64) error
+	GetUser(ctx context.Context, uid uint64) (*User, error)
 	IsChannelUserExist(ctx context.Context, channelID, userID uint64) (bool, error)
 	GetChannelUserIDs(ctx context.Context, channelID uint64) ([]uint64, error)
 	AddOnlineUser(ctx context.Context, channelID, userID uint64) error
@@ -133,6 +134,9 @@ func NewUserService(userRepo UserRepoCache) UserService {
 }
 func (svc *UserServiceImpl) AddUserToChannel(ctx context.Context, channelID, userID uint64) error {
 	return svc.userRepo.AddUserToChannel(ctx, channelID, userID)
+}
+func (svc *UserServiceImpl) GetUser(ctx context.Context, uid uint64) (*User, error) {
+	return svc.userRepo.GetUserByID(ctx, uid)
 }
 func (svc *UserServiceImpl) IsChannelUserExist(ctx context.Context, channelID, userID uint64) (bool, error) {
 	return svc.userRepo.IsChannelUserExist(ctx, channelID, userID)

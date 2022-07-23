@@ -54,3 +54,20 @@ func (srv *GrpcServer) Run() {
 func (srv *GrpcServer) GracefulStop() {
 	srv.s.GracefulStop()
 }
+
+var UserConn *UserClientConn
+
+type UserClientConn struct {
+	Conn *grpc.ClientConn
+}
+
+func NewUserClientConn(config *config.Config) (*UserClientConn, error) {
+	conn, err := transport.InitializeGrpcClient(config.Chat.Grpc.Client.User.Endpoint)
+	if err != nil {
+		return nil, err
+	}
+	UserConn = &UserClientConn{
+		Conn: conn,
+	}
+	return UserConn, nil
+}

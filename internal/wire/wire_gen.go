@@ -59,7 +59,11 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	userRepo := chat.NewUserRepo(session)
+	userClientConn, err := chat.NewUserClientConn(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	userRepo := chat.NewUserRepo(session, userClientConn)
 	userRepoCache := chat.NewUserRepoCache(redisCache, userRepo)
 	userService := chat.NewUserService(userRepoCache)
 	publisher, err := infra.NewKafkaPublisher(configConfig)

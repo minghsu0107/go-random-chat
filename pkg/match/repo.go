@@ -2,7 +2,6 @@ package match
 
 import (
 	"context"
-	"errors"
 	"strconv"
 	"time"
 
@@ -18,10 +17,6 @@ import (
 var (
 	matchPubSubTopic = "rc_match"
 	userWaitList     = "rc:userwait"
-)
-
-var (
-	ErrUserNotFound = errors.New("error user not found")
 )
 
 type ChannelRepo interface {
@@ -95,6 +90,9 @@ func (repo *UserRepoImpl) GetUserByID(ctx context.Context, userID uint64) (*User
 		return nil, err
 	}
 	pbUser := res.(*userpb.GetUserResponse)
+	if !pbUser.Exist {
+		return nil, ErrUserNotFound
+	}
 	return &User{
 		ID:   pbUser.User.Id,
 		Name: pbUser.User.Name,

@@ -15,6 +15,7 @@ var (
 
 type UserRepoCache interface {
 	AddUserToChannel(ctx context.Context, channelID uint64, userID uint64) error
+	GetUserByID(ctx context.Context, userID uint64) (*User, error)
 	IsChannelUserExist(ctx context.Context, channelID, userID uint64) (bool, error)
 	GetChannelUserIDs(ctx context.Context, channelID uint64) ([]uint64, error)
 	AddOnlineUser(ctx context.Context, channelID uint64, userID uint64) error
@@ -49,6 +50,9 @@ func (cache *UserRepoCacheImpl) AddUserToChannel(ctx context.Context, channelID 
 	}
 	key := constructKey(channelUsersPrefix, channelID)
 	return cache.r.HSet(ctx, key, strconv.FormatUint(userID, 10), 1)
+}
+func (cache *UserRepoCacheImpl) GetUserByID(ctx context.Context, userID uint64) (*User, error) {
+	return cache.userRepo.GetUserByID(ctx, userID)
 }
 func (cache *UserRepoCacheImpl) IsChannelUserExist(ctx context.Context, channelID, userID uint64) (bool, error) {
 	key := constructKey(channelUsersPrefix, channelID)
