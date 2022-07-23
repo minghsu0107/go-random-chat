@@ -103,9 +103,14 @@ func NewMessageRepo(config *config.Config, s *gocql.Session, p message.Publisher
 
 func (repo *MessageRepoImpl) InsertMessage(ctx context.Context, msg *Message) error {
 	var messageNum int64
-	if err := repo.s.Query("SELECT msgnum FROM chanmsg_counters WHERE channel_id = ?", msg.ChannelID).
-		WithContext(ctx).Scan(&messageNum); err != nil {
-		return err
+	err := repo.s.Query("SELECT msgnum FROM chanmsg_counters WHERE channel_id = ? LIMIT 1", msg.ChannelID).
+		WithContext(ctx).Scan(&messageNum)
+	if err != nil {
+		if err == gocql.ErrNotFound {
+			messageNum = 0
+		} else {
+			return err
+		}
 	}
 	if messageNum >= repo.maxMessages {
 		return ErrExceedMessageNumLimits
