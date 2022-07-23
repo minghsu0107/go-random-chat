@@ -21,6 +21,8 @@ definitions:
         items:
           $ref: '#/definitions/chat.MessagePresenter'
         type: array
+      next_ps:
+        type: string
     type: object
   chat.UserIDsPresenter:
     properties:
@@ -132,6 +134,10 @@ paths:
         in: header
         name: Authorization
         required: true
+        type: string
+      - description: page state
+        in: query
+        name: ps
         type: string
       produces:
       - application/json

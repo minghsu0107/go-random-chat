@@ -12,7 +12,7 @@ SVCS=chat match uploader user
 all: build test
 test:
 	$(GOTEST) -gcflags=-l -v -cover -coverpkg=./... -coverprofile=cover.out ./...
-build: dep
+build: dep doc
 	$(GOBUILD) -ldflags="-X github.com/minghsu0107/go-random-chat/cmd.Version=v0.0.0 -w -s" -o server ./randomchat.go
 dep: wire
 	$(shell $(GOCMD) env GOPATH)/bin/wire ./internal/wire

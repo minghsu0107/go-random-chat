@@ -150,6 +150,12 @@ const docTemplatechat = `{
                         "name": "Authorization",
                         "in": "header",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "page state",
+                        "name": "ps",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -307,6 +313,9 @@ const docTemplatechat = `{
                     "items": {
                         "$ref": "#/definitions/chat.MessagePresenter"
                     }
+                },
+                "next_ps": {
+                    "type": "string"
                 }
             }
         },
