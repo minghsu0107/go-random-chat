@@ -38,8 +38,9 @@ type ChatConfig struct {
 		}
 	}
 	Message struct {
-		MaxNum      int64
-		MaxSizeByte int64
+		MaxNum        int64
+		PaginationNum int64
+		MaxSizeByte   int64
 	}
 	JWT struct {
 		Secret string
@@ -140,7 +141,8 @@ func setDefault() {
 	viper.SetDefault("chat.http.server.maxConn", 200)
 	viper.SetDefault("chat.http.server.swag", false)
 	viper.SetDefault("chat.grpc.server.port", "4000")
-	viper.SetDefault("chat.message.maxNum", 500)
+	viper.SetDefault("chat.message.maxNum", 5000)
+	viper.SetDefault("chat.message.paginationNum", 500)
 	viper.SetDefault("chat.message.maxSizeByte", 4096)
 	viper.SetDefault("chat.jwt.secret", "replaceme")
 
