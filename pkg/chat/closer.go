@@ -12,5 +12,6 @@ func NewInfraCloser() common.InfraCloser {
 }
 
 func (closer *InfraCloser) Close() error {
+	infra.CassandraSession.Close()
 	return infra.RedisClient.Close()
 }
