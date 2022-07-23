@@ -79,6 +79,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.10.0 // indirect
 	github.com/go-redis/redis/extra/rediscmd/v8 v8.11.4 // indirect
+	github.com/go-redsync/redsync/v4 v4.5.1 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
 	github.com/gocql/gocql v1.2.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect

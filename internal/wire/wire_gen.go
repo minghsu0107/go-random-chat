@@ -55,20 +55,27 @@ func InitializeChatServer(name string) (*common.Server, error) {
 		return nil, err
 	}
 	redisCache := infra.NewRedisCache(universalClient)
-	userRepo := chat.NewUserRepo(redisCache)
-	userService := chat.NewUserService(userRepo)
+	session, err := infra.NewCassandraSession(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	userRepo := chat.NewUserRepo(session)
+	userRepoCache := chat.NewUserRepoCache(redisCache, userRepo)
+	userService := chat.NewUserService(userRepoCache)
 	publisher, err := infra.NewKafkaPublisher(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	messageRepo := chat.NewMessageRepo(configConfig, redisCache, publisher)
+	messageRepo := chat.NewMessageRepo(configConfig, session, publisher)
+	messageRepoCache := chat.NewMessageRepoCache(messageRepo)
 	idGenerator, err := common.NewSonyFlake()
 	if err != nil {
 		return nil, err
 	}
-	messageService := chat.NewMessageService(messageRepo, userRepo, idGenerator)
-	channelRepo := chat.NewChannelRepo(redisCache)
-	channelService := chat.NewChannelService(channelRepo, userRepo, idGenerator)
+	messageService := chat.NewMessageService(messageRepoCache, userRepoCache, idGenerator)
+	channelRepo := chat.NewChannelRepo(session)
+	channelRepoCache := chat.NewChannelRepoCache(redisCache, channelRepo)
+	channelService := chat.NewChannelService(channelRepoCache, userRepoCache, idGenerator)
 	httpServer := chat.NewHttpServer(name, httpLogrus, configConfig, engine, melodyChatConn, messageSubscriber, userService, messageService, channelService)
 	grpcLogrus := common.NewGrpcLogrus()
 	grpcServer := chat.NewGrpcServer(grpcLogrus, configConfig, userService, channelService)

@@ -14,7 +14,7 @@ type MessageService interface {
 	BroadcastActionMessage(ctx context.Context, channelID, userID uint64, action Action) error
 	BroadcastFileMessage(ctx context.Context, channelID, userID uint64, payload string) error
 	MarkMessageSeen(ctx context.Context, channelID, userID, messageID uint64) error
-	ListMessages(ctx context.Context, channelID uint64) ([]*Message, error)
+	ListMessages(ctx context.Context, channelID uint64, pageState string) ([]*Message, string, error)
 }
 
 type UserService interface {
@@ -32,12 +32,12 @@ type ChannelService interface {
 }
 
 type MessageServiceImpl struct {
-	msgRepo  MessageRepo
-	userRepo UserRepo
+	msgRepo  MessageRepoCache
+	userRepo UserRepoCache
 	sf       common.IDGenerator
 }
 
-func NewMessageService(msgRepo MessageRepo, userRepo UserRepo, sf common.IDGenerator) MessageService {
+func NewMessageService(msgRepo MessageRepoCache, userRepo UserRepoCache, sf common.IDGenerator) MessageService {
 	return &MessageServiceImpl{msgRepo, userRepo, sf}
 }
 func (svc *MessageServiceImpl) BroadcastTextMessage(ctx context.Context, channelID, userID uint64, payload string) error {
@@ -120,15 +120,15 @@ func (svc *MessageServiceImpl) MarkMessageSeen(ctx context.Context, channelID, u
 	}
 	return svc.msgRepo.PublishMessage(ctx, &msg)
 }
-func (svc *MessageServiceImpl) ListMessages(ctx context.Context, channelID uint64) ([]*Message, error) {
-	return svc.msgRepo.ListMessages(ctx, channelID)
+func (svc *MessageServiceImpl) ListMessages(ctx context.Context, channelID uint64, pageState string) ([]*Message, string, error) {
+	return svc.msgRepo.ListMessages(ctx, channelID, pageState)
 }
 
 type UserServiceImpl struct {
-	userRepo UserRepo
+	userRepo UserRepoCache
 }
 
-func NewUserService(userRepo UserRepo) UserService {
+func NewUserService(userRepo UserRepoCache) UserService {
 	return &UserServiceImpl{userRepo}
 }
 func (svc *UserServiceImpl) AddUserToChannel(ctx context.Context, channelID, userID uint64) error {
@@ -151,12 +151,12 @@ func (svc *UserServiceImpl) GetOnlineUserIDs(ctx context.Context, channelID uint
 }
 
 type ChannelServiceImpl struct {
-	chanRepo ChannelRepo
-	userRepo UserRepo
+	chanRepo ChannelRepoCache
+	userRepo UserRepoCache
 	sf       common.IDGenerator
 }
 
-func NewChannelService(chanRepo ChannelRepo, userRepo UserRepo, sf common.IDGenerator) ChannelService {
+func NewChannelService(chanRepo ChannelRepoCache, userRepo UserRepoCache, sf common.IDGenerator) ChannelService {
 	return &ChannelServiceImpl{chanRepo, userRepo, sf}
 }
 func (svc *ChannelServiceImpl) CreateChannel(ctx context.Context) (*Channel, error) {

@@ -48,7 +48,7 @@ services:
       CHAT_HTTP_SERVER_SWAG: "true"
       CHAT_GRPC_SERVER_PORT: "4000"
       CHAT_MESSAGE_MAXNUM: "5000"
-      CHAT_MESSAGE_PAGINATIONNUM: "500"
+      CHAT_MESSAGE_PAGINATIONNUM: "5000"
       CHAT_MESSAGE_MAXSIZEBYTE: "4096"
       CHAT_JWT_SECRET: ${JWT_SECRET}
       KAFKA_ADDRS: kafka:9092
@@ -299,7 +299,7 @@ services:
     ports:
       - 9042:9042
     volumes:
-      - cassandra_data:/bitnami
+      - cassandradb_data:/bitnami
       - ./cassandra:/docker-entrypoint-initdb.d
     environment:
       - CASSANDRA_SEEDS=cassandra
@@ -308,7 +308,7 @@ services:
       - CASSANDRA_PASSWORD=cassandrapass
 volumes:
   minio_data:
-  cassandra_data:
+  cassandradb_data:
   redis-node1-data:
   redis-node2-data:
   redis-node3-data:

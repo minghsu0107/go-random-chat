@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-redis/redis/extra/redisotel/v8"
 	"github.com/go-redis/redis/v8"
+	"github.com/go-redsync/redsync/v4"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 )
@@ -38,12 +39,15 @@ type RedisCache interface {
 	Publish(ctx context.Context, topic string, payload interface{}) error
 	ZPopMinOrAddOne(ctx context.Context, key string, score float64, member interface{}) (bool, string, error)
 	ZRemOne(ctx context.Context, key string, member interface{}) error
+	HGetIfKeyExists(ctx context.Context, key, field string, dst interface{}) (bool, bool, error)
 	ExecPipeLine(ctx context.Context, cmds *[]RedisCmd) error
+	GetMutex(name string) *redsync.Mutex
 }
 
 // RedisCacheImpl is the redis cache client type
 type RedisCacheImpl struct {
 	client redis.UniversalClient
+	rs     *redsync.Redsync
 }
 
 // RedisOpType is the redis operation type
@@ -227,6 +231,31 @@ func (rc *RedisCacheImpl) ZRemOne(ctx context.Context, key string, member interf
 	return rc.client.ZRem(ctx, key, member).Err()
 }
 
+var hgetIfKeyExists = redis.NewScript(`
+local key = KEYS[1]
+local field = ARGV[1]
+
+if redis.call("EXISTS", key) == 0 then
+  return ""
+end
+
+return redis.call("HGET", key, field)
+`)
+
+func (rc *RedisCacheImpl) HGetIfKeyExists(ctx context.Context, key, field string, dst interface{}) (bool, bool, error) {
+	val, err := hgetIfKeyExists.Run(ctx, rc.client, []string{key}, field).Text()
+	if err == redis.Nil {
+		return true, false, nil
+	} else if err != nil {
+		return false, false, err
+	} else if val == "" {
+		return false, false, nil
+	} else {
+		json.Unmarshal([]byte(val), dst)
+	}
+	return true, true, nil
+}
+
 func (rc *RedisCacheImpl) ExecPipeLine(ctx context.Context, cmds *[]RedisCmd) error {
 	pipe := rc.client.Pipeline()
 	var pipelineCmds []RedisPipelineCmd
@@ -275,4 +304,8 @@ func (rc *RedisCacheImpl) ExecPipeLine(ctx context.Context, cmds *[]RedisCmd) er
 		}
 	}
 	return nil
+}
+
+func (rc *RedisCacheImpl) GetMutex(mutexname string) *redsync.Mutex {
+	return rc.rs.NewMutex(mutexname, redsync.WithExpiry(3*time.Second))
 }

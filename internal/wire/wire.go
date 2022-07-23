@@ -1,4 +1,5 @@
-//+build wireinject
+//go:build wireinject
+// +build wireinject
 
 // The build tag makes sure the stub is not built in the final build.
 package wire
@@ -42,9 +43,15 @@ func InitializeChatServer(name string) (*common.Server, error) {
 		infra.NewKafkaPublisher,
 		infra.NewKafkaSubscriber,
 
+		infra.NewCassandraSession,
+
 		chat.NewUserRepo,
 		chat.NewMessageRepo,
 		chat.NewChannelRepo,
+
+		chat.NewUserRepoCache,
+		chat.NewMessageRepoCache,
+		chat.NewChannelRepoCache,
 
 		chat.NewMessageSubscriber,
 

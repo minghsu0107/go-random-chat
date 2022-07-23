@@ -13,7 +13,7 @@ chat:
       port: "4000"
   message:
     maxNum: 5000
-    paginationNum: 500
+    paginationNum: 5000
     maxSizeByte: 4096
   jwt:
     secret: mysecret

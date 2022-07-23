@@ -358,7 +358,8 @@ async function fetchMessages() {
         console.log(`Error: ${err}`)
         return
     }
-    for (const message of result.messages) {
+    for (let i = result.messages.length - 1; i >= 0; i--) {
+        const message = result.messages[i]
         let el = document.getElementById(message.message_id)
         if (el === null) {
             var msg = await processMessage(message)

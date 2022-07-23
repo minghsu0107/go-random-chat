@@ -10,7 +10,7 @@ SVCS=chat match uploader user
 .PHONY: proto doc
 
 all: build test
-test: build
+test:
 	$(GOTEST) -gcflags=-l -v -cover -coverpkg=./... -coverprofile=cover.out ./...
 build: dep
 	$(GOBUILD) -ldflags="-X github.com/minghsu0107/go-random-chat/cmd.Version=v0.0.0 -w -s" -o server ./randomchat.go

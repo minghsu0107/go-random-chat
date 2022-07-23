@@ -26,7 +26,8 @@ type UserIDsPresenter struct {
 }
 
 type MessagesPresenter struct {
-	Messages []MessagePresenter `json:"messages"`
+	NextPageState string             `json:"next_ps"`
+	Messages      []MessagePresenter `json:"messages"`
 }
 
 func (m *MessagePresenter) Encode() []byte {

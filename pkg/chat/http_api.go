@@ -75,10 +75,6 @@ func (r *HttpServer) GetChannelUsers(c *gin.Context) {
 	userIDs, err := r.userSvc.GetChannelUserIDs(c.Request.Context(), channelID)
 	if err != nil {
 		r.logger.Error(err)
-		if err == ErrChannelNotFound {
-			response(c, http.StatusNotFound, ErrChannelNotFound)
-			return
-		}
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -109,10 +105,6 @@ func (r *HttpServer) GetOnlineUsers(c *gin.Context) {
 	}
 	userIDs, err := r.userSvc.GetOnlineUserIDs(c.Request.Context(), channelID)
 	if err != nil {
-		if err == ErrChannelNotFound {
-			response(c, http.StatusNotFound, ErrChannelNotFound)
-			return
-		}
 		r.logger.Error(err)
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
@@ -131,6 +123,7 @@ func (r *HttpServer) GetOnlineUsers(c *gin.Context) {
 // @Tags chat
 // @Produce json
 // @param Authorization header string true "channel authorization"
+// @Param ps query string false "page state"
 // @Success 200 {object} MessagesPresenter
 // @Failure 401 {object} common.ErrResponse
 // @Failure 404 {object} common.ErrResponse
@@ -142,13 +135,10 @@ func (r *HttpServer) ListMessages(c *gin.Context) {
 		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
 		return
 	}
-	msgs, err := r.msgSvc.ListMessages(c.Request.Context(), channelID)
+	pageState := c.Query("ps")
+	msgs, nextPageState, err := r.msgSvc.ListMessages(c.Request.Context(), channelID, pageState)
 	if err != nil {
 		r.logger.Error(err)
-		if err == ErrChannelNotFound {
-			response(c, http.StatusNotFound, ErrChannelNotFound)
-			return
-		}
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -157,7 +147,8 @@ func (r *HttpServer) ListMessages(c *gin.Context) {
 		msgsPresenter = append(msgsPresenter, *msg.ToPresenter())
 	}
 	c.JSON(http.StatusOK, &MessagesPresenter{
-		Messages: msgsPresenter,
+		NextPageState: nextPageState,
+		Messages:      msgsPresenter,
 	})
 }
 
