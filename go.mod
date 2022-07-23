@@ -1,6 +1,6 @@
 module github.com/minghsu0107/go-random-chat
 
-go 1.17
+go 1.18
 
 require (
 	github.com/avast/retry-go v3.0.0+incompatible
