@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	b64 "encoding/base64"
 	"errors"
 	"strconv"
 
@@ -28,7 +29,7 @@ type MessageRepo interface {
 	InsertMessage(ctx context.Context, msg *Message) error
 	MarkMessageSeen(ctx context.Context, channelID, messageID uint64) error
 	PublishMessage(ctx context.Context, msg *Message) error
-	ListMessages(ctx context.Context, channelID uint64, pageStateStr string) ([]*Message, string, error)
+	ListMessages(ctx context.Context, channelID uint64, pageStateBase64 string) ([]*Message, string, error)
 }
 
 type ChannelRepo interface {
@@ -100,14 +101,17 @@ func (repo *MessageRepoImpl) PublishMessage(ctx context.Context, msg *Message) e
 		msg.Encode(),
 	))
 }
-func (repo *MessageRepoImpl) ListMessages(ctx context.Context, channelID uint64, pageStateStr string) ([]*Message, string, error) {
+func (repo *MessageRepoImpl) ListMessages(ctx context.Context, channelID uint64, pageStateBase64 string) ([]*Message, string, error) {
 	var messages []*Message
-	pageState := []byte(pageStateStr)
+	pageState, err := b64.URLEncoding.DecodeString(pageStateBase64)
+	if err != nil {
+		return nil, "", err
+	}
 	iter := repo.s.Query(`SELECT id, event, channel_id, user_id, payload, seen, timestamp FROM messages WHERE channel_id = ?`, channelID).
 		WithContext(ctx).PageSize(repo.pagination).PageState(pageState).Iter()
-	nextPageStateStr := string(iter.PageState())
+	nextPageStateBase64 := b64.URLEncoding.EncodeToString(iter.PageState())
 	scanner := iter.Scanner()
-	var err error
+
 	for scanner.Next() {
 		var message Message
 		if err = scanner.Scan(
@@ -126,7 +130,7 @@ func (repo *MessageRepoImpl) ListMessages(ctx context.Context, channelID uint64,
 	if err != nil {
 		return nil, "", err
 	}
-	return messages, nextPageStateStr, nil
+	return messages, nextPageStateBase64, nil
 }
 
 type ChannelRepoImpl struct {
