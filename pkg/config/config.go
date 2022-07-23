@@ -11,6 +11,7 @@ type Config struct {
 	Uploader      *UploaderConfig      `mapstructure:"uploader"`
 	User          *UserConfig          `mapstructure:"user"`
 	Kafka         *KafkaConfig         `mapstructure:"kafka"`
+	Cassandra     *CassandraConfig     `mapstructure:"cassandra"`
 	Redis         *RedisConfig         `mapstructure:"redis"`
 	Observability *ObservabilityConfig `mapstructure:"observability"`
 }
@@ -105,6 +106,14 @@ type KafkaConfig struct {
 	Addrs string
 }
 
+type CassandraConfig struct {
+	Host     string
+	Port     int
+	User     string
+	Password string
+	Keyspace string
+}
+
 type RedisConfig struct {
 	Password                string
 	Addrs                   string
@@ -158,6 +167,12 @@ func setDefault() {
 	viper.SetDefault("user.grpc.server.port", "4001")
 
 	viper.SetDefault("kafka.addrs", "localhost:9092")
+
+	viper.SetDefault("cassandra.host", "localhost")
+	viper.SetDefault("cassandra.port", 9042)
+	viper.SetDefault("cassandra.user", "cassandra")
+	viper.SetDefault("cassandra.password", "cassandra")
+	viper.SetDefault("cassandra.keyspace", "randomchat")
 
 	viper.SetDefault("redis.password", "")
 	viper.SetDefault("redis.addrs", "localhost:6379")

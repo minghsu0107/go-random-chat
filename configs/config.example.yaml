@@ -54,6 +54,12 @@ user:
       port: "4001"
 kafka:
   addrs: localhost:9092
+cassandra:
+  host: localhost
+  port: 9042
+  user: cassandra
+  password: cassandra
+  keyspace: randomchat
 redis:
   password: pass.123
   addrs: localhost:6379

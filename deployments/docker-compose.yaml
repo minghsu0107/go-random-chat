@@ -288,8 +288,21 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     depends_on:
       - zookeeper
+  cassandra:
+    image: docker.io/bitnami/cassandra:4.0-debian-11
+    ports:
+      - 9042:9042
+    volumes:
+      - cassandra_data:/bitnami
+      - ./cassandra:/docker-entrypoint-initdb.d
+    environment:
+      - CASSANDRA_SEEDS=cassandra
+      - CASSANDRA_PASSWORD_SEEDER=yes
+      - CASSANDRA_USER=ming
+      - CASSANDRA_PASSWORD=cassandrapass
 volumes:
   minio_data:
+  cassandra_data:
   redis-node1-data:
   redis-node2-data:
   redis-node3-data:
