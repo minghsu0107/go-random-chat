@@ -9,6 +9,7 @@ import (
 	"github.com/go-redis/redis/extra/redisotel/v8"
 	"github.com/go-redis/redis/v8"
 	"github.com/go-redsync/redsync/v4"
+	"github.com/go-redsync/redsync/v4/redis/goredis/v8"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 )
@@ -126,8 +127,12 @@ func NewRedisClient(config *config.Config) (redis.UniversalClient, error) {
 
 // NewRedisCache is the factory of redis cache
 func NewRedisCache(client redis.UniversalClient) RedisCache {
+	pool := goredis.NewPool(client)
+	rs := redsync.New(pool)
+
 	return &RedisCacheImpl{
 		client: client,
+		rs:     rs,
 	}
 }
 
@@ -306,6 +311,6 @@ func (rc *RedisCacheImpl) ExecPipeLine(ctx context.Context, cmds *[]RedisCmd) er
 	return nil
 }
 
-func (rc *RedisCacheImpl) GetMutex(mutexname string) *redsync.Mutex {
-	return rc.rs.NewMutex(mutexname, redsync.WithExpiry(3*time.Second))
+func (rc *RedisCacheImpl) GetMutex(name string) *redsync.Mutex {
+	return rc.rs.NewMutex(name, redsync.WithExpiry(3*time.Second))
 }

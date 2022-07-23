@@ -235,3 +235,7 @@ func (cache *ChannelRepoCacheImpl) DeleteChannel(ctx context.Context, channelID 
 	}
 	return cache.r.ExecPipeLine(ctx, &cmds)
 }
+
+func constructKey(prefix string, id uint64) string {
+	return prefix + ":" + strconv.FormatUint(id, 10)
+}

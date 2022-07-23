@@ -3,7 +3,6 @@ package chat
 import (
 	"context"
 	b64 "encoding/base64"
-	"strconv"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -195,8 +194,4 @@ func (repo *ChannelRepoImpl) DeleteChannel(ctx context.Context, channelID uint64
 		return err
 	}
 	return nil
-}
-
-func constructKey(prefix string, id uint64) string {
-	return prefix + ":" + strconv.FormatUint(id, 10)
 }
