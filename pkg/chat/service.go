@@ -171,11 +171,5 @@ func (svc *ChannelServiceImpl) CreateChannel(ctx context.Context) (*Channel, err
 	return svc.chanRepo.CreateChannel(ctx, channelID)
 }
 func (svc *ChannelServiceImpl) DeleteChannel(ctx context.Context, channelID uint64) error {
-	if err := svc.chanRepo.DeleteChannel(ctx, channelID); err != nil {
-		return err
-	}
-	if err := svc.userRepo.DeleteAllOnlineUsers(ctx, channelID); err != nil {
-		return err
-	}
-	return nil
+	return svc.chanRepo.DeleteChannel(ctx, channelID)
 }

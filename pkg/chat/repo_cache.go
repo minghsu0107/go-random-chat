@@ -21,7 +21,6 @@ type UserRepoCache interface {
 	AddOnlineUser(ctx context.Context, channelID uint64, userID uint64) error
 	DeleteOnlineUser(ctx context.Context, channelID, userID uint64) error
 	GetOnlineUserIDs(ctx context.Context, channelID uint64) ([]uint64, error)
-	DeleteAllOnlineUsers(ctx context.Context, channelID uint64) error
 }
 
 type MessageRepoCache interface {
@@ -177,9 +176,6 @@ func (cache *UserRepoCacheImpl) GetOnlineUserIDs(ctx context.Context, channelID 
 		userIDs = append(userIDs, userID)
 	}
 	return userIDs, nil
-}
-func (cache *UserRepoCacheImpl) DeleteAllOnlineUsers(ctx context.Context, channelID uint64) error {
-	return cache.r.Delete(ctx, constructKey(onlineUsersPrefix, channelID))
 }
 
 type MessageRepoCacheImpl struct {
