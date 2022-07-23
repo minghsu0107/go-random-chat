@@ -18,7 +18,6 @@ Features:
 - At-least-once delivery for message Pub/Sub using [Kafka](https://kafka.apache.org).
 - Use [Traefik FowardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) for authentication when uploading files.
 - Automatically generate RESTful API documentation with Swagger 2.0.
-- Message retention for a certain period.
 - User matching with idempotency.
 - Message seen feature.
 - Auto-scroll to the first unseen message.

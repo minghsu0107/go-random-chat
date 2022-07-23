@@ -15,3 +15,8 @@ CREATE TABLE messages (
     timestamp timestamp,
     PRIMARY KEY((channel_id), id)
 ) WITH CLUSTERING ORDER BY (id DESC);
+CREATE TABLE chanmsg_counters (
+    msgnum counter,
+    channel_id varint,
+    PRIMARY KEY(channel_id)
+);

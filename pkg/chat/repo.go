@@ -102,6 +102,14 @@ func NewMessageRepo(config *config.Config, s *gocql.Session, p message.Publisher
 }
 
 func (repo *MessageRepoImpl) InsertMessage(ctx context.Context, msg *Message) error {
+	var messageNum int64
+	if err := repo.s.Query("SELECT msgnum FROM chanmsg_counters WHERE channel_id = ?", msg.ChannelID).
+		WithContext(ctx).Scan(&messageNum); err != nil {
+		return err
+	}
+	if messageNum >= repo.maxMessages {
+		return ErrExceedMessageNumLimits
+	}
 	if err := repo.s.Query("INSERT INTO messages (id, event, channel_id, user_id, payload, seen, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)",
 		msg.MessageID,
 		msg.Event,
@@ -112,7 +120,7 @@ func (repo *MessageRepoImpl) InsertMessage(ctx context.Context, msg *Message) er
 		msg.Time).WithContext(ctx).Exec(); err != nil {
 		return err
 	}
-	return nil
+	return repo.s.Query("UPDATE chanmsg_counters SET msgnum = msgnum + 1 WHERE channel_id = ?", msg.ChannelID).WithContext(ctx).Exec()
 }
 func (repo *MessageRepoImpl) MarkMessageSeen(ctx context.Context, channelID, messageID uint64) error {
 	if err := repo.s.Query("UPDATE messages SET seen = ? WHERE channel_id = ? AND id = ?", true, channelID, messageID).
