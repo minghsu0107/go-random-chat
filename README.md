@@ -39,6 +39,8 @@ Prerequisite:
 To run locally, execute the following command:
 ```bash
 cd deployments
+docker-compose up cassandra -d
+# once cassandra starts successfully
 sudo ./run.sh start
 ```
 `run.sh` needs root permission to alias `minio` to `localhost` in `/etc/hosts`.

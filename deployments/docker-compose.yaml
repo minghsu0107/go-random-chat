@@ -59,7 +59,7 @@ services:
       CASSANDRA_PASSWORD: cassandrapass
       CASSANDRA_KEYSPACE: randomchat
       REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_ADDRS: redis-node1:7000,redis-node2:7001,redis-node3:7002,redis-node4:7003,redis-node5:7004,redis-node6:7005
+      REDIS_ADDRS: redis-node-0:6379,redis-node-1:6379,redis-node-2:6379,redis-node-3:6379,redis-node-4:6379,redis-node-5:6379
       REDIS_EXPIRATIONHOUR: "24"
       OBSERVABILITY_PROMETHEUS_PORT: "8080"
       OBSERVABILITY_TRACING_JAEGERURL: http://jaeger:14268/api/traces
@@ -95,7 +95,7 @@ services:
       MATCH_JWT_EXPIRATIONSECOND: "86400"
       KAFKA_ADDRS: kafka:9092
       REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_ADDRS: redis-node1:7000,redis-node2:7001,redis-node3:7002,redis-node4:7003,redis-node5:7004,redis-node6:7005
+      REDIS_ADDRS: redis-node-0:6379,redis-node-1:6379,redis-node-2:6379,redis-node-3:6379,redis-node-4:6379,redis-node-5:6379
       REDIS_EXPIRATIONHOUR: "24"
       OBSERVABILITY_PROMETHEUS_PORT: "8080"
       OBSERVABILITY_TRACING_JAEGERURL: http://jaeger:14268/api/traces
@@ -151,7 +151,7 @@ services:
       USER_HTTP_SERVER_SWAG: "true"
       USER_GRPC_SERVER_PORT: "4000"
       REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_ADDRS: redis-node1:7000,redis-node2:7001,redis-node3:7002,redis-node4:7003,redis-node5:7004,redis-node6:7005
+      REDIS_ADDRS: redis-node-0:6379,redis-node-1:6379,redis-node-2:6379,redis-node-3:6379,redis-node-4:6379,redis-node-5:6379
       REDIS_EXPIRATIONHOUR: "24"
       OBSERVABILITY_PROMETHEUS_PORT: "8080"
       OBSERVABILITY_TRACING_JAEGERURL: http://jaeger:14268/api/traces
@@ -201,76 +201,62 @@ services:
     ports:
       - 14268:14268
       - 16686:16686
-  redis-node1:
-    build:
-      context: redis
-    ports:
-      - 7000:7000
-      - 17000:17000
-    restart: always
+  redis-node-0:
+    image: docker.io/bitnami/redis-cluster:6.2.7
     volumes:
-      - redis-node1-data:/data
-    entrypoint: [redis-server, /etc/redis/rediscluster.conf, --port,"7000", --cluster-announce-ip,"${REDIS_CLUSTER_IP}"]
-  redis-node2:
-    build:
-      context: redis
-    ports:
-      - 7001:7001
-      - 17001:17001
-    restart: always
+      - redis-cluster_data-0:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
+      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
+
+  redis-node-1:
+    image: docker.io/bitnami/redis-cluster:6.2.7
     volumes:
-      - redis-node2-data:/data
-    entrypoint: [redis-server, /etc/redis/rediscluster.conf,--port,"7001",--cluster-announce-ip,"${REDIS_CLUSTER_IP}"]
-  redis-node3:
-    build:
-      context: redis
-    ports:
-      - 7002:7002
-      - 17002:17002
-    restart: always
+      - redis-cluster_data-1:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
+      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
+
+  redis-node-2:
+    image: docker.io/bitnami/redis-cluster:6.2.7
     volumes:
-      - redis-node3-data:/data
-    entrypoint: [redis-server, /etc/redis/rediscluster.conf,--port,"7002",--cluster-announce-ip,"${REDIS_CLUSTER_IP}"]
-  redis-node4:
-    build:
-      context: redis
-    ports:
-      - 7003:7003
-      - 17003:17003
-    restart: always
+      - redis-cluster_data-2:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
+      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
+
+  redis-node-3:
+    image: docker.io/bitnami/redis-cluster:6.2.7
     volumes:
-      - redis-node4-data:/data
-    entrypoint: [redis-server, /etc/redis/rediscluster.conf,--port,"7003",--cluster-announce-ip,"${REDIS_CLUSTER_IP}"]
-  redis-node5:
-    build:
-      context: redis
-    ports:
-      - 7004:7004
-      - 17004:17004
-    restart: always
+      - redis-cluster_data-3:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
+      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
+
+  redis-node-4:
+    image: docker.io/bitnami/redis-cluster:6.2.7
     volumes:
-      - redis-node5-data:/data
-    entrypoint: [redis-server, /etc/redis/rediscluster.conf,--port,"7004",--cluster-announce-ip,"${REDIS_CLUSTER_IP}"]
-  redis-node6:
-    build:
-      context: redis
-    ports:
-      - 7005:7005
-      - 17005:17005
-    restart: always
+      - redis-cluster_data-4:/bitnami/redis/data
+    environment:
+      - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
+      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
+
+  redis-node-5:
+    image: docker.io/bitnami/redis-cluster:6.2.7
     volumes:
-      - redis-node6-data:/data
-    entrypoint: [redis-server, /etc/redis/rediscluster.conf,--port,"7005",--cluster-announce-ip,"${REDIS_CLUSTER_IP}"]
-  redis-cluster-creator:
-    image: redis:6.2.6
-    entrypoint: [/bin/sh,-c,'echo "yes" | redis-cli -a ${REDIS_PASSWORD} --cluster create ${REDIS_CLUSTER_IP}:7000 ${REDIS_CLUSTER_IP}:7001 ${REDIS_CLUSTER_IP}:7002 ${REDIS_CLUSTER_IP}:7003 ${REDIS_CLUSTER_IP}:7004 ${REDIS_CLUSTER_IP}:7005 --cluster-replicas 1']
+      - redis-cluster_data-5:/bitnami/redis/data
     depends_on:
-      - redis-node1
-      - redis-node2
-      - redis-node3
-      - redis-node4
-      - redis-node5
-      - redis-node6
+      - redis-node-0
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
+    environment:
+      - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
+      - 'REDISCLI_AUTH=${REDIS_PASSWORD}'
+      - 'REDIS_CLUSTER_REPLICAS=1'
+      - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
+      - 'REDIS_CLUSTER_CREATOR=yes'
   zookeeper:
     image: confluentinc/cp-zookeeper:7.0.1
     restart: unless-stopped
@@ -295,11 +281,11 @@ services:
     depends_on:
       - zookeeper
   cassandra:
-    image: docker.io/bitnami/cassandra:4.0-debian-11
+    image: docker.io/bitnami/cassandra:4.0
     ports:
       - 9042:9042
     volumes:
-      - cassandradb_data:/bitnami
+      - cassandra_data:/bitnami
       - ./cassandra:/docker-entrypoint-initdb.d
     environment:
       - CASSANDRA_SEEDS=cassandra
@@ -308,10 +294,10 @@ services:
       - CASSANDRA_PASSWORD=cassandrapass
 volumes:
   minio_data:
-  cassandradb_data:
-  redis-node1-data:
-  redis-node2-data:
-  redis-node3-data:
-  redis-node4-data:
-  redis-node5-data:
-  redis-node6-data:
+  cassandra_data:
+  redis-cluster_data-0:
+  redis-cluster_data-1:
+  redis-cluster_data-2:
+  redis-cluster_data-3:
+  redis-cluster_data-4:
+  redis-cluster_data-5:
