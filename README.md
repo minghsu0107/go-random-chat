@@ -40,6 +40,8 @@ To run locally, execute the following command:
 ```bash
 cd deployments
 docker-compose up cassandra -d
+# check cassandra connection
+docker exec deployments-cassandra-1 bash -c "cqlsh -u ming -p cassandrapass"
 # once cassandra starts successfully
 sudo ./run.sh start
 ```
