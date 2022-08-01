@@ -20,7 +20,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   web:
-    image: minghsu0107/random-chat-web:main
+    image: minghsu0107/random-chat-web:redis
     restart: always
     expose:
       - "80"
@@ -35,7 +35,7 @@ services:
       - "traefik.http.routers.rcweb.service=rcweb"
       - "traefik.http.services.rcweb.loadbalancer.server.port=80"
   random-chat:
-    image: minghsu0107/random-chat-api:main
+    image: minghsu0107/random-chat-api:redis
     restart: always
     expose:
       - "80"
@@ -66,7 +66,7 @@ services:
       - "traefik.http.services.random-chat-grpc.loadbalancer.server.port=4000"
       - "traefik.http.services.random-chat-grpc.loadbalancer.server.scheme=h2c"
   match:
-    image: minghsu0107/random-chat-api:main
+    image: minghsu0107/random-chat-api:redis
     restart: always
     expose:
       - "80"
@@ -91,7 +91,7 @@ services:
       - "traefik.http.routers.match.service=match"
       - "traefik.http.services.match.loadbalancer.server.port=80"
   uploader:
-    image: minghsu0107/random-chat-api:main
+    image: minghsu0107/random-chat-api:redis
     restart: always
     depends_on:
       - minio
@@ -119,7 +119,7 @@ services:
       - "traefik.http.routers.uploader.service=uploader"
       - "traefik.http.services.uploader.loadbalancer.server.port=80"
   user:
-    image: minghsu0107/random-chat-api:main
+    image: minghsu0107/random-chat-api:redis
     restart: always
     expose:
       - "80"
