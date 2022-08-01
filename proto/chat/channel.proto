@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package chat;
 
-option go_package = "internal/proto_gen/chat;chat";
+option go_package = "proto/chat;chat";
 
 message CreateChannelRequest {
 }

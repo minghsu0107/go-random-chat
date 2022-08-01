@@ -10,8 +10,8 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 
 	"github.com/go-kit/kit/endpoint"
-	userpb "github.com/minghsu0107/go-random-chat/internal/proto_gen/user"
 	"github.com/minghsu0107/go-random-chat/pkg/transport"
+	userpb "github.com/minghsu0107/go-random-chat/proto/user"
 )
 
 var (

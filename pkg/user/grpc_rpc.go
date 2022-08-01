@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 
-	userpb "github.com/minghsu0107/go-random-chat/internal/proto_gen/user"
+	userpb "github.com/minghsu0107/go-random-chat/proto/user"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

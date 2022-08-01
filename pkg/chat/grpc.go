@@ -6,10 +6,10 @@ import (
 	"google.golang.org/grpc"
 
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	chatpb "github.com/minghsu0107/go-random-chat/internal/proto_gen/chat"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 	"github.com/minghsu0107/go-random-chat/pkg/transport"
+	chatpb "github.com/minghsu0107/go-random-chat/proto/chat"
 )
 
 type GrpcServer struct {
