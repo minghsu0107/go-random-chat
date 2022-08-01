@@ -1,4 +1,4 @@
-# Go Random Chat (Lightweight Redis Version)
+# Go Random Chat (Lightweight Redis version)
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/minghsu0107/go-random-chat?label=Version&sort=semver)
 
 Modern real-time random chat with high performance and linear scalability, written in go.
