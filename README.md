@@ -19,7 +19,7 @@ Features:
 - Stateless messaging with the help of [Redis Pub/Sub](https://redis.io/topics/pubsub).
   - Redis Pub/Sub provides only at-most-once delivery, so there is chance of data loss during matching and chatting stages.
   - If you prefer at-least-once delivery for message Pub/Sub, please refer to [this branch](https://github.com/minghsu0107/go-random-chat/tree/kafka) where **Kafka is used as the message broker**.
-- Message retention for a certain period.
+- Persist messages in Redis.
 - User matching with idempotency.
 - Message seen feature.
 - Auto-scroll to the first unseen message.
