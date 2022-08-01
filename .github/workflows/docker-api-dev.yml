@@ -3,7 +3,6 @@ name: Publish api Docker image
 on:
   push:
     branches:
-      - main
       - kafka
   pull_request:
     branches:

@@ -3,7 +3,6 @@ name: Publish web Docker image
 on:
   push:
     branches:
-      - main
       - kafka
   pull_request:
     branches:
