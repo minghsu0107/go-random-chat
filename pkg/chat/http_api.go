@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -30,7 +31,7 @@ func (r *HttpServer) StartChat(c *gin.Context) {
 	}
 	_, err = r.userSvc.GetUser(c.Request.Context(), userID)
 	if err != nil {
-		if err == ErrUserNotFound {
+		if errors.Is(err, ErrUserNotFound) {
 			response(c, http.StatusNotFound, ErrUserNotFound)
 			return
 		}
