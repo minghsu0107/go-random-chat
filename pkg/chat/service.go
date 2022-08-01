@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -14,12 +15,14 @@ type MessageService interface {
 	BroadcastActionMessage(ctx context.Context, channelID, userID uint64, action Action) error
 	BroadcastFileMessage(ctx context.Context, channelID, userID uint64, payload string) error
 	MarkMessageSeen(ctx context.Context, channelID, userID, messageID uint64) error
+	InsertMessage(ctx context.Context, msg *Message) error
+	PublishMessage(ctx context.Context, msg *Message) error
 	ListMessages(ctx context.Context, channelID uint64, pageState string) ([]*Message, string, error)
 }
 
 type UserService interface {
 	AddUserToChannel(ctx context.Context, channelID, userID uint64) error
-	GetUser(ctx context.Context, uid uint64) (*User, error)
+	GetUser(ctx context.Context, userID uint64) (*User, error)
 	IsChannelUserExist(ctx context.Context, channelID, userID uint64) (bool, error)
 	GetChannelUserIDs(ctx context.Context, channelID uint64) ([]uint64, error)
 	AddOnlineUser(ctx context.Context, channelID, userID uint64) error
@@ -44,7 +47,7 @@ func NewMessageService(msgRepo MessageRepoCache, userRepo UserRepoCache, sf comm
 func (svc *MessageServiceImpl) BroadcastTextMessage(ctx context.Context, channelID, userID uint64, payload string) error {
 	messageID, err := svc.sf.NextID()
 	if err != nil {
-		return err
+		return fmt.Errorf("error create snowflake ID for text message: %w", err)
 	}
 	msg := Message{
 		MessageID: messageID,
@@ -55,14 +58,17 @@ func (svc *MessageServiceImpl) BroadcastTextMessage(ctx context.Context, channel
 		Time:      time.Now().UnixMilli(),
 	}
 	if err := svc.msgRepo.InsertMessage(ctx, &msg); err != nil {
-		return err
+		return fmt.Errorf("error broadcast text message: %w", err)
 	}
-	return svc.msgRepo.PublishMessage(ctx, &msg)
+	if err := svc.PublishMessage(ctx, &msg); err != nil {
+		return fmt.Errorf("error broadcast text message: %w", err)
+	}
+	return nil
 }
 func (svc *MessageServiceImpl) BroadcastConnectMessage(ctx context.Context, channelID, userID uint64) error {
 	onnlineUserIDs, err := svc.userRepo.GetOnlineUserIDs(context.Background(), channelID)
 	if err != nil {
-		return err
+		return fmt.Errorf("error get online user ids from channel %d: %w", channelID, err)
 	}
 	if len(onnlineUserIDs) == 1 {
 		return svc.BroadcastActionMessage(ctx, channelID, userID, WaitingMessage)
@@ -72,7 +78,7 @@ func (svc *MessageServiceImpl) BroadcastConnectMessage(ctx context.Context, chan
 func (svc *MessageServiceImpl) BroadcastActionMessage(ctx context.Context, channelID, userID uint64, action Action) error {
 	eventMessageID, err := svc.sf.NextID()
 	if err != nil {
-		return err
+		return fmt.Errorf("error create snowflake ID for action message: %w", err)
 	}
 	msg := Message{
 		MessageID: eventMessageID,
@@ -82,12 +88,15 @@ func (svc *MessageServiceImpl) BroadcastActionMessage(ctx context.Context, chann
 		Payload:   string(action),
 		Time:      time.Now().UnixMilli(),
 	}
-	return svc.msgRepo.PublishMessage(ctx, &msg)
+	if err := svc.PublishMessage(ctx, &msg); err != nil {
+		return fmt.Errorf("error broadcast action message: %w", err)
+	}
+	return nil
 }
 func (svc *MessageServiceImpl) BroadcastFileMessage(ctx context.Context, channelID, userID uint64, payload string) error {
 	messageID, err := svc.sf.NextID()
 	if err != nil {
-		return err
+		return fmt.Errorf("error create snowflake ID for file message: %w", err)
 	}
 	msg := Message{
 		MessageID: messageID,
@@ -98,17 +107,20 @@ func (svc *MessageServiceImpl) BroadcastFileMessage(ctx context.Context, channel
 		Time:      time.Now().UnixMilli(),
 	}
 	if err := svc.msgRepo.InsertMessage(ctx, &msg); err != nil {
-		return err
+		return fmt.Errorf("error broadcast file message: %w", err)
 	}
-	return svc.msgRepo.PublishMessage(ctx, &msg)
+	if err := svc.PublishMessage(ctx, &msg); err != nil {
+		return fmt.Errorf("error broadcast file message: %w", err)
+	}
+	return nil
 }
 func (svc *MessageServiceImpl) MarkMessageSeen(ctx context.Context, channelID, userID, messageID uint64) error {
 	if err := svc.msgRepo.MarkMessageSeen(ctx, channelID, messageID); err != nil {
-		return err
+		return fmt.Errorf("error mark message %d seen in channel %d: %w", messageID, channelID, err)
 	}
 	eventMessageID, err := svc.sf.NextID()
 	if err != nil {
-		return err
+		return fmt.Errorf("error create snowflake ID for seen event message: %w", err)
 	}
 	msg := Message{
 		MessageID: eventMessageID,
@@ -119,10 +131,29 @@ func (svc *MessageServiceImpl) MarkMessageSeen(ctx context.Context, channelID, u
 		Seen:      true,
 		Time:      time.Now().UnixMilli(),
 	}
-	return svc.msgRepo.PublishMessage(ctx, &msg)
+	if err := svc.PublishMessage(ctx, &msg); err != nil {
+		return fmt.Errorf("error mark message %d seen in channel %d: %w", messageID, channelID, err)
+	}
+	return nil
+}
+func (svc *MessageServiceImpl) InsertMessage(ctx context.Context, msg *Message) error {
+	if err := svc.msgRepo.InsertMessage(ctx, msg); err != nil {
+		return fmt.Errorf("error insert message: %w", err)
+	}
+	return nil
+}
+func (svc *MessageServiceImpl) PublishMessage(ctx context.Context, msg *Message) error {
+	if err := svc.msgRepo.PublishMessage(ctx, msg); err != nil {
+		return fmt.Errorf("error publish message: %w", err)
+	}
+	return nil
 }
 func (svc *MessageServiceImpl) ListMessages(ctx context.Context, channelID uint64, pageState string) ([]*Message, string, error) {
-	return svc.msgRepo.ListMessages(ctx, channelID, pageState)
+	msgs, nextPageState, err := svc.msgRepo.ListMessages(ctx, channelID, pageState)
+	if err != nil {
+		return nil, "", fmt.Errorf("error list messages in channel %d with page state %s: %w", channelID, pageState, err)
+	}
+	return msgs, nextPageState, nil
 }
 
 type UserServiceImpl struct {
@@ -133,25 +164,50 @@ func NewUserService(userRepo UserRepoCache) UserService {
 	return &UserServiceImpl{userRepo}
 }
 func (svc *UserServiceImpl) AddUserToChannel(ctx context.Context, channelID, userID uint64) error {
-	return svc.userRepo.AddUserToChannel(ctx, channelID, userID)
+	if err := svc.userRepo.AddUserToChannel(ctx, channelID, userID); err != nil {
+		return fmt.Errorf("error add user %d to channel %d: %w", userID, channelID, err)
+	}
+	return nil
 }
-func (svc *UserServiceImpl) GetUser(ctx context.Context, uid uint64) (*User, error) {
-	return svc.userRepo.GetUserByID(ctx, uid)
+func (svc *UserServiceImpl) GetUser(ctx context.Context, userID uint64) (*User, error) {
+	user, err := svc.userRepo.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("error get user %d: %w", userID, err)
+	}
+	return user, nil
 }
 func (svc *UserServiceImpl) IsChannelUserExist(ctx context.Context, channelID, userID uint64) (bool, error) {
-	return svc.userRepo.IsChannelUserExist(ctx, channelID, userID)
+	exist, err := svc.userRepo.IsChannelUserExist(ctx, channelID, userID)
+	if err != nil {
+		return false, fmt.Errorf("error check user %d in channel %d: %w", userID, channelID, err)
+	}
+	return exist, nil
 }
 func (svc *UserServiceImpl) GetChannelUserIDs(ctx context.Context, channelID uint64) ([]uint64, error) {
-	return svc.userRepo.GetChannelUserIDs(ctx, channelID)
+	users, err := svc.userRepo.GetChannelUserIDs(ctx, channelID)
+	if err != nil {
+		return nil, fmt.Errorf("error get users in channel %d: %w", channelID, err)
+	}
+	return users, nil
 }
 func (svc *UserServiceImpl) AddOnlineUser(ctx context.Context, channelID, userID uint64) error {
-	return svc.userRepo.AddOnlineUser(ctx, channelID, userID)
+	if err := svc.userRepo.AddOnlineUser(ctx, channelID, userID); err != nil {
+		return fmt.Errorf("error add online user %d to channel %d: %w", userID, channelID, err)
+	}
+	return nil
 }
 func (svc *UserServiceImpl) DeleteOnlineUser(ctx context.Context, channelID, userID uint64) error {
-	return svc.userRepo.DeleteOnlineUser(ctx, channelID, userID)
+	if err := svc.userRepo.DeleteOnlineUser(ctx, channelID, userID); err != nil {
+		return fmt.Errorf("error delete online user %d from channel %d: %w", userID, channelID, err)
+	}
+	return nil
 }
 func (svc *UserServiceImpl) GetOnlineUserIDs(ctx context.Context, channelID uint64) ([]uint64, error) {
-	return svc.userRepo.GetOnlineUserIDs(ctx, channelID)
+	users, err := svc.userRepo.GetOnlineUserIDs(ctx, channelID)
+	if err != nil {
+		return nil, fmt.Errorf("error get online users in channel %d: %w", channelID, err)
+	}
+	return users, nil
 }
 
 type ChannelServiceImpl struct {
@@ -166,10 +222,17 @@ func NewChannelService(chanRepo ChannelRepoCache, userRepo UserRepoCache, sf com
 func (svc *ChannelServiceImpl) CreateChannel(ctx context.Context) (*Channel, error) {
 	channelID, err := svc.sf.NextID()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error create snowflake ID for new channel: %w", err)
 	}
-	return svc.chanRepo.CreateChannel(ctx, channelID)
+	channel, err := svc.chanRepo.CreateChannel(ctx, channelID)
+	if err != nil {
+		return nil, fmt.Errorf("error create channel %d: %w", channelID, err)
+	}
+	return channel, nil
 }
 func (svc *ChannelServiceImpl) DeleteChannel(ctx context.Context, channelID uint64) error {
-	return svc.chanRepo.DeleteChannel(ctx, channelID)
+	if err := svc.chanRepo.DeleteChannel(ctx, channelID); err != nil {
+		return fmt.Errorf("error delete channel %d: %w", channelID, err)
+	}
+	return nil
 }
