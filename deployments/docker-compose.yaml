@@ -2,6 +2,7 @@ version: '3'
 services:
   reverse-proxy:
     image: traefik:v2.3
+    restart: always
     command:
       - "--entryPoints.web.address=:80"
       - "--api.insecure=true"
@@ -191,6 +192,7 @@ services:
       "
   prometheus:
     image: prom/prometheus:v2.25.2
+    restart: always
     volumes:
       - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml
     command: --config.file=/etc/prometheus/prometheus.yaml
@@ -198,11 +200,13 @@ services:
       - 9090:9090
   jaeger:
     image: jaegertracing/all-in-one:1.22
+    restart: always
     ports:
       - 14268:14268
       - 16686:16686
   redis-node-0:
     image: docker.io/bitnami/redis-cluster:6.2.7
+    restart: always
     volumes:
       - redis-cluster_data-0:/bitnami/redis/data
     environment:
@@ -211,6 +215,7 @@ services:
 
   redis-node-1:
     image: docker.io/bitnami/redis-cluster:6.2.7
+    restart: always
     volumes:
       - redis-cluster_data-1:/bitnami/redis/data
     environment:
@@ -219,6 +224,7 @@ services:
 
   redis-node-2:
     image: docker.io/bitnami/redis-cluster:6.2.7
+    restart: always
     volumes:
       - redis-cluster_data-2:/bitnami/redis/data
     environment:
@@ -227,6 +233,7 @@ services:
 
   redis-node-3:
     image: docker.io/bitnami/redis-cluster:6.2.7
+    restart: always
     volumes:
       - redis-cluster_data-3:/bitnami/redis/data
     environment:
@@ -235,6 +242,7 @@ services:
 
   redis-node-4:
     image: docker.io/bitnami/redis-cluster:6.2.7
+    restart: always
     volumes:
       - redis-cluster_data-4:/bitnami/redis/data
     environment:
@@ -243,6 +251,7 @@ services:
 
   redis-node-5:
     image: docker.io/bitnami/redis-cluster:6.2.7
+    restart: always
     volumes:
       - redis-cluster_data-5:/bitnami/redis/data
     depends_on:
@@ -265,6 +274,10 @@ services:
   kafka:
     image: confluentinc/cp-kafka:7.0.1
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
     environment:
       KAFKA_LOG_RETENTION_MINUTES: 1440 # save data for 24hrs
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -282,11 +295,16 @@ services:
       - zookeeper
   cassandra:
     image: docker.io/bitnami/cassandra:4.0
+    restart: always
     ports:
       - 9042:9042
     volumes:
       - cassandra_data:/bitnami
       - ./cassandra:/docker-entrypoint-initdb.d
+    deploy:
+      resources:
+        limits:
+          memory: 2G
     environment:
       - CASSANDRA_SEEDS=cassandra
       - CASSANDRA_PASSWORD_SEEDER=yes

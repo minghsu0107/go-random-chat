@@ -39,14 +39,14 @@ Prerequisite:
 To run locally, execute the following command:
 ```bash
 cd deployments
-docker-compose up cassandra -d
-# check cassandra connection
-docker exec deployments-cassandra-1 bash -c "cqlsh -u ming -p cassandrapass"
-# once cassandra starts successfully
 sudo ./run.sh start
 ```
 `run.sh` needs root permission to alias `minio` to `localhost` in `/etc/hosts`.
 
+Check cassandra connection:
+```
+docker exec deployments-cassandra-1 bash -c "cqlsh -u ming -p cassandrapass"
+```
 This will spin up all services declared in `docker-compose.yaml`. Visit `http://localhost` and you will see the application home page.
 
 Bucket `myfilebucket` will be created automatically on `minio` by `createbucket`. However, if `minio` is still initializing after 5 retries of `createbucket`, the bucket creation will fail. If this happens, please run the following command once `minio` is up and running:
