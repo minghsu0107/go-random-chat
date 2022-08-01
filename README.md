@@ -18,13 +18,13 @@ Features:
 - Observability using [client_golang](https://github.com/prometheus/client_golang) and [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go).
 - At-least-once delivery for message Pub/Sub using [Kafka](https://kafka.apache.org).
 - Persist messages and channel metadata in [Cassandra](https://cassandra.apache.org), an open source NoSQL distributed database trusted by thousands of companies for scalability and high availability.
+- File uploads using object storage.
 - Use [Traefik FowardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) for authentication when uploading files.
 - Automatically generate RESTful API documentation with Swagger 2.0.
 - User matching with idempotency.
 - Message seen feature.
 - Auto-scroll to the first unseen message.
 - Automatic websocket reconnection.
-- File uploads using object storage.
 - Responsive web design.
 
 System architecture:
