@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
@@ -39,7 +38,7 @@ func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) 
 
 	svr := gin.New()
 	svr.Use(gin.Recovery())
-	svr.Use(cors.Default())
+	svr.Use(common.CorsMiddleware())
 	svr.Use(common.LoggingMiddleware(logger))
 	svr.Use(common.LimitBodySize(config.Uploader.Http.Server.MaxBodyByte))
 
