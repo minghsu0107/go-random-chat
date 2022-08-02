@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
@@ -47,9 +48,9 @@ func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) 
 
 	svr := gin.New()
 	svr.Use(gin.Recovery())
+	svr.Use(cors.Default())
 	svr.Use(common.LoggingMiddleware(logger))
 	svr.Use(common.MaxAllowed(config.Match.Http.Server.MaxConn))
-	svr.Use(common.CORSMiddleware())
 
 	mdlw := prommiddleware.New(prommiddleware.Config{
 		Recorder: metrics.NewRecorder(metrics.Config{
