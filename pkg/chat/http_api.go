@@ -45,8 +45,7 @@ func (r *HttpServer) StartChat(c *gin.Context) {
 		AccessToken: accessToken,
 	})
 	if err != nil {
-		r.logger.Error(err)
-		response(c, http.StatusInternalServerError, common.ErrServer)
+		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
 		return
 	}
 	if authResult.Expired {
