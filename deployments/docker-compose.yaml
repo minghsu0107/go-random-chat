@@ -274,10 +274,6 @@ services:
   kafka:
     image: confluentinc/cp-kafka:7.0.1
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 2G
     environment:
       KAFKA_LOG_RETENTION_MINUTES: 1440 # save data for 24hrs
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -301,10 +297,6 @@ services:
     volumes:
       - cassandra_data:/bitnami
       - ./cassandra:/docker-entrypoint-initdb.d
-    deploy:
-      resources:
-        limits:
-          memory: 2G
     environment:
       - CASSANDRA_SEEDS=cassandra
       - CASSANDRA_PASSWORD_SEEDER=yes
