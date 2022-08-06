@@ -53,6 +53,7 @@ Bucket `myfilebucket` will be created automatically on `minio` by `createbucket`
 ```bash
 docker restart deployments-createbucket-1
 ```
+
 - Visit `http://localhost` for the application home page.
 - Visit `http://localhost:8080` for Traefik dashboard.
 - VIsit `http://localhost:9000` for Minio dashboard.
