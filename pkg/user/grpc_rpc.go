@@ -17,7 +17,7 @@ func (srv *GrpcServer) GetUser(ctx context.Context, req *userpb.GetUserRequest) 
 			}, nil
 		}
 		srv.logger.Error(err)
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, status.Error(codes.Unavailable, err.Error())
 	}
 	return &userpb.GetUserResponse{
 		Exist: true,
