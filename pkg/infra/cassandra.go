@@ -20,7 +20,8 @@ func NewCassandraSession(config *config.Config) (*gocql.Session, error) {
 		Password: config.Cassandra.Password,
 	}
 	cluster.DefaultIdempotence = false
-	cluster.NumConns = 5
+	// number of connections per host
+	cluster.NumConns = 3
 	CassandraSession, err := cluster.CreateSession()
 	return CassandraSession, err
 }
