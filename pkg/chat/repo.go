@@ -77,7 +77,7 @@ func (repo *UserRepoImpl) GetUserByID(ctx context.Context, userID uint64) (*User
 	}, nil
 }
 func (repo *UserRepoImpl) GetChannelUserIDs(ctx context.Context, channelID uint64) ([]uint64, error) {
-	iter := repo.s.Query("SELECT user_id FROM channels WHERE id = ?", channelID).WithContext(ctx).Iter()
+	iter := repo.s.Query("SELECT user_id FROM channels WHERE id = ?", channelID).WithContext(ctx).Idempotent(true).Iter()
 	var userIDs []uint64
 	var userID uint64
 	for iter.Scan(&userID) {
@@ -103,7 +103,7 @@ func NewMessageRepo(config *config.Config, s *gocql.Session, p message.Publisher
 func (repo *MessageRepoImpl) InsertMessage(ctx context.Context, msg *Message) error {
 	var messageNum int64
 	err := repo.s.Query("SELECT msgnum FROM chanmsg_counters WHERE channel_id = ? LIMIT 1", msg.ChannelID).
-		WithContext(ctx).Scan(&messageNum)
+		WithContext(ctx).Idempotent(true).Scan(&messageNum)
 	if err != nil {
 		if err == gocql.ErrNotFound {
 			messageNum = 0
@@ -128,7 +128,7 @@ func (repo *MessageRepoImpl) InsertMessage(ctx context.Context, msg *Message) er
 }
 func (repo *MessageRepoImpl) MarkMessageSeen(ctx context.Context, channelID, messageID uint64) error {
 	if err := repo.s.Query("UPDATE messages SET seen = ? WHERE channel_id = ? AND id = ?", true, channelID, messageID).
-		WithContext(ctx).Exec(); err != nil {
+		WithContext(ctx).Idempotent(true).Exec(); err != nil {
 		return err
 	}
 	return nil
@@ -146,7 +146,7 @@ func (repo *MessageRepoImpl) ListMessages(ctx context.Context, channelID uint64,
 		return nil, "", err
 	}
 	iter := repo.s.Query(`SELECT id, event, channel_id, user_id, payload, seen, timestamp FROM messages WHERE channel_id = ?`, channelID).
-		WithContext(ctx).PageSize(repo.pagination).PageState(pageState).Iter()
+		WithContext(ctx).Idempotent(true).PageSize(repo.pagination).PageState(pageState).Iter()
 	nextPageStateBase64 := b64.URLEncoding.EncodeToString(iter.PageState())
 	scanner := iter.Scanner()
 
