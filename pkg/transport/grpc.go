@@ -25,6 +25,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/status"
 )
@@ -103,11 +104,13 @@ func InitializeGrpcClient(svcHost string) (*grpc.ClientConn, error) {
 	retryOpts := []grpc_retry.CallOption{
 		// generate waits between 900ms to 1100ms
 		grpc_retry.WithBackoff(grpc_retry.BackoffLinearWithJitter(1*time.Second, 0.1)),
-		grpc_retry.WithCodes(codes.NotFound, codes.Aborted),
+		grpc_retry.WithMax(3),
+		grpc_retry.WithCodes(codes.Unavailable, codes.Aborted),
+		grpc_retry.WithPerRetryTimeout(3 * time.Second),
 	}
 
 	dialOpts := []grpc.DialOption{
-		grpc.WithInsecure(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
 
 	dialOpts = append(dialOpts,
@@ -164,7 +167,8 @@ func NewGrpcEndpoint(conn *grpc.ClientConn, serviceID, serviceName, method strin
 		Timeout: 60 * time.Second,
 	}))(ep)
 	endpointer = append(endpointer, ep)
-	ep = lb.Retry(1, 5*time.Second, lb.NewRoundRobin(endpointer))
+	// timeout for the whole invocation
+	ep = lb.Retry(1, 15*time.Second, lb.NewRoundRobin(endpointer))
 
 	return ep
 }
