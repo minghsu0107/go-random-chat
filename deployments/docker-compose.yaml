@@ -54,7 +54,7 @@ services:
       CHAT_MESSAGE_MAXSIZEBYTE: "4096"
       CHAT_JWT_SECRET: ${JWT_SECRET}
       KAFKA_ADDRS: kafka:9092
-      CASSANDRA_HOST: cassandra
+      CASSANDRA_HOSTS: cassandra
       CASSANDRA_PORT: "9042"
       CASSANDRA_USER: ming
       CASSANDRA_PASSWORD: cassandrapass

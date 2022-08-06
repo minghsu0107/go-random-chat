@@ -8,7 +8,7 @@ import (
 var CassandraSession *gocql.Session
 
 func NewCassandraSession(config *config.Config) (*gocql.Session, error) {
-	cluster := gocql.NewCluster(config.Cassandra.Host)
+	cluster := gocql.NewCluster(config.Cassandra.Hosts...)
 	cluster.Port = config.Cassandra.Port
 	cluster.Keyspace = config.Cassandra.Keyspace
 	cluster.Consistency = gocql.Quorum
