@@ -58,6 +58,7 @@ user:
       port: "4001"
 kafka:
   addrs: localhost:9092
+  version: "3.0.1"
 cassandra:
   hosts: localhost
   port: 9042

@@ -54,6 +54,7 @@ services:
       CHAT_MESSAGE_MAXSIZEBYTE: "4096"
       CHAT_JWT_SECRET: ${JWT_SECRET}
       KAFKA_ADDRS: kafka:9092
+      KAFKA_VERSION: "3.0.1"
       CASSANDRA_HOSTS: cassandra
       CASSANDRA_PORT: "9042"
       CASSANDRA_USER: ming
@@ -95,6 +96,7 @@ services:
       MATCH_JWT_SECRET: ${JWT_SECRET}
       MATCH_JWT_EXPIRATIONSECOND: "86400"
       KAFKA_ADDRS: kafka:9092
+      KAFKA_VERSION: "3.0.1"
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_ADDRS: redis-node-0:6379,redis-node-1:6379,redis-node-2:6379,redis-node-3:6379,redis-node-4:6379,redis-node-5:6379
       REDIS_EXPIRATIONHOUR: "24"

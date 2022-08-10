@@ -39,6 +39,11 @@ func NewKafkaPublisher(config *config.Config) (message.Publisher, error) {
 
 func NewKafkaSubscriber(config *config.Config) (message.Subscriber, error) {
 	saramaConfig := sarama.NewConfig()
+	saramaVersion, err := sarama.ParseKafkaVersion(config.Kafka.Version)
+	if err != nil {
+		return nil, err
+	}
+	saramaConfig.Version = saramaVersion
 	saramaConfig.Consumer.Fetch.Default = 1024 * 1024
 	saramaConfig.Consumer.Offsets.AutoCommit.Enable = true
 	saramaConfig.Consumer.Offsets.AutoCommit.Interval = 1 * time.Second

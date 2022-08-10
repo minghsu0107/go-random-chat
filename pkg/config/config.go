@@ -109,7 +109,8 @@ type UserConfig struct {
 }
 
 type KafkaConfig struct {
-	Addrs string
+	Addrs   string
+	Version string
 }
 
 type CassandraConfig struct {
@@ -175,6 +176,7 @@ func setDefault() {
 	viper.SetDefault("user.grpc.server.port", "4001")
 
 	viper.SetDefault("kafka.addrs", "localhost:9092")
+	viper.SetDefault("kafka.version", "1.0.0")
 
 	viper.SetDefault("cassandra.hosts", []string{"localhost"})
 	viper.SetDefault("cassandra.port", 9042)
