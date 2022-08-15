@@ -157,8 +157,8 @@ func setDefault() {
 	viper.SetDefault("redis.password", "")
 	viper.SetDefault("redis.addrs", "localhost:6379")
 	viper.SetDefault("redis.expirationHour", 24)
-	viper.SetDefault("redis.minIdleConn", 30)
-	viper.SetDefault("redis.poolSize", 500)
+	viper.SetDefault("redis.minIdleConn", 16)
+	viper.SetDefault("redis.poolSize", 64)
 	viper.SetDefault("redis.readTimeoutMilliSecond", 500)
 	viper.SetDefault("redis.writeTimeoutMilliSecond", 500)
 
