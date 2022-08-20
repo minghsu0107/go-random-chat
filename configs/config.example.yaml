@@ -57,18 +57,17 @@ user:
     server:
       port: "4001"
 kafka:
-  addrs: localhost:9092
+  addrs: kafka-0:9092,kafka-1:9092,kafka-2:9092
   version: "3.0.1"
 cassandra:
-  hosts:
-  - localhost
+  hosts: cassandra-seed-0,cassandra-seed-1,cassandra-seed-2
   port: 9042
   user: cassandra
   password: cassandra
   keyspace: randomchat
 redis:
   password: pass.123
-  addrs: localhost:6379
+  addrs: redis-node-0:6379,redis-node-1:6379,redis-node-2:6379
   expirationHour: 24
   minIdleConn: 30
   poolSize: 500
