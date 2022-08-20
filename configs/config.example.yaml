@@ -60,7 +60,8 @@ kafka:
   addrs: localhost:9092
   version: "3.0.1"
 cassandra:
-  hosts: localhost
+  hosts:
+  - localhost
   port: 9042
   user: cassandra
   password: cassandra
