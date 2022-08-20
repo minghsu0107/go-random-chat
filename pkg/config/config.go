@@ -114,7 +114,7 @@ type KafkaConfig struct {
 }
 
 type CassandraConfig struct {
-	Hosts    []string
+	Hosts    string
 	Port     int
 	User     string
 	Password string
@@ -178,7 +178,7 @@ func setDefault() {
 	viper.SetDefault("kafka.addrs", "localhost:9092")
 	viper.SetDefault("kafka.version", "1.0.0")
 
-	viper.SetDefault("cassandra.hosts", []string{"localhost"})
+	viper.SetDefault("cassandra.hosts", "localhost")
 	viper.SetDefault("cassandra.port", 9042)
 	viper.SetDefault("cassandra.user", "cassandra")
 	viper.SetDefault("cassandra.password", "cassandra")

@@ -2,13 +2,14 @@ package infra
 
 import (
 	"github.com/gocql/gocql"
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 )
 
 var CassandraSession *gocql.Session
 
 func NewCassandraSession(config *config.Config) (*gocql.Session, error) {
-	cluster := gocql.NewCluster(config.Cassandra.Hosts...)
+	cluster := gocql.NewCluster(common.GetServerAddrs(config.Cassandra.Hosts)...)
 	cluster.Port = config.Cassandra.Port
 	cluster.Keyspace = config.Cassandra.Keyspace
 	cluster.Consistency = gocql.Quorum
