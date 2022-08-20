@@ -60,7 +60,7 @@ kafka:
   addrs: kafka-0:9092,kafka-1:9092,kafka-2:9092
   version: "3.0.1"
 cassandra:
-  hosts: cassandra-seed-0,cassandra-seed-1,cassandra-seed-2
+  hosts: cassandra-host-0,cassandra-host-1,cassandra-host-2
   port: 9042
   user: cassandra
   password: cassandra
