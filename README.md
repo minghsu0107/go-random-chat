@@ -15,7 +15,7 @@ Features:
   - with retry, timeout, rate limiting, and circuit breaker
 - Use [cobra](https://github.com/spf13/cobra) and [viper](https://github.com/spf13/viper) for CLI and configuration management respectively.
 - Dependency injection using [wire](https://github.com/google/wire).
-- Observability using [client_golang](https://github.com/prometheus/client_golang) and [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go).
+- Observability using [client_golang](https://github.com/prometheus/client_golang) for monitoring and [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go) for tracing.
 - At-least-once delivery for message Pub/Sub using [Kafka](https://kafka.apache.org).
 - Persist messages and channel metadata in [Cassandra](https://cassandra.apache.org), an open source NoSQL distributed database trusted by thousands of companies for scalability and high availability.
 - File uploads using object storage.
