@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
@@ -14,16 +15,20 @@ import (
 	doc "github.com/minghsu0107/go-random-chat/docs/user"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 type HttpServer struct {
-	name       string
-	logger     common.HttpLogrus
-	svr        *gin.Engine
-	httpPort   string
-	httpServer *http.Server
-	userSvc    UserService
-	serveSwag  bool
+	name              string
+	logger            common.HttpLogrus
+	svr               *gin.Engine
+	httpPort          string
+	httpServer        *http.Server
+	userSvc           UserService
+	serveSwag         bool
+	googleOauthConfig *oauth2.Config
+	cookieDomain      string
 }
 
 func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) *gin.Engine {
@@ -51,6 +56,14 @@ func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config,
 		httpPort:  config.User.Http.Server.Port,
 		userSvc:   userSvc,
 		serveSwag: config.User.Http.Server.Swag,
+		googleOauthConfig: &oauth2.Config{
+			RedirectURL:  config.User.OAuth.Google.RedirectUrl,
+			ClientID:     config.User.OAuth.Google.ClientId,
+			ClientSecret: config.User.OAuth.Google.ClientSecret,
+			Scopes:       strings.Split(config.User.OAuth.Google.Scopes, ","),
+			Endpoint:     google.Endpoint,
+		},
+		cookieDomain: config.User.OAuth.Google.CookieDomain,
 	}
 }
 
@@ -67,6 +80,9 @@ func (r *HttpServer) RegisterRoutes() {
 	{
 		userGroup.POST("", r.CreateUser)
 		userGroup.GET("/:uid/name", r.GetUserName)
+
+		userGroup.GET("/oauth2/google/login", r.OAuthGoogleLogin)
+		userGroup.GET("/oauth2/google/callback", r.OAuthGoogleCallback)
 	}
 	if r.serveSwag {
 		userGroup.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.InstanceName(doc.SwaggerInfouser.InfoInstanceName)))

@@ -56,6 +56,13 @@ user:
   grpc:
     server:
       port: "4001"
+  oauth:
+    google:
+      cookieDomain: "localhost"
+      redirectUrl: "http://localhost/api/user/oauth2/google/callback"
+      clientId: ""
+      clientSecret: ""
+      scopes: "https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile"
 kafka:
   addrs: kafka-0:9092,kafka-1:9092,kafka-2:9092
   version: "3.0.1"

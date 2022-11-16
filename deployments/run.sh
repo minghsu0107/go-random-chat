@@ -1,6 +1,8 @@
 #!/bin/sh
 export REDIS_PASSWORD=pass.123
 export JWT_SECRET=mysecret
+export USER_OAUTH_GOOGLE_CLIENTID=xxx.apps.googleusercontent.com
+export USER_OAUTH_GOOGLE_CLIENTSECRET=xxx
 
 addHost() {
     if grep -q "minio" /etc/hosts; then

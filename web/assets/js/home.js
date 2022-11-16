@@ -4,13 +4,20 @@ var accessTokenKey = "rc:accesstoken"
 
 var questions = [
     { question: "What's your name?", pattern: /^.{1,15}$/ },
-    { question: "How old are you?", pattern: /^100|[1-9]?\d$/ }
+    // { question: "How old are you?", pattern: /^100|[1-9]?\d$/ }
 ]
 var tTime = 100  // transition transform time from #register in ms
 var wTime = 200  // transition width time from #register in ms
 var eTime = 1000 // transition width time from inputLabel in ms
 var position = 0
 var ws
+
+const queryString = window.location.search
+const urlParams = new URLSearchParams(queryString)
+
+if (urlParams.has('user_id')) {
+    localStorage.setItem(userIDStoreKey, urlParams.get('user_id'))
+}
 
 if (localStorage.getItem(userIDStoreKey) === null) {
     (function () {

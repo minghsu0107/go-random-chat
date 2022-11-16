@@ -8,3 +8,8 @@ type UserPresenter struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
+
+type GoogleUserPresenter struct {
+	Email string `json:"email"`
+	Name  string `json:"name"`
+}

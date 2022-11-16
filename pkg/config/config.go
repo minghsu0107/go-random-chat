@@ -106,6 +106,15 @@ type UserConfig struct {
 			Port string
 		}
 	}
+	OAuth struct {
+		Google struct {
+			CookieDomain string
+			RedirectUrl  string
+			ClientId     string
+			ClientSecret string
+			Scopes       string
+		}
+	}
 }
 
 type KafkaConfig struct {
@@ -174,6 +183,11 @@ func setDefault() {
 	viper.SetDefault("user.http.server.port", "5004")
 	viper.SetDefault("user.http.server.swag", false)
 	viper.SetDefault("user.grpc.server.port", "4001")
+	viper.SetDefault("user.oauth.google.cookieDomain", "localhost")
+	viper.SetDefault("user.oauth.google.redirectUrl", "http://localhost/api/user/oauth2/google/callback")
+	viper.SetDefault("user.oauth.google.clientId", "")
+	viper.SetDefault("user.oauth.google.clientSecret", "")
+	viper.SetDefault("user.oauth.google.scopes", "https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile")
 
 	viper.SetDefault("kafka.addrs", "localhost:9092")
 	viper.SetDefault("kafka.version", "1.0.0")

@@ -233,5 +233,5 @@ func (cache *ChannelRepoCacheImpl) DeleteChannel(ctx context.Context, channelID 
 }
 
 func constructKey(prefix string, id uint64) string {
-	return prefix + ":" + strconv.FormatUint(id, 10)
+	return common.Join(prefix, ":", strconv.FormatUint(id, 10))
 }

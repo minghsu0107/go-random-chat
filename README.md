@@ -18,6 +18,7 @@ Features:
 - Observability using [client_golang](https://github.com/prometheus/client_golang) for monitoring and [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go) for tracing.
 - At-least-once delivery for message Pub/Sub using [Kafka](https://kafka.apache.org).
 - Persist messages and channel metadata in [Cassandra](https://cassandra.apache.org), an open source NoSQL distributed database trusted by thousands of companies for scalability and high availability.
+- Support Google OAuth2 login.
 - File uploads using object storage.
 - Use [Traefik FowardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) for authentication when uploading files.
 - Automatically generate RESTful API documentation with Swagger 2.0.
@@ -31,11 +32,13 @@ System architecture:
 
 <img width="807" alt="image" src="https://user-images.githubusercontent.com/50090692/160285139-81fc63ad-76ef-41a7-8b33-c67f633f738d.png">
 
-## Usage
+## Getting Started
 
 Prerequisite:
 - Docker-Compose v2
 - Root permission
+
+First, replace `USER_OAUTH_GOOGLE_CLIENTID` and `USER_OAUTH_GOOGLE_CLIENTSECRET` with your credentials in `run.sh`.
 
 To run locally, execute the following command:
 ```bash
