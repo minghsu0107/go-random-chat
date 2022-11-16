@@ -77,7 +77,6 @@ services:
       - "traefik.http.services.random-chat-grpc.loadbalancer.server.port=4000"
       - "traefik.http.services.random-chat-grpc.loadbalancer.server.scheme=h2c"
     depends_on:
-      - redis-cluster-creator
       - zookeeper
       - kafka
   match:
