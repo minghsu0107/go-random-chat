@@ -5,6 +5,12 @@ definitions:
       msg:
         type: string
     type: object
+  common.SuccessMessage:
+    properties:
+      msg:
+        example: ok
+        type: string
+    type: object
   user.CreateUserRequest:
     properties:
       name:
@@ -28,6 +34,44 @@ info:
   version: "2.0"
 paths:
   /user:
+    get:
+      description: Get user information
+      parameters:
+      - description: target user id; defaults to self user id if leaved empty
+        in: query
+        name: uid
+        type: string
+      - description: session id cookie
+        in: header
+        name: Cookie
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.UserPresenter'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.ErrResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.ErrResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.ErrResponse'
+      summary: Get user
+      tags:
+      - user
     post:
       description: Register a new user
       parameters:
@@ -55,35 +99,26 @@ paths:
       summary: Create an user
       tags:
       - user
-  /user/{uid}/name:
+  /user/oauth2/google/callback:
     get:
-      description: Get user name
-      parameters:
-      - description: user id
-        in: path
-        name: uid
-        required: true
-        type: integer
-      produces:
-      - application/json
+      description: OAuth Google callback endpoint
       responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/user.UserPresenter'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/common.ErrResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/common.ErrResponse'
+        "307":
+          description: ""
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/common.ErrResponse'
-      summary: Get user name
+      summary: OAuth Google callback
+      tags:
+      - user
+  /user/oauth2/google/login:
+    get:
+      description: OAuth Google login endpoint
+      responses:
+        "307":
+          description: ""
+      summary: OAuth Google login
       tags:
       - user
 swagger: "2.0"

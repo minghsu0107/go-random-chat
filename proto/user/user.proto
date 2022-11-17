@@ -18,6 +18,15 @@ message GetUserResponse {
     User user = 2;
 }
 
+message GetUserIdBySessionRequest {
+    string sid = 1;
+}
+
+message GetUserIdBySessionResponse {
+    uint64 user_id = 1;
+}
+
 service UserService {
     rpc GetUser (GetUserRequest) returns (GetUserResponse) {};
+    rpc GetUserIdBySession (GetUserIdBySessionRequest) returns (GetUserIdBySessionResponse) {};
 }

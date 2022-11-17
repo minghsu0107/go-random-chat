@@ -12,6 +12,7 @@ import (
 var (
 	userPrefix       = "rc:user"
 	googleUserPrefix = "rc:googleuser"
+	sessionPrefix    = "rc:session"
 )
 
 type UserRepo interface {
@@ -19,6 +20,8 @@ type UserRepo interface {
 	GetUserByID(ctx context.Context, userID uint64) (*User, error)
 	CreateGoogleUser(ctx context.Context, email string, user *User) (*User, error)
 	GetGoogleUserByEmail(ctx context.Context, email string) (*User, error)
+	SetUserSession(ctx context.Context, uid uint64, sid string) error
+	GetUserIDBySession(ctx context.Context, sid string) (uint64, error)
 }
 
 type UserRepoImpl struct {
@@ -83,6 +86,24 @@ func (repo *UserRepoImpl) GetGoogleUserByEmail(ctx context.Context, email string
 		return nil, ErrUserNotFound
 	}
 	return &user, nil
+}
+
+func (repo *UserRepoImpl) SetUserSession(ctx context.Context, uid uint64, sid string) error {
+	key := common.Join(sessionPrefix, ":", sid)
+	return repo.r.Set(ctx, key, uid)
+}
+
+func (repo *UserRepoImpl) GetUserIDBySession(ctx context.Context, sid string) (uint64, error) {
+	key := common.Join(sessionPrefix, ":", sid)
+	var userID uint64
+	exist, err := repo.r.Get(ctx, key, &userID)
+	if err != nil {
+		return 0, err
+	}
+	if !exist {
+		return 0, ErrSessionNotFound
+	}
+	return userID, nil
 }
 
 func constructKey(prefix string, id uint64) string {

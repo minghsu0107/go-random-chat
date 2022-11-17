@@ -25,6 +25,7 @@ type ChannelRepo interface {
 
 type UserRepo interface {
 	GetUserByID(ctx context.Context, userID uint64) (*User, error)
+	GetUserIDBySession(ctx context.Context, sid string) (uint64, error)
 	AddUserToChannel(ctx context.Context, channelID uint64, userID uint64) error
 }
 
@@ -59,18 +60,26 @@ func (repo *ChannelRepoImpl) CreateChannel(ctx context.Context) (uint64, error) 
 }
 
 type UserRepoImpl struct {
-	getUser          endpoint.Endpoint
-	addUserToChannel endpoint.Endpoint
+	getUserByID        endpoint.Endpoint
+	getUserIDBySession endpoint.Endpoint
+	addUserToChannel   endpoint.Endpoint
 }
 
 func NewUserRepo(userConn *UserClientConn, chatConn *ChatClientConn) UserRepo {
 	return &UserRepoImpl{
-		getUser: transport.NewGrpcEndpoint(
+		getUserByID: transport.NewGrpcEndpoint(
 			userConn.Conn,
 			"user",
 			"user.UserService",
 			"GetUser",
 			&userpb.GetUserResponse{},
+		),
+		getUserIDBySession: transport.NewGrpcEndpoint(
+			userConn.Conn,
+			"user",
+			"user.UserService",
+			"GetUserIdBySession",
+			&userpb.GetUserIdBySessionResponse{},
 		),
 		addUserToChannel: transport.NewGrpcEndpoint(
 			chatConn.Conn,
@@ -83,7 +92,7 @@ func NewUserRepo(userConn *UserClientConn, chatConn *ChatClientConn) UserRepo {
 }
 
 func (repo *UserRepoImpl) GetUserByID(ctx context.Context, userID uint64) (*User, error) {
-	res, err := repo.getUser(ctx, &userpb.GetUserRequest{
+	res, err := repo.getUserByID(ctx, &userpb.GetUserRequest{
 		UserId: userID,
 	})
 	if err != nil {
@@ -98,6 +107,18 @@ func (repo *UserRepoImpl) GetUserByID(ctx context.Context, userID uint64) (*User
 		Name: pbUser.User.Name,
 	}, nil
 }
+
+func (repo *UserRepoImpl) GetUserIDBySession(ctx context.Context, sid string) (uint64, error) {
+	res, err := repo.getUserIDBySession(ctx, &userpb.GetUserIdBySessionRequest{
+		Sid: sid,
+	})
+	if err != nil {
+		return 0, err
+	}
+	pbUserID := res.(*userpb.GetUserIdBySessionResponse)
+	return pbUserID.UserId, nil
+}
+
 func (repo *UserRepoImpl) AddUserToChannel(ctx context.Context, channelID uint64, userID uint64) error {
 	_, err := repo.addUserToChannel(ctx, &chatpb.AddUserRequest{
 		ChannelId: channelID,

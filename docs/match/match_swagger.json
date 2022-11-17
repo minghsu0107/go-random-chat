@@ -23,16 +23,16 @@
                 "summary": "Match another user",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "self user id",
-                        "name": "uid",
-                        "in": "query",
+                        "type": "string",
+                        "description": "session id cookie",
+                        "name": "Cookie",
+                        "in": "header",
                         "required": true
                     }
                 ],
                 "responses": {
-                    "400": {
-                        "description": "Bad Request",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/common.ErrResponse"
                         }

@@ -17,16 +17,16 @@ paths:
     get:
       description: Websocket initialization endpoint for matching another user
       parameters:
-      - description: self user id
-        in: query
-        name: uid
+      - description: session id cookie
+        in: header
+        name: Cookie
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
-        "400":
-          description: Bad Request
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/common.ErrResponse'
         "404":

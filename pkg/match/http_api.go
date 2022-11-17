@@ -35,19 +35,18 @@ func (r *HttpServer) ForwardAuth(c *gin.Context) {
 // @Description Websocket initialization endpoint for matching another user
 // @Tags match
 // @Produce json
-// @Param uid query int true "self user id"
-// @Failure 400 {object} common.ErrResponse
+// @Param Cookie header string true "session id cookie"
+// @Failure 401 {object} common.ErrResponse
 // @Failure 404 {object} common.ErrResponse
 // @Failure 500 {object} common.ErrResponse
 // @Router /match [get]
 func (r *HttpServer) Match(c *gin.Context) {
-	uid := c.Query("uid")
-	userID, err := strconv.ParseUint(uid, 10, 64)
-	if err != nil {
-		response(c, http.StatusBadRequest, common.ErrInvalidParam)
+	userID, ok := c.Request.Context().Value(common.UserKey).(uint64)
+	if !ok {
+		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
 		return
 	}
-	_, err = r.userSvc.GetUser(c.Request.Context(), userID)
+	_, err := r.userSvc.GetUserByID(c.Request.Context(), userID)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
 			response(c, http.StatusNotFound, ErrUserNotFound)
@@ -61,12 +60,12 @@ func (r *HttpServer) Match(c *gin.Context) {
 }
 
 func (r *HttpServer) HandleMatchOnConnect(sess *melody.Session) {
-	userID, err := strconv.ParseUint(sess.Request.URL.Query().Get("uid"), 10, 64)
-	if err != nil {
-		r.logger.Error(err)
+	userID, ok := sess.Request.Context().Value(common.UserKey).(uint64)
+	if !ok {
+		r.logger.Error("get user id context error")
 		return
 	}
-	err = r.initializeMatchSession(sess, userID)
+	err := r.initializeMatchSession(sess, userID)
 	if err != nil {
 		r.logger.Error(err)
 		return
@@ -90,10 +89,9 @@ func (r *HttpServer) initializeMatchSession(sess *melody.Session, userID uint64)
 	return nil
 }
 func (r *HttpServer) HandleMatchOnClose(sess *melody.Session, i int, s string) error {
-	userID, err := strconv.ParseUint(sess.Request.URL.Query().Get("uid"), 10, 64)
-	if err != nil {
-		r.logger.Error(err)
-		return err
+	userID, ok := sess.Request.Context().Value(common.UserKey).(uint64)
+	if !ok {
+		return nil
 	}
 	return r.matchSvc.RemoveUserFromWaitList(context.Background(), userID)
 }

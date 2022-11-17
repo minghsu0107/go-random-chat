@@ -57,12 +57,20 @@ user:
     server:
       port: "4001"
   oauth:
+    cookie:
+      maxAge: 3600
+      path: "/"
+      domain: "localhost"
     google:
-      cookieDomain: "localhost"
       redirectUrl: "http://localhost/api/user/oauth2/google/callback"
       clientId: ""
       clientSecret: ""
       scopes: "https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile"
+  auth:
+    cookie:
+      maxAge: 86400
+      path: "/"
+      domain: "localhost"
 kafka:
   addrs: kafka-0:9092,kafka-1:9092,kafka-2:9092
   version: "3.0.1"

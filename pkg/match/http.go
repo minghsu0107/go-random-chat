@@ -81,6 +81,23 @@ func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config,
 	}
 }
 
+func (r *HttpServer) CookieAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		sid, err := common.GetCookie(c, common.SessionIdCookieName)
+		if err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		userID, err := r.userSvc.GetUserIDBySession(c.Request.Context(), sid)
+		if err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), common.UserKey, userID))
+		c.Next()
+	}
+}
+
 func initJWT(config *config.Config) {
 	common.JwtSecret = config.Match.JWT.Secret
 	common.JwtExpirationSecond = config.Match.JWT.ExpirationSecond
@@ -97,7 +114,9 @@ func initJWT(config *config.Config) {
 func (r *HttpServer) RegisterRoutes() {
 	matchGroup := r.svr.Group("/api/match")
 	{
-		matchGroup.GET("", r.Match)
+		cookieAuthGroup := matchGroup.Group("")
+		cookieAuthGroup.Use(r.CookieAuth())
+		cookieAuthGroup.GET("", r.Match)
 
 		forwardAuthGroup := matchGroup.Group("/forwardauth")
 		forwardAuthGroup.Use(common.JWTAuth())

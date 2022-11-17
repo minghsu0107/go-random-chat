@@ -28,7 +28,8 @@ type HttpServer struct {
 	userSvc           UserService
 	serveSwag         bool
 	googleOauthConfig *oauth2.Config
-	cookieDomain      string
+	oauthCookieConfig config.CookieConfig
+	authCookieConfig  config.CookieConfig
 }
 
 func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) *gin.Engine {
@@ -63,7 +64,25 @@ func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config,
 			Scopes:       strings.Split(config.User.OAuth.Google.Scopes, ","),
 			Endpoint:     google.Endpoint,
 		},
-		cookieDomain: config.User.OAuth.Google.CookieDomain,
+		oauthCookieConfig: config.User.OAuth.Cookie,
+		authCookieConfig:  config.User.Auth.Cookie,
+	}
+}
+
+func (r *HttpServer) CookieAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		sid, err := common.GetCookie(c, common.SessionIdCookieName)
+		if err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		userID, err := r.userSvc.GetUserIDBySession(c.Request.Context(), sid)
+		if err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), common.UserKey, userID))
+		c.Next()
 	}
 }
 
@@ -79,7 +98,14 @@ func (r *HttpServer) RegisterRoutes() {
 	userGroup := r.svr.Group("/api/user")
 	{
 		userGroup.POST("", r.CreateUser)
-		userGroup.GET("/:uid/name", r.GetUserName)
+
+		loginGroup := userGroup.Group("/login")
+		loginGroup.Use(r.CookieAuth())
+		loginGroup.GET("", r.Login)
+
+		cookieAuthGroup := userGroup.Group("")
+		cookieAuthGroup.Use(r.CookieAuth())
+		cookieAuthGroup.GET("", r.GetUser)
 
 		userGroup.GET("/oauth2/google/login", r.OAuthGoogleLogin)
 		userGroup.GET("/oauth2/google/callback", r.OAuthGoogleCallback)
@@ -103,6 +129,7 @@ func (r *HttpServer) Run() {
 		}
 	}()
 }
+
 func (r *HttpServer) GracefulStop(ctx context.Context) error {
 	return r.httpServer.Shutdown(ctx)
 }

@@ -12,6 +12,63 @@
     "basePath": "/api",
     "paths": {
         "/user": {
+            "get": {
+                "description": "Get user information",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "target user id; defaults to self user id if leaved empty",
+                        "name": "uid",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "session id cookie",
+                        "name": "Cookie",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user.UserPresenter"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Register a new user",
                 "produces": [
@@ -54,49 +111,36 @@
                 }
             }
         },
-        "/user/{uid}/name": {
+        "/user/oauth2/google/callback": {
             "get": {
-                "description": "Get user name",
-                "produces": [
-                    "application/json"
-                ],
+                "description": "OAuth Google callback endpoint",
                 "tags": [
                     "user"
                 ],
-                "summary": "Get user name",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "user id",
-                        "name": "uid",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "summary": "OAuth Google callback",
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/user.UserPresenter"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/common.ErrResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/common.ErrResponse"
-                        }
+                    "307": {
+                        "description": ""
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/common.ErrResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/user/oauth2/google/login": {
+            "get": {
+                "description": "OAuth Google login endpoint",
+                "tags": [
+                    "user"
+                ],
+                "summary": "OAuth Google login",
+                "responses": {
+                    "307": {
+                        "description": ""
                     }
                 }
             }
@@ -108,6 +152,15 @@
             "properties": {
                 "msg": {
                     "type": "string"
+                }
+            }
+        },
+        "common.SuccessMessage": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string",
+                    "example": "ok"
                 }
             }
         },

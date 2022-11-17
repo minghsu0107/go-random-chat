@@ -1,5 +1,3 @@
-var userIDStoreKey = "rc:userid"
-var userNameStoreKey = "rc:username"
 var accessTokenKey = "rc:accesstoken"
 
 var questions = [
@@ -12,31 +10,43 @@ var eTime = 1000 // transition width time from inputLabel in ms
 var position = 0
 var ws
 
-const queryString = window.location.search
-const urlParams = new URLSearchParams(queryString)
-
-if (urlParams.has('user_id')) {
-    localStorage.setItem(userIDStoreKey, urlParams.get('user_id'))
-}
-
-if (localStorage.getItem(userIDStoreKey) === null) {
-    (function () {
-        putQuestion()
-
-        progressButton.addEventListener('click', validate)
-        inputField.addEventListener('keyup', function (e) {
-            transform(0, 0) // ie hack to redraw
-            if (e.keyCode == 13) validate()
+var isLogin = false
+async function userLogin() {
+    return fetch(`/api/user/login`, {
+        method: 'GET'
+    })
+        .then((response) => {
+            if (response.status === 200) {
+                isLogin = true
+            }
         })
-    }())
-} else if (localStorage.getItem(accessTokenKey) === null) {
-    inputContainer.style.opacity = 0
-    inputProgress.style.transition = 'none'
-    inputProgress.style.width = 0
-    done()
-} else {
-    window.location.href = '/chat'
+        .catch((error) => {
+            console.log(`Error: ${error}`)
+            isLogin = false
+        })
 }
+async function check() {
+    await userLogin()
+    if (isLogin === false) {
+        (function () {
+            putQuestion()
+    
+            progressButton.addEventListener('click', validate)
+            inputField.addEventListener('keyup', function (e) {
+                transform(0, 0) // ie hack to redraw
+                if (e.keyCode == 13) validate()
+            })
+        }())
+    } else if (localStorage.getItem(accessTokenKey) === null) {
+        inputContainer.style.opacity = 0
+        inputProgress.style.transition = 'none'
+        inputProgress.style.width = 0
+        done()
+    } else {
+        window.location.href = '/chat'
+    }
+} 
+check()
 
 // load the next question
 function putQuestion() {
@@ -65,13 +75,11 @@ function done() {
         `
         button.style.cursor = 'default'
 
-        fetch(`/api/user/${localStorage.getItem(userIDStoreKey)}/name`)
+        fetch(`/api/user`)
             .then((response) => {
                 if (response.status === 200) {
                     match()
                 } else {
-                    localStorage.removeItem(userIDStoreKey)
-                    localStorage.removeItem(userNameStoreKey)
                     localStorage.removeItem(accessTokenKey)
                     window.location.reload()
                 }
@@ -93,10 +101,9 @@ async function createUser(username) {
         method: 'POST'
     })
         .then((response) => {
-            return response.json()
-        })
-        .then((result) => {
-            localStorage.setItem(userIDStoreKey, result.id)
+            if (response.status !== 201) {
+                throw Error(response.statusText)
+            }
         })
         .catch((error) => {
             console.log(`Error: ${error}`)
@@ -110,7 +117,7 @@ function match() {
     } else {
         protocol = "ws:"
     }
-    var matchUrl = protocol + "//" + window.location.host + "/api/match?uid=" + localStorage.getItem(userIDStoreKey)
+    var matchUrl = protocol + "//" + window.location.host + "/api/match"
     ws = new WebSocket(matchUrl)
     ws.addEventListener('message', function (e) {
         var result = JSON.parse(e.data)
@@ -136,8 +143,7 @@ async function validate() {
     if (!inputField.value.match(questions[position].pattern || /.+/)) wrong()
     else ok(async function () {
         if (position === 0) {
-            localStorage.setItem(userNameStoreKey, questions[0].value)
-            await createUser(localStorage.getItem(userNameStoreKey))
+            await createUser(questions[0].value)
         }
         // set the progress of the background
         progress.style.width = ++position * 100 / questions.length + 'vw'

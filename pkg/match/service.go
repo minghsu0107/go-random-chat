@@ -8,7 +8,8 @@ import (
 )
 
 type UserService interface {
-	GetUser(ctx context.Context, uid uint64) (*User, error)
+	GetUserByID(ctx context.Context, uid uint64) (*User, error)
+	GetUserIDBySession(ctx context.Context, sid string) (uint64, error)
 	AddUserToChannel(ctx context.Context, channelID, userID uint64) error
 }
 
@@ -26,13 +27,22 @@ func NewUserService(userRepo UserRepo) UserService {
 	return &UserServiceImpl{userRepo}
 }
 
-func (svc *UserServiceImpl) GetUser(ctx context.Context, uid uint64) (*User, error) {
+func (svc *UserServiceImpl) GetUserByID(ctx context.Context, uid uint64) (*User, error) {
 	user, err := svc.userRepo.GetUserByID(ctx, uid)
 	if err != nil {
 		return nil, fmt.Errorf("error get user %d: %w", uid, err)
 	}
 	return user, nil
 }
+
+func (svc *UserServiceImpl) GetUserIDBySession(ctx context.Context, sid string) (uint64, error) {
+	userID, err := svc.userRepo.GetUserIDBySession(ctx, sid)
+	if err != nil {
+		return 0, fmt.Errorf("error get user id by sid %s: %w", sid, err)
+	}
+	return userID, nil
+}
+
 func (svc *UserServiceImpl) AddUserToChannel(ctx context.Context, channelID, userID uint64) error {
 	if err := svc.userRepo.AddUserToChannel(ctx, channelID, userID); err != nil {
 		return fmt.Errorf("error add user %d to channel %d: %w", userID, channelID, err)

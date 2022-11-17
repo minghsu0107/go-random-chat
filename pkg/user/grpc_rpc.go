@@ -10,7 +10,7 @@ import (
 )
 
 func (srv *GrpcServer) GetUser(ctx context.Context, req *userpb.GetUserRequest) (*userpb.GetUserResponse, error) {
-	user, err := srv.userSvc.GetUser(ctx, req.UserId)
+	user, err := srv.userSvc.GetUserByID(ctx, req.UserId)
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
 			return &userpb.GetUserResponse{
@@ -26,5 +26,19 @@ func (srv *GrpcServer) GetUser(ctx context.Context, req *userpb.GetUserRequest) 
 			Id:   user.ID,
 			Name: user.Name,
 		},
+	}, nil
+}
+
+func (srv *GrpcServer) GetUserIdBySession(ctx context.Context, req *userpb.GetUserIdBySessionRequest) (*userpb.GetUserIdBySessionResponse, error) {
+	userID, err := srv.userSvc.GetUserIDBySession(ctx, req.Sid)
+	if err != nil {
+		if errors.Is(err, ErrSessionNotFound) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+		srv.logger.Error(err)
+		return nil, status.Error(codes.Unavailable, err.Error())
+	}
+	return &userpb.GetUserIdBySessionResponse{
+		UserId: userID,
 	}, nil
 }

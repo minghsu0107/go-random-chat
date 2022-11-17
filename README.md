@@ -19,6 +19,8 @@ Features:
 - At-least-once delivery for message Pub/Sub using [Kafka](https://kafka.apache.org).
 - Persist messages and channel metadata in [Cassandra](https://cassandra.apache.org), an open source NoSQL distributed database trusted by thousands of companies for scalability and high availability.
 - Support Google OAuth2 login.
+  - [Note] OAuth2 userinfo pec: https://any-api.com/googleapis_com/oauth2/docs/userinfo/oauth2_userinfo_get
+- User session management.
 - File uploads using object storage.
 - Use [Traefik FowardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) for authentication when uploading files.
 - Automatically generate RESTful API documentation with Swagger 2.0.
@@ -38,7 +40,7 @@ Prerequisite:
 - Docker-Compose v2
 - Root permission
 
-First, replace `USER_OAUTH_GOOGLE_CLIENTID` and `USER_OAUTH_GOOGLE_CLIENTSECRET` with your credentials in `run.sh`.
+First, [create OAuth client ID credentials](https://developers.google.com/workspace/guides/create-credentials#web-application) and replace `USER_OAUTH_GOOGLE_CLIENTID` and `USER_OAUTH_GOOGLE_CLIENTSECRET` with your credentials in `run.sh`.
 
 To run locally, execute the following command:
 ```bash

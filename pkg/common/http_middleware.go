@@ -19,6 +19,7 @@ var (
 	JaegerHeader                   = "Uber-Trace-Id"
 	ChannelIdHeader                = "X-Channel-Id"
 	ChannelKey      HTTPContextKey = "channel_key"
+	UserKey         HTTPContextKey = "user_key"
 )
 
 func MaxAllowed(n int64) gin.HandlerFunc {
