@@ -99,10 +99,6 @@ func (r *HttpServer) RegisterRoutes() {
 	{
 		userGroup.POST("", r.CreateUser)
 
-		loginGroup := userGroup.Group("/login")
-		loginGroup.Use(r.CookieAuth())
-		loginGroup.GET("", r.Login)
-
 		cookieAuthGroup := userGroup.Group("")
 		cookieAuthGroup.Use(r.CookieAuth())
 		cookieAuthGroup.GET("", r.GetUser)

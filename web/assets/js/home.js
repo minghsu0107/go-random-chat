@@ -11,14 +11,15 @@ var position = 0
 var ws
 
 var isLogin = false
-async function userLogin() {
-    return fetch(`/api/user/login`, {
+async function getUserInfo() {
+    return fetch(`/api/user`, {
         method: 'GET'
     })
         .then((response) => {
-            if (response.status === 200) {
-                isLogin = true
+            if (response.status !== 200) {
+                throw Error(response.statusText)
             }
+            isLogin = true
         })
         .catch((error) => {
             console.log(`Error: ${error}`)
@@ -26,9 +27,10 @@ async function userLogin() {
         })
 }
 async function check() {
-    await userLogin()
-    if (isLogin === false) {
+    await getUserInfo()
+    if (!isLogin) {
         (function () {
+            localStorage.removeItem(accessTokenKey)
             putQuestion()
     
             progressButton.addEventListener('click', validate)
@@ -74,16 +76,7 @@ function done() {
         <p class="saving">Matching<span>.</span><span>.</span><span>.</span></p>
         `
         button.style.cursor = 'default'
-
-        fetch(`/api/user`)
-            .then((response) => {
-                if (response.status === 200) {
-                    match()
-                } else {
-                    localStorage.removeItem(accessTokenKey)
-                    window.location.reload()
-                }
-            })
+        match()
     }
     h1.appendChild(button)
     setTimeout(function () {

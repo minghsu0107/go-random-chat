@@ -5,12 +5,6 @@ definitions:
       msg:
         type: string
     type: object
-  common.SuccessMessage:
-    properties:
-      msg:
-        example: ok
-        type: string
-    type: object
   user.CreateUserRequest:
     properties:
       name:

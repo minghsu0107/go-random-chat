@@ -163,15 +163,6 @@ const docTemplateuser = `{
                 }
             }
         },
-        "common.SuccessMessage": {
-            "type": "object",
-            "properties": {
-                "msg": {
-                    "type": "string",
-                    "example": "ok"
-                }
-            }
-        },
         "user.CreateUserRequest": {
             "type": "object",
             "required": [

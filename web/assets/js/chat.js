@@ -49,7 +49,7 @@ async function getUserInfo() {
 }
 async function start() {
     await getUserInfo()
-    if (isLogin === false) {
+    if (!isLogin) {
         window.location.href = '/'
     } else {
         var protocol
@@ -300,6 +300,12 @@ function connectWebSocket(chatUrl) {
             }, 1000)
         }
     })
+
+    ws.addEventListener('error',(e) => {
+        localStorage.removeItem(accessTokenKey)
+        insertMsg(getActionMessage("channel not found"), chatroom[0], true)
+        insertMsg(getReturnHomeMessage(), chatroom[0], true)
+     })
 }
 
 window.onbeforeunload = function () {

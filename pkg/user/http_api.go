@@ -44,22 +44,6 @@ func (r *HttpServer) CreateUser(c *gin.Context) {
 	})
 }
 
-// @Summary Check user login status
-// @Description User login
-// @Tags user
-// @Produce json
-// @Param Cookie header string true "session id cookie"
-// @Success 200 {object} common.SuccessMessage
-// @Failure 401 {object} common.ErrResponse
-func (r *HttpServer) Login(c *gin.Context) {
-	_, ok := c.Request.Context().Value(common.UserKey).(uint64)
-	if !ok {
-		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
-		return
-	}
-	c.JSON(http.StatusOK, common.OkMsg)
-}
-
 // @Summary Get user
 // @Description Get user information
 // @Tags user
