@@ -5,7 +5,7 @@ definitions:
       msg:
         type: string
     type: object
-  user.CreateUserRequest:
+  user.CreateLocalUserRequest:
     properties:
       name:
         type: string
@@ -31,9 +31,10 @@ paths:
     get:
       description: Get user information
       parameters:
-      - description: target user id; defaults to self user id if leaved empty
+      - description: target user id
         in: query
         name: uid
+        required: true
         type: string
       - description: session id cookie
         in: header
@@ -67,14 +68,14 @@ paths:
       tags:
       - user
     post:
-      description: Register a new user
+      description: Register a new local user
       parameters:
       - description: new user
         in: body
         name: user
         required: true
         schema:
-          $ref: '#/definitions/user.CreateUserRequest'
+          $ref: '#/definitions/user.CreateLocalUserRequest'
       produces:
       - application/json
       responses:
@@ -90,7 +91,38 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/common.ErrResponse'
-      summary: Create an user
+      summary: Create a local user
+      tags:
+      - user
+  /user/me:
+    get:
+      description: Get self user information
+      parameters:
+      - description: session id cookie
+        in: header
+        name: Cookie
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.UserPresenter'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.ErrResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.ErrResponse'
+      summary: Get self user
       tags:
       - user
   /user/oauth2/google/callback:

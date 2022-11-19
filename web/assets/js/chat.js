@@ -28,7 +28,7 @@ var USER_ID = ""
 var ID2NAME = {}
 
 async function getUserInfo() {
-    return fetch(`/api/user`, {
+    return fetch(`/api/user/me`, {
         method: 'GET'
     })
         .then((response) => {
@@ -254,7 +254,6 @@ function connectWebSocket(chatUrl) {
                     }
                     localStorage.removeItem(accessTokenKey)
                     ACCESS_TOKEN = ""
-                    fileInput.disabled = true
                     ws.close()
                     break
             }
@@ -294,18 +293,13 @@ function connectWebSocket(chatUrl) {
         <i class="fas fa-circle icon-red fa-xs"></i><span style="margin-left: 10px; font-size: 1em;">disconnected</span>
     `
         document.getElementById("msg").disabled = true
+        fileInput.disabled = true
         if (ACCESS_TOKEN !== "" && !isPageHidden) {
             setTimeout(function () {
                 connectWebSocket()
             }, 1000)
         }
     })
-
-    ws.addEventListener('error',(e) => {
-        localStorage.removeItem(accessTokenKey)
-        insertMsg(getActionMessage("channel not found"), chatroom[0], true)
-        insertMsg(getReturnHomeMessage(), chatroom[0], true)
-     })
 }
 
 window.onbeforeunload = function () {
@@ -340,7 +334,7 @@ function sendBrowserNotification(msg) {
 }
 
 async function getAllChannelUserNames() {
-    return fetch(`/api/chat/chanusers`, {
+    return fetch(`/api/chat/users`, {
         method: 'GET',
         headers: new Headers({
             'Authorization': 'Bearer ' + ACCESS_TOKEN
@@ -496,7 +490,7 @@ async function setPeerName(peerID) {
 }
 
 async function updateOnlineUsers() {
-    return fetch(`/api/chat/chanusers/online`, {
+    return fetch(`/api/chat/users/online`, {
         method: 'GET',
         headers: new Headers({
             'Authorization': 'Bearer ' + ACCESS_TOKEN

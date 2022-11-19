@@ -66,8 +66,6 @@ func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) 
 }
 
 func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine, mm MelodyMatchConn, matchSubscriber *MatchSubscriber, userSvc UserService, matchSvc MatchingService) common.HttpServer {
-	initJWT(config)
-
 	return &HttpServer{
 		name:            name,
 		logger:          logger,
@@ -98,11 +96,6 @@ func (r *HttpServer) CookieAuth() gin.HandlerFunc {
 	}
 }
 
-func initJWT(config *config.Config) {
-	common.JwtSecret = config.Match.JWT.Secret
-	common.JwtExpirationSecond = config.Match.JWT.ExpirationSecond
-}
-
 // @title           Match Service Swagger API
 // @version         2.0
 // @description     Match service API
@@ -117,12 +110,6 @@ func (r *HttpServer) RegisterRoutes() {
 		cookieAuthGroup := matchGroup.Group("")
 		cookieAuthGroup.Use(r.CookieAuth())
 		cookieAuthGroup.GET("", r.Match)
-
-		forwardAuthGroup := matchGroup.Group("/forwardauth")
-		forwardAuthGroup.Use(common.JWTAuth())
-		{
-			forwardAuthGroup.Any("", r.ForwardAuth)
-		}
 	}
 
 	r.mm.HandleConnect(r.HandleMatchOnConnect)

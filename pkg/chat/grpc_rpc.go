@@ -15,7 +15,8 @@ func (srv *GrpcServer) CreateChannel(ctx context.Context, req *chatpb.CreateChan
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &chatpb.CreateChannelResponse{
-		ChannelId: channel.ID,
+		ChannelId:   channel.ID,
+		AccessToken: channel.AccessToken,
 	}, nil
 }
 

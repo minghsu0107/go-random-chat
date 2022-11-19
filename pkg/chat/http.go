@@ -87,6 +87,7 @@ func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config,
 
 func initJWT(config *config.Config) {
 	common.JwtSecret = config.Chat.JWT.Secret
+	common.JwtExpirationSecond = config.Chat.JWT.ExpirationSecond
 }
 
 // @title           Chat Service Swagger API
@@ -102,11 +103,17 @@ func (r *HttpServer) RegisterRoutes() {
 	{
 		chatGroup.GET("", r.StartChat)
 
-		chanUsersGroup := chatGroup.Group("/chanusers")
-		chanUsersGroup.Use(common.JWTAuth())
+		forwardAuthGroup := chatGroup.Group("/forwardauth")
+		forwardAuthGroup.Use(common.JWTAuth())
 		{
-			chanUsersGroup.GET("", r.GetChannelUsers)
-			chanUsersGroup.GET("/online", r.GetOnlineUsers)
+			forwardAuthGroup.Any("", r.ForwardAuth)
+		}
+
+		usersGroup := chatGroup.Group("/users")
+		usersGroup.Use(common.JWTAuth())
+		{
+			usersGroup.GET("", r.GetChannelUsers)
+			usersGroup.GET("/online", r.GetOnlineUsers)
 		}
 		channelGroup := chatGroup.Group("/channel")
 		channelGroup.Use(common.JWTAuth())

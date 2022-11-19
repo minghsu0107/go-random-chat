@@ -3,10 +3,12 @@ package chat
 import (
 	"context"
 	b64 "encoding/base64"
+	"fmt"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/gocql/gocql"
+	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 
 	"github.com/go-kit/kit/endpoint"
@@ -184,8 +186,13 @@ func (repo *ChannelRepoImpl) CreateChannel(ctx context.Context, channelID uint64
 		channelID, 0).WithContext(ctx).Exec(); err != nil {
 		return nil, err
 	}
+	accessToken, err := common.NewJWT(channelID)
+	if err != nil {
+		return nil, fmt.Errorf("error create JWT: %w", err)
+	}
 	return &Channel{
-		ID: channelID,
+		ID:          channelID,
+		AccessToken: accessToken,
 	}, nil
 }
 func (repo *ChannelRepoImpl) DeleteChannel(ctx context.Context, channelID uint64) error {

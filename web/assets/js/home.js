@@ -12,7 +12,7 @@ var ws
 
 var isLogin = false
 async function getUserInfo() {
-    return fetch(`/api/user`, {
+    return fetch(`/api/user/me`, {
         method: 'GET'
     })
         .then((response) => {

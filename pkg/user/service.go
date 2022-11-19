@@ -13,12 +13,12 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 )
 
-const oauthGoogleUrlAPI = "https://www.googleapis.com/oauth2/v2/userinfo?access_token="
+const oauthGoogleUrlAPI = "https://www.googleapis.com/oauth2/v3/userinfo?access_token="
 
 type UserService interface {
-	GetUserDataFromGoogle(ctx context.Context, code string) (*GoogleUserPresenter, error)
-	GetOrCreateGoogleUser(ctx context.Context, email, userName string) (*User, error)
-	CreateUser(ctx context.Context, userName string) (*User, error)
+	GetGoogleUser(ctx context.Context, code string) (*GoogleUserPresenter, error)
+	GetOrCreateUserByOAuth(ctx context.Context, user *User) (*User, error)
+	CreateUser(ctx context.Context, user *User) (*User, error)
 	SetUserSession(ctx context.Context, uid uint64) (string, error)
 	GetUserByID(ctx context.Context, uid uint64) (*User, error)
 	GetUserIDBySession(ctx context.Context, sid string) (uint64, error)
@@ -33,7 +33,7 @@ func NewUserService(userRepo UserRepo, sf common.IDGenerator) UserService {
 	return &UserServiceImpl{userRepo, sf}
 }
 
-func (svc *UserServiceImpl) GetUserDataFromGoogle(ctx context.Context, accessToken string) (*GoogleUserPresenter, error) {
+func (svc *UserServiceImpl) GetGoogleUser(ctx context.Context, accessToken string) (*GoogleUserPresenter, error) {
 	req, err := http.NewRequest("GET", common.Join(oauthGoogleUrlAPI, accessToken), nil)
 	if err != nil {
 		return nil, fmt.Errorf("create http request error: %w", err)
@@ -57,19 +57,22 @@ func (svc *UserServiceImpl) GetUserDataFromGoogle(ctx context.Context, accessTok
 	return &googleUser, nil
 }
 
-func (svc *UserServiceImpl) CreateUser(ctx context.Context, userName string) (*User, error) {
+func (svc *UserServiceImpl) CreateUser(ctx context.Context, user *User) (*User, error) {
 	userID, err := svc.sf.NextID()
 	if err != nil {
 		return nil, fmt.Errorf("error create snowflake ID: %w", err)
 	}
-	user, err := svc.userRepo.CreateUser(ctx, &User{
-		ID:   userID,
-		Name: userName,
-	})
+	newUser := &User{
+		ID:       userID,
+		Email:    user.Email,
+		Name:     user.Name,
+		AuthType: user.AuthType,
+	}
+	err = svc.userRepo.CreateUser(ctx, newUser)
 	if err != nil {
 		return nil, fmt.Errorf("error create user %d: %w", userID, err)
 	}
-	return user, nil
+	return newUser, nil
 }
 
 func (svc *UserServiceImpl) SetUserSession(ctx context.Context, uid uint64) (string, error) {
@@ -100,26 +103,26 @@ func (svc *UserServiceImpl) GetUserIDBySession(ctx context.Context, sid string) 
 	return userID, nil
 }
 
-func (svc *UserServiceImpl) GetOrCreateGoogleUser(ctx context.Context, email, userName string) (*User, error) {
-	var user *User
-	var err error
-	user, err = svc.userRepo.GetGoogleUserByEmail(ctx, email)
+func (svc *UserServiceImpl) GetOrCreateUserByOAuth(ctx context.Context, user *User) (*User, error) {
+	existedUser, err := svc.userRepo.GetUserByOAuthEmail(ctx, user.AuthType, user.Email)
 	if err != nil {
 		if !errors.Is(err, ErrUserNotFound) {
-			return nil, fmt.Errorf("error get google user %s: %w", email, err)
+			return nil, fmt.Errorf("error get user by google email %s: %w", user.Email, err)
 		}
 		userID, err := svc.sf.NextID()
 		if err != nil {
 			return nil, fmt.Errorf("error create snowflake ID: %w", err)
 		}
-		user, err = svc.userRepo.CreateGoogleUser(ctx, email, &User{
-			ID:   userID,
-			Name: userName,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("error create google user %s: %w", email, err)
+		newUser := &User{
+			ID:       userID,
+			Email:    user.Email,
+			Name:     user.Name,
+			AuthType: user.AuthType,
 		}
-		return user, nil
+		if err := svc.userRepo.CreateUser(ctx, newUser); err != nil {
+			return nil, fmt.Errorf("error create user by google email %s: %w", newUser.Email, err)
+		}
+		return newUser, nil
 	}
-	return user, nil
+	return existedUser, nil
 }

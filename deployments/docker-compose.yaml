@@ -53,6 +53,7 @@ services:
       CHAT_MESSAGE_PAGINATIONNUM: "5000"
       CHAT_MESSAGE_MAXSIZEBYTE: "4096"
       CHAT_JWT_SECRET: ${JWT_SECRET}
+      CHAT_JWT_EXPIRATIONSECOND: "86400"
       KAFKA_ADDRS: kafka:9092
       KAFKA_VERSION: "3.0.1"
       CASSANDRA_HOSTS: cassandra
@@ -92,8 +93,6 @@ services:
       MATCH_HTTP_SERVER_SWAG: "true"
       MATCH_GRPC_CLIENT_CHAT_ENDPOINT: "reverse-proxy:80"
       MATCH_GRPC_CLIENT_USER_ENDPOINT: "reverse-proxy:80"
-      MATCH_JWT_SECRET: ${JWT_SECRET}
-      MATCH_JWT_EXPIRATIONSECOND: "86400"
       KAFKA_ADDRS: kafka:9092
       KAFKA_VERSION: "3.0.1"
       REDIS_PASSWORD: ${REDIS_PASSWORD}
@@ -135,7 +134,7 @@ services:
       - "traefik.http.routers.uploader.service=uploader"
       - "traefik.http.services.uploader.loadbalancer.server.port=80"
       - "traefik.http.routers.uploader.middlewares=channel-auth"
-      - "traefik.http.middlewares.channel-auth.forwardauth.address=http://match/api/match/forwardauth"
+      - "traefik.http.middlewares.channel-auth.forwardauth.address=http://random-chat/api/chat/forwardauth"
       - "traefik.http.middlewares.channel-auth.forwardauth.authResponseHeaders=X-Channel-Id"
       - "traefik.http.routers.uploader-swagger.rule=PathPrefix(`/api/uploader/swagger`)"
       - "traefik.http.routers.uploader-swagger.entrypoints=web"

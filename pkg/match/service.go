@@ -3,8 +3,6 @@ package match
 import (
 	"context"
 	"fmt"
-
-	"github.com/minghsu0107/go-random-chat/pkg/common"
 )
 
 type UserService interface {
@@ -64,13 +62,9 @@ func (svc *MatchingServiceImpl) Match(ctx context.Context, userID uint64) (*Matc
 		return nil, fmt.Errorf("error match user %d: %w", userID, err)
 	}
 	if matched {
-		newChannelID, err := svc.chanRepo.CreateChannel(ctx)
+		newChannelID, accessToken, err := svc.chanRepo.CreateChannel(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("error create channel: %w", err)
-		}
-		accessToken, err := common.NewJWT(newChannelID)
-		if err != nil {
-			return nil, fmt.Errorf("error create JWT: %w", err)
 		}
 		return &MatchResult{
 			Matched:     true,

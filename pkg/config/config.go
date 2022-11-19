@@ -48,7 +48,8 @@ type ChatConfig struct {
 		MaxSizeByte   int64
 	}
 	JWT struct {
-		Secret string
+		Secret           string
+		ExpirationSecond int64
 	}
 }
 
@@ -69,10 +70,6 @@ type MatchConfig struct {
 				Endpoint string
 			}
 		}
-	}
-	JWT struct {
-		Secret           string
-		ExpirationSecond int64
 	}
 }
 
@@ -170,14 +167,13 @@ func setDefault() {
 	viper.SetDefault("chat.message.paginationNum", 5000)
 	viper.SetDefault("chat.message.maxSizeByte", 4096)
 	viper.SetDefault("chat.jwt.secret", "replaceme")
+	viper.SetDefault("chat.jwt.expirationSecond", 86400)
 
 	viper.SetDefault("match.http.server.port", "5002")
 	viper.SetDefault("match.http.server.maxConn", 200)
 	viper.SetDefault("match.http.server.swag", false)
 	viper.SetDefault("match.grpc.client.chat.endpoint", "localhost:4000")
 	viper.SetDefault("match.grpc.client.user.endpoint", "localhost:4001")
-	viper.SetDefault("match.jwt.secret", "replaceme")
-	viper.SetDefault("match.jwt.expirationSecond", 86400)
 
 	viper.SetDefault("uploader.http.server.port", "5003")
 	viper.SetDefault("uploader.http.server.swag", false)

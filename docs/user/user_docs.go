@@ -32,9 +32,10 @@ const docTemplateuser = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "target user id; defaults to self user id if leaved empty",
+                        "description": "target user id",
                         "name": "uid",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",
@@ -78,14 +79,14 @@ const docTemplateuser = `{
                 }
             },
             "post": {
-                "description": "Register a new user",
+                "description": "Register a new local user",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "user"
                 ],
-                "summary": "Create an user",
+                "summary": "Create a local user",
                 "parameters": [
                     {
                         "description": "new user",
@@ -93,7 +94,7 @@ const docTemplateuser = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.CreateUserRequest"
+                            "$ref": "#/definitions/user.CreateLocalUserRequest"
                         }
                     }
                 ],
@@ -106,6 +107,53 @@ const docTemplateuser = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/me": {
+            "get": {
+                "description": "Get self user information",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get self user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "session id cookie",
+                        "name": "Cookie",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user.UserPresenter"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/common.ErrResponse"
                         }
@@ -163,7 +211,7 @@ const docTemplateuser = `{
                 }
             }
         },
-        "user.CreateUserRequest": {
+        "user.CreateLocalUserRequest": {
             "type": "object",
             "required": [
                 "name"

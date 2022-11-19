@@ -34,7 +34,8 @@ type Message struct {
 }
 
 type Channel struct {
-	ID uint64
+	ID          uint64
+	AccessToken string
 }
 
 type User struct {

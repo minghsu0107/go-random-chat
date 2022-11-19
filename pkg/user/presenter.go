@@ -1,7 +1,11 @@
 package user
 
-type CreateUserRequest struct {
+type CreateLocalUserRequest struct {
 	Name string `json:"name" binding:"required"`
+}
+
+type GetUserRequest struct {
+	Uid string `form:"uid" binding:"required"`
 }
 
 type UserPresenter struct {

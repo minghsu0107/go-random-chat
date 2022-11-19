@@ -20,7 +20,7 @@ var (
 )
 
 type ChannelRepo interface {
-	CreateChannel(ctx context.Context) (uint64, error)
+	CreateChannel(ctx context.Context) (uint64, string, error)
 }
 
 type UserRepo interface {
@@ -51,12 +51,12 @@ func NewChannelRepo(chatConn *ChatClientConn) ChannelRepo {
 	}
 }
 
-func (repo *ChannelRepoImpl) CreateChannel(ctx context.Context) (uint64, error) {
+func (repo *ChannelRepoImpl) CreateChannel(ctx context.Context) (uint64, string, error) {
 	res, err := repo.createChannel(ctx, &chatpb.CreateChannelRequest{})
 	if err != nil {
-		return 0, err
+		return 0, "", err
 	}
-	return res.(*chatpb.CreateChannelResponse).ChannelId, nil
+	return res.(*chatpb.CreateChannelResponse).ChannelId, res.(*chatpb.CreateChannelResponse).AccessToken, nil
 }
 
 type UserRepoImpl struct {

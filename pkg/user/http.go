@@ -97,11 +97,12 @@ func (r *HttpServer) CookieAuth() gin.HandlerFunc {
 func (r *HttpServer) RegisterRoutes() {
 	userGroup := r.svr.Group("/api/user")
 	{
-		userGroup.POST("", r.CreateUser)
+		userGroup.POST("", r.CreateLocalUser)
 
 		cookieAuthGroup := userGroup.Group("")
 		cookieAuthGroup.Use(r.CookieAuth())
 		cookieAuthGroup.GET("", r.GetUser)
+		cookieAuthGroup.GET("/me", r.GetUserMe)
 
 		userGroup.GET("/oauth2/google/login", r.OAuthGoogleLogin)
 		userGroup.GET("/oauth2/google/callback", r.OAuthGoogleCallback)

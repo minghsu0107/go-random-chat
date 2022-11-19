@@ -223,4 +223,35 @@ paths:
       summary: Get online users
       tags:
       - chat
+  /chat/forwardauth:
+    get:
+      description: Traefik forward auth endpoint for channel authentication
+      parameters:
+      - description: channel authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: none
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.ErrResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/common.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.ErrResponse'
+      summary: Forward auth
+      tags:
+      - chat
 swagger: "2.0"

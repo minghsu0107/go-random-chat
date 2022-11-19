@@ -20,6 +20,7 @@ chat:
     maxSizeByte: 4096
   jwt:
     secret: mysecret
+    expirationSecond: 86400
 match:
   http:
     server:
@@ -32,9 +33,6 @@ match:
         endpoint: "localhost:4000"
       user:
         endpoint: "localhost:4001"
-  jwt:
-    secret: mysecret
-    expirationSecond: 86400
 uploader:
   http:
     server:

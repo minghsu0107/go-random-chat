@@ -4,32 +4,11 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"gopkg.in/olahol/melody.v1"
 )
-
-// @Summary Forward auth
-// @Description Traefik forward auth endpoint for channel authentication
-// @Tags match
-// @Produce json
-// @param Authorization header string true "channel authorization"
-// @Success 200 {none} nil
-// @Failure 401 {object} common.ErrResponse
-// @Failure 404 {object} common.ErrResponse
-// @Failure 500 {object} common.ErrResponse
-// @Router /match/forwardauth [get]
-func (r *HttpServer) ForwardAuth(c *gin.Context) {
-	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
-	if !ok {
-		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
-		return
-	}
-	c.Writer.Header().Set(common.ChannelIdHeader, strconv.FormatUint(channelID, 10))
-	c.Status(http.StatusOK)
-}
 
 // @Summary Match another user
 // @Description Websocket initialization endpoint for matching another user

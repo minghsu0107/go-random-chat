@@ -67,6 +67,26 @@ func (r *HttpServer) StartChat(c *gin.Context) {
 	r.mc.HandleRequest(c.Writer, c.Request)
 }
 
+// @Summary Forward auth
+// @Description Traefik forward auth endpoint for channel authentication
+// @Tags chat
+// @Produce json
+// @param Authorization header string true "channel authorization"
+// @Success 200 {none} nil
+// @Failure 401 {object} common.ErrResponse
+// @Failure 404 {object} common.ErrResponse
+// @Failure 500 {object} common.ErrResponse
+// @Router /chat/forwardauth [get]
+func (r *HttpServer) ForwardAuth(c *gin.Context) {
+	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
+	if !ok {
+		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
+		return
+	}
+	c.Writer.Header().Set(common.ChannelIdHeader, strconv.FormatUint(channelID, 10))
+	c.Status(http.StatusOK)
+}
+
 // @Summary Get channel users
 // @Description Get all users of a channel
 // @Tags chat
