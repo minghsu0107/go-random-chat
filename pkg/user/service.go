@@ -66,6 +66,7 @@ func (svc *UserServiceImpl) CreateUser(ctx context.Context, user *User) (*User, 
 		ID:       userID,
 		Email:    user.Email,
 		Name:     user.Name,
+		Picture:  user.Picture,
 		AuthType: user.AuthType,
 	}
 	err = svc.userRepo.CreateUser(ctx, newUser)
@@ -117,6 +118,7 @@ func (svc *UserServiceImpl) GetOrCreateUserByOAuth(ctx context.Context, user *Us
 			ID:       userID,
 			Email:    user.Email,
 			Name:     user.Name,
+			Picture:  user.Picture,
 			AuthType: user.AuthType,
 		}
 		if err := svc.userRepo.CreateUser(ctx, newUser); err != nil {

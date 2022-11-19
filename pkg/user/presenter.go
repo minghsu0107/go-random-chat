@@ -9,11 +9,13 @@ type GetUserRequest struct {
 }
 
 type UserPresenter struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Picture string `json:"picture"`
 }
 
 type GoogleUserPresenter struct {
-	Email string `json:"email"`
-	Name  string `json:"name"`
+	Email   string `json:"email"`
+	Name    string `json:"name"`
+	Picture string `json:"picture"`
 }

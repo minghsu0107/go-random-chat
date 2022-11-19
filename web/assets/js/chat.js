@@ -26,6 +26,7 @@ var isLogin = false
 
 var USER_ID = ""
 var ID2NAME = {}
+var ID2PICTURE = {}
 
 async function getUserInfo() {
     return fetch(`/api/user/me`, {
@@ -41,6 +42,11 @@ async function getUserInfo() {
         .then((result) => {
             USER_ID = result.id
             ID2NAME[USER_ID] = result.name
+            if (result.picture !== "") {
+                ID2PICTURE[USER_ID] = result.picture
+            } else {
+                ID2PICTURE[USER_ID] = "https://avatars.dicebear.com/api/pixel-art/" + USER_ID + ".svg"
+            }
         })
         .catch((error) => {
             console.log(`Error: ${error}`)
@@ -64,8 +70,6 @@ async function start() {
     }
 } 
 start()
-
-var USER_IMG = getUserImageURL(USER_ID)
 
 var ONLINE_USERS = new Set()
 var peerMessages = []
@@ -98,22 +102,16 @@ span.onclick = function () {
 }
 
 var timeout = setTimeout(function () { }, 0)
-//var userTypingID = 'usertyping'
 var peerTypingID = 'peertyping'
 var isTyping = false
 text.addEventListener('keyup', function () {
     markMessagesAsSeen()
     clearTimeout(timeout)
     if (!isTyping) {
-        //insertMsg(getTypingMessage(USER_ID, RIGHT, userTypingID), chatroom[0], true)
         sendActionMessage("istyping")
     }
     isTyping = true
     timeout = setTimeout(function () {
-        // let el = document.getElementById(userTypingID)
-        // if (el !== null) {
-        //     el.remove()
-        // }
         sendActionMessage("endtyping")
         isTyping = false
     }, 1000)
@@ -349,7 +347,7 @@ async function getAllChannelUserNames() {
         .then(async (result) => {
             for (const userID of result.user_ids) {
                 if ((userID !== USER_ID) && !(userID in ID2NAME)) {
-                    await setPeerName(userID)
+                    await setPeer(userID)
                 }
             }
         })
@@ -411,7 +409,7 @@ async function fetchMessages() {
 
 async function processMessage(m) {
     if (!(m.user_id in ID2NAME)) {
-        await setPeerName(m.user_id)
+        await setPeer(m.user_id)
     }
     var msg = ""
     switch (m.event) {
@@ -419,9 +417,9 @@ async function processMessage(m) {
             let d = new Date(m.time)
             var time = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
             if (m.user_id === USER_ID) {
-                msg = getTextMessage(m.message_id, USER_ID, RIGHT, m.payload, time, m.seen)
+                msg = await getTextMessage(m.message_id, USER_ID, RIGHT, m.payload, time, m.seen)
             } else {
-                msg = getTextMessage(m.message_id, m.user_id, LEFT, m.payload, time, m.seen)
+                msg = await getTextMessage(m.message_id, m.user_id, LEFT, m.payload, time, m.seen)
             }
             break
         case EVENT_ACTION:
@@ -440,7 +438,7 @@ async function processMessage(m) {
                     break
                 case "istyping":
                     if (m.user_id !== USER_ID) {
-                        msg = getTypingMessage(m.user_id, LEFT, peerTypingID)
+                        msg = await getTypingMessage(m.user_id, LEFT, peerTypingID)
                     }
                     break
             }
@@ -464,16 +462,16 @@ async function processMessage(m) {
             var time1 = `${d1.getFullYear()}/${d1.getMonth() + 1}/${d1.getDate()} ${String(d1.getHours()).padStart(2, "0")}:${String(d1.getMinutes()).padStart(2, "0")}`
             let filepayload = JSON.parse(m.payload)
             if (m.user_id === USER_ID) {
-                msg = getFileMessage(m.message_id, USER_ID, RIGHT, filepayload.file_name, filepayload.file_url, time1, m.seen)
+                msg = await getFileMessage(m.message_id, USER_ID, RIGHT, filepayload.file_name, filepayload.file_url, time1, m.seen)
             } else {
-                msg = getFileMessage(m.message_id, m.user_id, LEFT, filepayload.file_name, filepayload.file_url, time1, m.seen)
+                msg = await getFileMessage(m.message_id, m.user_id, LEFT, filepayload.file_name, filepayload.file_url, time1, m.seen)
             }
             break
     }
     return msg
 }
 
-async function setPeerName(peerID) {
+async function setPeer(peerID) {
     return fetch(`/api/user?uid=${peerID}`)
         .then((response) => {
             if (response.status !== 200) {
@@ -483,6 +481,11 @@ async function setPeerName(peerID) {
         })
         .then((result) => {
             ID2NAME[peerID] = result.name
+            if (result.picture !== "") {
+                ID2PICTURE[peerID] = result.picture
+            } else {
+                ID2PICTURE[peerID] = "https://avatars.dicebear.com/api/pixel-art/" + peerID + ".svg"
+            }
         })
         .catch(err => {
             console.log(`Error: ${err}`)
@@ -509,7 +512,7 @@ async function updateOnlineUsers() {
                 if (userID in ID2NAME) {
                     name = ID2NAME[userID]
                 } else {
-                    await setPeerName(userID)
+                    await setPeer(userID)
                 }
                 name = ID2NAME[userID]
                 curOnlineUsers.add(JSON.stringify(
@@ -552,8 +555,11 @@ async function deleteChannel() {
     })
 }
 
-function getUserImageURL(userID) {
-    return "https://avatars.dicebear.com/api/pixel-art/" + userID + ".svg"
+async function getUserPictureURL(userID) {
+    if (!(userID in ID2PICTURE)) {
+        await setPeer(userID)
+    }
+    return ID2PICTURE[userID]
 }
 
 function onlySpaces(str) {
@@ -591,7 +597,7 @@ function sendFileMessage(fileName, fileURL) {
     }))
 }
 
-function getFileMessage(messageID, userID, side, fileName, fileURL, time, seen) {
+async function getFileMessage(messageID, userID, side, fileName, fileURL, time, seen) {
     let extention = getFileExtention(fileURL)
     let isImg = (extention === "jpg" || extention === "png" || extention === "jpeg")
     let fileView = ""
@@ -614,7 +620,7 @@ function getFileMessage(messageID, userID, side, fileName, fileURL, time, seen) 
     }
     var msg = `
     <div id="${messageID}" class="msg ${side}-msg">
-      <div class="msg-img" style="background-image: url(${getUserImageURL(userID)})"></div>
+      <div class="msg-img" style="background-image: url(${await getUserPictureURL(userID)})"></div>
       ${fileView}
     `
     if (side === RIGHT) {
@@ -640,10 +646,10 @@ function getActionMessage(msg) {
     return msg
 }
 
-function getTextMessage(messageID, userID, side, text, time, seen) {
+async function getTextMessage(messageID, userID, side, text, time, seen) {
     var msg = `
     <div id="${messageID}" class="msg ${side}-msg">
-      <div class="msg-img" style="background-image: url(${getUserImageURL(userID)})"></div>
+      <div class="msg-img" style="background-image: url(${await getUserPictureURL(userID)})"></div>
 
       <div class="msg-bubble">
 
@@ -663,10 +669,10 @@ function getTextMessage(messageID, userID, side, text, time, seen) {
     return msg
 }
 
-function getTypingMessage(userID, side, id) {
+async function getTypingMessage(userID, side, id) {
     return `
     <div class="msg ${side}-msg" id="${id}">
-        <div class="msg-img" style="background-image: url(${getUserImageURL(userID)})"></div>
+        <div class="msg-img" style="background-image: url(${await getUserPictureURL(userID)})"></div>
         <div class="chat-bubble">
             <div class="typing">
                 <div class="dot"></div>

@@ -86,8 +86,9 @@ func (r *HttpServer) GetUser(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, &UserPresenter{
-		ID:   strconv.FormatUint(userID, 10),
-		Name: user.Name,
+		ID:      strconv.FormatUint(userID, 10),
+		Name:    user.Name,
+		Picture: user.Picture,
 	})
 }
 
@@ -118,8 +119,9 @@ func (r *HttpServer) GetUserMe(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, &UserPresenter{
-		ID:   strconv.FormatUint(userID, 10),
-		Name: user.Name,
+		ID:      strconv.FormatUint(userID, 10),
+		Name:    user.Name,
+		Picture: user.Picture,
 	})
 }
 
@@ -168,6 +170,7 @@ func (r *HttpServer) OAuthGoogleCallback(c *gin.Context) {
 	user, err := r.userSvc.GetOrCreateUserByOAuth(c.Request.Context(), &User{
 		Email:    googleUser.Email,
 		Name:     googleUser.Name,
+		Picture:  googleUser.Picture,
 		AuthType: GoogleAuth,
 	})
 	if err != nil {
