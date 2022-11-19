@@ -15,16 +15,17 @@ Features:
   - with retry, timeout, rate limiting, and circuit breaker
 - Use [cobra](https://github.com/spf13/cobra) and [viper](https://github.com/spf13/viper) for CLI and configuration management respectively.
 - Dependency injection using [wire](https://github.com/google/wire).
-- Observability using [client_golang](https://github.com/prometheus/client_golang) for monitoring and [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go) for tracing.
+- Observability using [Golang Prometheus client](https://github.com/prometheus/client_golang) for monitoring and [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go) for tracing.
 - At-least-once delivery for message Pub/Sub using [Kafka](https://kafka.apache.org).
-- Persist messages and channel metadata in [Cassandra](https://cassandra.apache.org), an open source NoSQL distributed database trusted by thousands of companies for scalability and high availability.
-- Support Google OAuth2 login.
-  - [OAuth2 userinfo spec](https://any-api.com/googleapis_com/oauth2/docs/userinfo/oauth2_userinfo_get)
-- User session management.
-- File uploads using object storage.
-- Use [Traefik FowardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) for authentication when uploading files.
+- Persist messages and chat channel metadata in [Cassandra](https://cassandra.apache.org), an open source NoSQL distributed database trusted by thousands of companies for scalability and high availability.
 - Automatically generate RESTful API documentation with Swagger 2.0.
+- User login session management using http-only cookie.
+- Support Google OAuth2 login.
+  - [OAuth2 userinfo spec](https://any-api.com/googleapis_com/oauth2/docs/userinfo/oauth2_userinfo_get).
 - User matching with idempotency.
+- Chat channel authentication using JWT.
+- File uploads using object storage.
+- Use [Traefik FowardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) for file upload authentication.
 - Message seen feature.
 - Auto-scroll to the first unseen message.
 - Automatic websocket reconnection.
