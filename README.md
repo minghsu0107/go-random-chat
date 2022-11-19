@@ -5,7 +5,7 @@ Modern real-time random chat with high performance and linear scalability, writt
 
 Features:
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
-- Microservices architecture. All services can be horizontally scaled on demand.
+- Microservices architecture. All services **are stateless** and can be horizontally scaled on demand.
   - `web`: frontend server
   - `user`: user account server
   - `match`: user matching server
