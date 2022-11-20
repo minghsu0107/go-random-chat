@@ -3,9 +3,20 @@
 
 Modern real-time random chat with high performance and linear scalability, written in go.
 
-Features:
+## Screenshots
+<img src="https://user-images.githubusercontent.com/50090692/202243227-022dfe85-c36c-49d0-a46d-7db1d2bae16f.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/202243227-022dfe85-c36c-49d0-a46d-7db1d2bae16f.png" width="50%" height="50%" />
+
+<img src="https://i.imgur.com/4ctofQv.png" alt="" data-canonical-src="https://i.imgur.com/4ctofQv.png" width="40%" height="40%" />
+
+<img src="https://user-images.githubusercontent.com/50090692/157266585-90082195-0517-47a2-a1ef-20d72fa3a3e6.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/157266585-90082195-0517-47a2-a1ef-20d72fa3a3e6.png" width="40%" height="40%" />
+
+<img src="https://user-images.githubusercontent.com/50090692/156815192-11a251fb-32ee-4888-b79c-aa64c97b407d.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/156815192-11a251fb-32ee-4888-b79c-aa64c97b407d.png" width="40%" height="40%" />
+
+## Overview
+
+### Features
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
-- Microservices architecture. All services can be horizontally scaled on demand.
+- Microservices architecture. All services **are stateless** and can be horizontally scaled on demand.
   - `web`: frontend server
   - `user`: user account server
   - `match`: user matching server
@@ -15,22 +26,23 @@ Features:
   - with retry, timeout, rate limiting, and circuit breaker
 - Use [cobra](https://github.com/spf13/cobra) and [viper](https://github.com/spf13/viper) for CLI and configuration management respectively.
 - Dependency injection using [wire](https://github.com/google/wire).
-- Observability using [client_golang](https://github.com/prometheus/client_golang) for monitoring and [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go) for tracing.
+- Observability using [Golang Prometheus client](https://github.com/prometheus/client_golang) for monitoring and [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go) for tracing.
 - At-least-once delivery for message Pub/Sub using [Kafka](https://kafka.apache.org).
-- Persist messages and channel metadata in [Cassandra](https://cassandra.apache.org), an open source NoSQL distributed database trusted by thousands of companies for scalability and high availability.
-- Support Google OAuth2 login.
-  - [OAuth2 userinfo spec](https://any-api.com/googleapis_com/oauth2/docs/userinfo/oauth2_userinfo_get)
-- User session management.
-- File uploads using object storage.
-- Use [Traefik FowardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) for authentication when uploading files.
+- Persist messages and chat channel metadata in [Cassandra](https://cassandra.apache.org), an open source NoSQL distributed database trusted by thousands of companies for scalability and high availability.
 - Automatically generate RESTful API documentation with Swagger 2.0.
+- User login session management using http-only cookie.
+- Support Google OAuth2 login.
+  - [OAuth2 userinfo spec](https://any-api.com/googleapis_com/oauth2/docs/userinfo/oauth2_userinfo_get).
 - User matching with idempotency.
+- Chat channel authentication using JWT.
+- File uploads using object storage.
+- Use [Traefik FowardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) for file upload authentication.
 - Message seen feature.
 - Auto-scroll to the first unseen message.
 - Automatic websocket reconnection.
 - Responsive web design.
 
-System architecture:
+### System architecture
 
 <img width="807" alt="image" src="https://user-images.githubusercontent.com/50090692/160285139-81fc63ad-76ef-41a7-8b33-c67f633f738d.png">
 
@@ -78,11 +90,3 @@ A common scenario is that one deploys the application behind a reverse proxy wit
 | `push`         | `refs/heads/releases/v1`   | `releases-v1`              |
 | `push tag`     | `refs/tags/v1.2.3`         | `v1.2.3`, `latest`         |
 | `push tag`     | `refs/tags/v2.0.8-beta.67` | `v2.0.8-beta.67`, `latest` |
-## Screenshots
-<img src="https://user-images.githubusercontent.com/50090692/202243227-022dfe85-c36c-49d0-a46d-7db1d2bae16f.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/202243227-022dfe85-c36c-49d0-a46d-7db1d2bae16f.png" width="50%" height="50%" />
-
-<img src="https://i.imgur.com/4ctofQv.png" alt="" data-canonical-src="https://i.imgur.com/4ctofQv.png" width="40%" height="40%" />
-
-<img src="https://user-images.githubusercontent.com/50090692/157266585-90082195-0517-47a2-a1ef-20d72fa3a3e6.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/157266585-90082195-0517-47a2-a1ef-20d72fa3a3e6.png" width="40%" height="40%" />
-
-<img src="https://user-images.githubusercontent.com/50090692/156815192-11a251fb-32ee-4888-b79c-aa64c97b407d.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/156815192-11a251fb-32ee-4888-b79c-aa64c97b407d.png" width="40%" height="40%" />
