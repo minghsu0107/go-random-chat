@@ -624,7 +624,7 @@ async function getFileMessage(messageID, userID, side, fileName, fileURL, time, 
     let isImg = (extention === "jpg" || extention === "png" || extention === "jpeg")
     let fileView = ""
     if (isImg) {
-        fileView = `<img id="img-${messageID}" onload="this.style.visibility='visible'" src=${fileURL} loading="lazy" alt='' style="max-width:35vw;border-radius: 15px;visibility: hidden;" onclick="showModal(this.src)"/>`
+        fileView = `<img id="img-${messageID}" onload="this.style.visibility='visible'" src=${fileURL} loading="lazy" alt='' style="max-width:35%;border-radius: 15px;visibility: hidden;" onclick="showModal(this.src)"/>`
     } else {
         let color = "black"
         if (side === RIGHT) {
