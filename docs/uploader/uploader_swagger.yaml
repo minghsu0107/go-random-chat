@@ -21,13 +21,16 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Upload a file to S3 bucket
+      description: Upload files to S3 bucket
       parameters:
-      - description: file to upload
+      - collectionFormat: multi
+        description: files to upload
         in: formData
-        name: file
+        items:
+          type: file
+        name: files
         required: true
-        type: file
+        type: array
       - description: channel authorization
         in: header
         name: Authorization
@@ -52,7 +55,7 @@ paths:
           description: Service Unavailable
           schema:
             $ref: '#/definitions/common.ErrResponse'
-      summary: Upload a file
+      summary: Upload files
       tags:
       - uploader
 swagger: "2.0"

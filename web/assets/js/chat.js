@@ -140,10 +140,12 @@ function markMessagesAsSeen() {
         }
     }
 }
-function uploadFile(file) {
+function uploadFiles(files) {
     let fd = new FormData()
-    fd.append('file', file)
-    fetch('/api/uploader/file', {
+    for (const file of files) {
+        fd.append('files[]', file, file.name);
+    }
+    fetch('/api/uploader/files', {
         method: 'POST',
         headers: new Headers({
             'Authorization': 'Bearer ' + ACCESS_TOKEN
@@ -156,8 +158,10 @@ function uploadFile(file) {
             }
             return res.json()
         })
-        .then(json => {
-            sendFileMessage(json.file_name, json.file_url)
+        .then(result => {
+            for (const uploaded_file of result.uploaded_files) {
+                sendFileMessage(uploaded_file.name, uploaded_file.url)
+            }
         })
         .catch(err => {
             console.log(`Error: ${err}`)
@@ -170,20 +174,22 @@ upload.addEventListener("pointerup", function (e) {
     upload.style.color = "gray"
 })
 document.addEventListener('paste', (e) => {
-    const file = getFileFromPasteEvent(e)
-    if (!file) { 
+    const files = getFilesFromPasteEvent(e)
+    if (files.length <= 0) { 
     	return
     }
-    uploadFile(file)
+    uploadFiles(files)
 })
-function getFileFromPasteEvent(event) {
+function getFilesFromPasteEvent(event) {
+    var files = []
     const items = (event.clipboardData || event.originalEvent.clipboardData).items
     for (let index in items) {
         const item = items[index]
         if (item.kind === 'file') {
-            return item.getAsFile()
+            files.push(item.getAsFile())
         }
     }
+    return files
 }
 send.addEventListener("pointerdown", function (e) {
     e.preventDefault()

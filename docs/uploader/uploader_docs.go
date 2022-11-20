@@ -21,7 +21,7 @@ const docTemplateuploader = `{
     "paths": {
         "/uploader/file": {
             "post": {
-                "description": "Upload a file to S3 bucket",
+                "description": "Upload files to S3 bucket",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -31,12 +31,16 @@ const docTemplateuploader = `{
                 "tags": [
                     "uploader"
                 ],
-                "summary": "Upload a file",
+                "summary": "Upload files",
                 "parameters": [
                     {
-                        "type": "file",
-                        "description": "file to upload",
-                        "name": "file",
+                        "type": "array",
+                        "items": {
+                            "type": "file"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "files to upload",
+                        "name": "files",
                         "in": "formData",
                         "required": true
                     },

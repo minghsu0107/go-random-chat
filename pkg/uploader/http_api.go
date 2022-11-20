@@ -13,50 +13,58 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 )
 
-// @Summary Upload a file
-// @Description Upload a file to S3 bucket
+// @Summary Upload files
+// @Description Upload files to S3 bucket
 // @Tags uploader
 // @Accept mpfd
-// @param file formData file true "file to upload"
+// @param files formData []file true "files to upload" collectionFormat(multi)
 // @Produce json
 // @param Authorization header string true "channel authorization"
 // @Success 201 {object} gin.H
 // @Failure 400 {object} common.ErrResponse
 // @Failure 401 {object} common.ErrResponse
 // @Failure 503 {object} common.ErrResponse
-// @Router /uploader/file [post]
-func (r *HttpServer) UploadFile(c *gin.Context) {
+// @Router /uploader/files [post]
+func (r *HttpServer) UploadFiles(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
 		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
 		return
 	}
 	c.Request.ParseMultipartForm(r.maxMemory)
-	fileHeader, err := c.FormFile("file")
+	form, err := c.MultipartForm()
 	if err != nil {
 		r.logger.Error(err)
 		response(c, http.StatusBadRequest, ErrReceiveFile)
 		return
 	}
+	fileHeaders := form.File["files[]"]
 
-	f, err := fileHeader.Open()
-	if err != nil {
-		r.logger.Error(err)
-		response(c, http.StatusBadRequest, ErrOpenFile)
-		return
+	var uploadedFiles []UploadedFilePresenter
+
+	for _, fileHeader := range fileHeaders {
+		f, err := fileHeader.Open()
+		if err != nil {
+			r.logger.Error(err)
+			response(c, http.StatusBadRequest, ErrOpenFile)
+			return
+		}
+
+		extension := filepath.Ext(fileHeader.Filename)
+		newFileName := newObjectKey(channelID, extension)
+		if err := r.putFileToS3(c.Request.Context(), r.s3Bucket, newFileName, f); err != nil {
+			r.logger.Error(err)
+			response(c, http.StatusInternalServerError, ErrUploadFile)
+			return
+		}
+		uploadedFiles = append(uploadedFiles, UploadedFilePresenter{
+			Name: fileHeader.Filename,
+			Url:  joinStrs(r.s3Endpoint, "/", r.s3Bucket, "/", newFileName),
+		})
 	}
 
-	extension := filepath.Ext(fileHeader.Filename)
-	newFileName := newObjectKey(channelID, extension)
-	if err := r.putFileToS3(c.Request.Context(), r.s3Bucket, newFileName, f); err != nil {
-		r.logger.Error(err)
-		response(c, http.StatusInternalServerError, ErrUploadFile)
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"file_name": fileHeader.Filename,
-		"file_url":  joinStrs(r.s3Endpoint, "/", r.s3Bucket, "/", newFileName),
+	c.JSON(http.StatusCreated, &UploadedFilesPresenter{
+		UploadedFiles: uploadedFiles,
 	})
 }
 
