@@ -170,20 +170,20 @@ upload.addEventListener("pointerup", function (e) {
     upload.style.color = "gray"
 })
 document.addEventListener('paste', (e) => {
-	const file = getFileFromPasteEvent(e)
+    const file = getFileFromPasteEvent(e)
     if (!file) { 
     	return
     }
     uploadFile(file)
 })
 function getFileFromPasteEvent(event) {
-  const items = (event.clipboardData || event.originalEvent.clipboardData).items
-  for (let index in items) {
-    const item = items[index]
-    if (item.kind === 'file') {
-      return item.getAsFile()
+    const items = (event.clipboardData || event.originalEvent.clipboardData).items
+    for (let index in items) {
+        const item = items[index]
+        if (item.kind === 'file') {
+            return item.getAsFile()
+        }
     }
-  }
 }
 send.addEventListener("pointerdown", function (e) {
     e.preventDefault()
