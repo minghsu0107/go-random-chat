@@ -23,7 +23,7 @@ Modern real-time random chat with high performance and linear scalability, writt
   - `chat`: messaging server
   - `uploader`: file uploader
 - Use gRPC for inter-service communication
-  - with retry, timeout, rate limiting, and circuit breaker
+  - with retry, timeout, and circuit breaker
 - Use [cobra](https://github.com/spf13/cobra) and [viper](https://github.com/spf13/viper) for CLI and configuration management respectively.
 - Dependency injection using [wire](https://github.com/google/wire).
 - Observability using [Golang Prometheus client](https://github.com/prometheus/client_golang) for monitoring and [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go) for tracing.
@@ -35,8 +35,9 @@ Modern real-time random chat with high performance and linear scalability, writt
   - [OAuth2 userinfo spec](https://any-api.com/googleapis_com/oauth2/docs/userinfo/oauth2_userinfo_get).
 - User matching with idempotency.
 - Chat channel authentication using JWT.
-- File uploads using object storage.
+- Store uploaded files in S3-compatible object storage.
 - Use [Traefik FowardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) for file upload authentication.
+- Protect file upload api with distributed rate limiting (token bucket algorithm).
 - Message seen feature.
 - Auto-scroll to the first unseen message.
 - Automatic websocket reconnection.
