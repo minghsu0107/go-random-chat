@@ -3,12 +3,15 @@ package uploader
 import (
 	"context"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
@@ -20,17 +23,33 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+type ChannelUploadRateLimiter struct {
+	*common.RateLimiter
+}
+
+func NewChannelUploadRateLimiter(rc redis.UniversalClient, config *config.Config) ChannelUploadRateLimiter {
+	return ChannelUploadRateLimiter{
+		common.NewRateLimiter(
+			rc,
+			config.Uploader.RateLimit.ChannelUpload.Rps,
+			config.Uploader.RateLimit.ChannelUpload.Burst,
+			time.Duration(config.Redis.ExpirationHour)*time.Hour,
+		),
+	}
+}
+
 type HttpServer struct {
-	name       string
-	logger     common.HttpLogrus
-	svr        *gin.Engine
-	s3Endpoint string
-	s3Bucket   string
-	maxMemory  int64
-	uploader   *manager.Uploader
-	httpPort   string
-	httpServer *http.Server
-	serveSwag  bool
+	name                     string
+	logger                   common.HttpLogrus
+	svr                      *gin.Engine
+	s3Endpoint               string
+	s3Bucket                 string
+	maxMemory                int64
+	uploader                 *manager.Uploader
+	httpPort                 string
+	httpServer               *http.Server
+	channelUploadRateLimiter ChannelUploadRateLimiter
+	serveSwag                bool
 }
 
 func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) *gin.Engine {
@@ -51,7 +70,7 @@ func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) 
 	return svr
 }
 
-func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine) common.HttpServer {
+func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine, channelUploadRateLimiter ChannelUploadRateLimiter) common.HttpServer {
 	s3Endpoint := config.Uploader.S3.Endpoint
 	s3Bucket := config.Uploader.S3.Bucket
 	creds := credentials.NewStaticCredentialsProvider(config.Uploader.S3.AccessKey, config.Uploader.S3.SecretKey, "")
@@ -71,15 +90,37 @@ func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config,
 	}
 
 	return &HttpServer{
-		name:       name,
-		logger:     logger,
-		svr:        svr,
-		s3Endpoint: s3Endpoint,
-		s3Bucket:   s3Bucket,
-		maxMemory:  config.Uploader.Http.Server.MaxMemoryByte,
-		uploader:   manager.NewUploader(s3.NewFromConfig(awsConfig)),
-		httpPort:   config.Uploader.Http.Server.Port,
-		serveSwag:  config.Uploader.Http.Server.Swag,
+		name:                     name,
+		logger:                   logger,
+		svr:                      svr,
+		s3Endpoint:               s3Endpoint,
+		s3Bucket:                 s3Bucket,
+		maxMemory:                config.Uploader.Http.Server.MaxMemoryByte,
+		uploader:                 manager.NewUploader(s3.NewFromConfig(awsConfig)),
+		httpPort:                 config.Uploader.Http.Server.Port,
+		channelUploadRateLimiter: channelUploadRateLimiter,
+		serveSwag:                config.Uploader.Http.Server.Swag,
+	}
+}
+
+func (r *HttpServer) ChannelUploadRateLimit() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
+		if !ok {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		allow, err := r.channelUploadRateLimiter.Allow(c.Request.Context(), strconv.FormatUint(channelID, 10))
+		if err != nil {
+			r.logger.Error(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+		if !allow {
+			c.AbortWithStatus(http.StatusTooManyRequests)
+			return
+		}
+		c.Next()
 	}
 }
 
@@ -94,10 +135,11 @@ func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config,
 func (r *HttpServer) RegisterRoutes() {
 	uploaderGroup := r.svr.Group("/api/uploader")
 	{
-		fileGroup := uploaderGroup.Group("/file")
-		fileGroup.Use(common.JWTForwardAuth())
+		uploadFileGroup := uploaderGroup.Group("/file")
+		uploadFileGroup.Use(common.JWTForwardAuth())
+		uploadFileGroup.Use(r.ChannelUploadRateLimit())
 		{
-			fileGroup.POST("", r.UploadFile)
+			uploadFileGroup.POST("", r.UploadFile)
 		}
 	}
 	if r.serveSwag {

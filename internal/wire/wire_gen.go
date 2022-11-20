@@ -143,7 +143,12 @@ func InitializeUploaderServer(name string) (*common.Server, error) {
 		return nil, err
 	}
 	engine := uploader.NewGinServer(name, httpLogrus, configConfig)
-	httpServer := uploader.NewHttpServer(name, httpLogrus, configConfig, engine)
+	universalClient, err := infra.NewRedisClient(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	channelUploadRateLimiter := uploader.NewChannelUploadRateLimiter(universalClient, configConfig)
+	httpServer := uploader.NewHttpServer(name, httpLogrus, configConfig, engine, channelUploadRateLimiter)
 	router := uploader.NewRouter(httpServer)
 	infraCloser := uploader.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)

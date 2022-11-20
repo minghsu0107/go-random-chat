@@ -46,6 +46,10 @@ uploader:
     bucket: myfilebucket
     accessKey: testaccesskey
     secretKey: testsecret
+  rateLimit:
+    channelUpload:
+      rps: 200
+      burst: 50
 user:
   http:
     server:

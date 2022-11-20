@@ -125,6 +125,8 @@ services:
       UPLOADER_S3_BUCKET: myfilebucket
       UPLOADER_S3_ACCESSKEY: testaccesskey
       UPLOADER_S3_SECRETKEY: testsecret
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_ADDRS: redis-node-0:6379,redis-node-1:6379,redis-node-2:6379,redis-node-3:6379,redis-node-4:6379,redis-node-5:6379
       OBSERVABILITY_PROMETHEUS_PORT: "8080"
       OBSERVABILITY_TRACING_JAEGERURL: http://jaeger:14268/api/traces
     labels:

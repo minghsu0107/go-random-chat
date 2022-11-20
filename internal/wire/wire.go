@@ -117,9 +117,11 @@ func InitializeUploaderServer(name string) (*common.Server, error) {
 		common.NewHttpLogrus,
 		uploader.NewGinServer,
 		uploader.NewHttpServer,
+		uploader.NewChannelUploadRateLimiter,
 		uploader.NewRouter,
 		uploader.NewInfraCloser,
 		common.NewServer,
+		infra.NewRedisClient,
 	)
 	return &common.Server{}, nil
 }

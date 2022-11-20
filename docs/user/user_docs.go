@@ -230,6 +230,9 @@ const docTemplateuser = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "picture": {
+                    "type": "string"
                 }
             }
         }

@@ -73,6 +73,11 @@ type MatchConfig struct {
 	}
 }
 
+type RateLimitConfig struct {
+	Rps   int
+	Burst int
+}
+
 type UploaderConfig struct {
 	Http struct {
 		Server struct {
@@ -88,6 +93,9 @@ type UploaderConfig struct {
 		Bucket    string
 		AccessKey string
 		SecretKey string
+	}
+	RateLimit struct {
+		ChannelUpload RateLimitConfig
 	}
 }
 
@@ -184,6 +192,8 @@ func setDefault() {
 	viper.SetDefault("uploader.s3.bucket", "myfilebucket")
 	viper.SetDefault("uploader.s3.accessKey", "")
 	viper.SetDefault("uploader.s3.secretKey", "")
+	viper.SetDefault("uploader.rateLimit.channelUpload.rps", 200)
+	viper.SetDefault("uploader.rateLimit.channelUpload.burst", 50)
 
 	viper.SetDefault("user.http.server.port", "5004")
 	viper.SetDefault("user.http.server.swag", false)

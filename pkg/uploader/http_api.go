@@ -50,7 +50,7 @@ func (r *HttpServer) UploadFile(c *gin.Context) {
 	newFileName := newObjectKey(channelID, extension)
 	if err := r.putFileToS3(c.Request.Context(), r.s3Bucket, newFileName, f); err != nil {
 		r.logger.Error(err)
-		response(c, http.StatusServiceUnavailable, ErrUploadFile)
+		response(c, http.StatusInternalServerError, ErrUploadFile)
 		return
 	}
 

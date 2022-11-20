@@ -21,8 +21,7 @@ var (
 	// ErrRedisPipelineCmdNotFound is redis command not found error
 	ErrRedisPipelineCmdNotFound = errors.New("redis pipeline command not found; supports only SET and DELETE")
 
-	expirationHour int64
-	expiration     time.Duration
+	expiration time.Duration
 )
 
 // RedisCache is the interface of redis cache
@@ -103,8 +102,7 @@ type RedisPipelineCmd struct {
 }
 
 func NewRedisClient(config *config.Config) (redis.UniversalClient, error) {
-	expirationHour = config.Redis.ExpirationHour
-	expiration = time.Duration(expirationHour) * time.Hour
+	expiration = time.Duration(config.Redis.ExpirationHour) * time.Hour
 	RedisClient = redis.NewClusterClient(&redis.ClusterOptions{
 		Addrs:          common.GetServerAddrs(config.Redis.Addrs),
 		Password:       config.Redis.Password,
