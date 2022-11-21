@@ -44,7 +44,7 @@ Modern real-time random chat with high performance and linear scalability, writt
 - Responsive web design.
 
 ### System architecture
-In a microservice architecture, each service holds its own data within a dedicated database and will never share states with others via database. Even though we use the same Redis for multiple services, we are sure that they will not conflict with each other as we have prefixed their Redis cache keys respectively.
+In a microservice architecture, each service holds its own data within a dedicated database and will not share database with each other. Even though we use the same Redis for multiple services, we are sure that they will not conflict with each other as we have prefixed their Redis cache keys.
 
 <img width="807" alt="image" src="https://user-images.githubusercontent.com/50090692/160285139-81fc63ad-76ef-41a7-8b33-c67f633f738d.png">
 
