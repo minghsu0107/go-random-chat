@@ -41,6 +41,7 @@ Modern real-time random chat with high performance and linear scalability, writt
 - Protect file upload api with distributed rate limiting (token bucket algorithm).
 - Message seen feature.
 - Auto-scroll to the first unseen message.
+- Persist chat history on browser close or page refresh.
 - Automatic websocket reconnection.
 - Responsive web design.
 
