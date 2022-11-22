@@ -36,6 +36,7 @@ Modern real-time random chat with high performance and linear scalability, writt
 - User matching with idempotency.
 - Chat channel authentication using JWT.
 - Store uploaded files in S3-compatible object storage.
+- Support uploading image from clipboard.
 - Use [Traefik FowardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) for file upload authentication.
 - Protect file upload api with distributed rate limiting (token bucket algorithm).
 - Message seen feature.
