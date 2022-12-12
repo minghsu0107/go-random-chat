@@ -59,6 +59,10 @@ Prerequisite:
 
 First, [create OAuth client ID credentials](https://developers.google.com/workspace/guides/create-credentials#web-application) and replace `USER_OAUTH_GOOGLE_CLIENTID` and `USER_OAUTH_GOOGLE_CLIENTSECRET` with your credentials in `run.sh`.
 
+Example setting:
+
+![image](https://user-images.githubusercontent.com/50090692/207066730-cbfd869e-9658-46ea-94a9-c3c329cd5731.png)
+
 To run locally, execute the following command:
 ```bash
 cd deployments
