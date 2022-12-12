@@ -61,7 +61,7 @@ First, [create OAuth client ID credentials](https://developers.google.com/worksp
 
 Example setting:
 
-![image](https://user-images.githubusercontent.com/50090692/207066730-cbfd869e-9658-46ea-94a9-c3c329cd5731.png)
+<img src="https://user-images.githubusercontent.com/50090692/207066730-cbfd869e-9658-46ea-94a9-c3c329cd5731.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/207066730-cbfd869e-9658-46ea-94a9-c3c329cd5731.png" width="40%" height="40%" />
 
 To run locally, execute the following command:
 ```bash
