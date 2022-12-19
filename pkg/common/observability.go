@@ -52,10 +52,21 @@ func (injector *ObservabilityInjector) Register(service string) error {
 	return nil
 }
 
+func otelReqFilter(req *http.Request) bool {
+	filters := []string{"/metrics", "/", "/healthcheck"}
+	for _, filter := range filters {
+		if filter == req.URL.Path {
+			return false
+		}
+	}
+	return true
+}
+
 func NewOtelHttpHandler(h http.Handler, operation string) http.Handler {
 	httpOptions := []otelhttp.Option{
 		otelhttp.WithTracerProvider(otel.GetTracerProvider()),
 		otelhttp.WithPropagators(otel.GetTextMapPropagator()),
+		otelhttp.WithFilter(otelReqFilter),
 	}
 	return otelhttp.NewHandler(h, operation, httpOptions...)
 }
