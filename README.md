@@ -33,7 +33,6 @@ Modern real-time random chat with high performance and linear scalability, writt
 - Automatically generate RESTful API documentation with Swagger 2.0.
 - User login session management using http-only cookie.
 - Support Google OAuth2 login.
-  - [OAuth2 userinfo spec](https://any-api.com/googleapis_com/oauth2/docs/userinfo/oauth2_userinfo_get).
 - User matching with idempotency.
 - Chat channel authentication using JWT.
 - Store uploaded files in S3-compatible object storage.
