@@ -4,7 +4,7 @@
 
 Modern real-time random chat with high performance and linear scalability, written in go. 
 
-Kafka is used for message Pub/Sub. Please checkout [this branch](https://github.com/minghsu0107/go-random-chat/tree/redis) for the Redis Pub/Sub version.
+Kafka is used for message Pub/Sub. Checkout [this branch](https://github.com/minghsu0107/go-random-chat/tree/redis) for the Redis Pub/Sub version.
 
 ## Overview
 
