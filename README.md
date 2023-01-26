@@ -5,16 +5,12 @@
 Modern real-time random chat with high performance and linear scalability, written in go. 
 
 Kafka is used for message Pub/Sub. Please checkout [this branch](https://github.com/minghsu0107/go-random-chat/tree/redis) for the Redis Pub/Sub version.
-## Screenshots
-<img src="https://user-images.githubusercontent.com/50090692/202243227-022dfe85-c36c-49d0-a46d-7db1d2bae16f.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/202243227-022dfe85-c36c-49d0-a46d-7db1d2bae16f.png" width="50%" height="50%" />
-
-<img src="https://i.imgur.com/4ctofQv.png" alt="" data-canonical-src="https://i.imgur.com/4ctofQv.png" width="40%" height="40%" />
-
-<img src="https://user-images.githubusercontent.com/50090692/157266585-90082195-0517-47a2-a1ef-20d72fa3a3e6.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/157266585-90082195-0517-47a2-a1ef-20d72fa3a3e6.png" width="40%" height="40%" />
-
-<img src="https://user-images.githubusercontent.com/50090692/156815192-11a251fb-32ee-4888-b79c-aa64c97b407d.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/156815192-11a251fb-32ee-4888-b79c-aa64c97b407d.png" width="40%" height="40%" />
 
 ## Overview
+
+### System architecture
+
+<img width="807" alt="image" src="https://user-images.githubusercontent.com/50090692/160285139-81fc63ad-76ef-41a7-8b33-c67f633f738d.png">
 
 ### Features
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
@@ -47,10 +43,14 @@ Kafka is used for message Pub/Sub. Please checkout [this branch](https://github.
 - Automatic websocket reconnection.
 - Responsive web design.
 
-### System architecture
-In a microservice architecture, each service holds its own data within a dedicated database and will not share its database with others. Even though we used the same Redis cluster for multiple services, we did not violate this pattern as all services acess only their own Redis keys.
+### Screenshots
+<img src="https://user-images.githubusercontent.com/50090692/202243227-022dfe85-c36c-49d0-a46d-7db1d2bae16f.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/202243227-022dfe85-c36c-49d0-a46d-7db1d2bae16f.png" width="50%" height="50%" />
 
-<img width="807" alt="image" src="https://user-images.githubusercontent.com/50090692/160285139-81fc63ad-76ef-41a7-8b33-c67f633f738d.png">
+<img src="https://i.imgur.com/4ctofQv.png" alt="" data-canonical-src="https://i.imgur.com/4ctofQv.png" width="40%" height="40%" />
+
+<img src="https://user-images.githubusercontent.com/50090692/157266585-90082195-0517-47a2-a1ef-20d72fa3a3e6.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/157266585-90082195-0517-47a2-a1ef-20d72fa3a3e6.png" width="40%" height="40%" />
+
+<img src="https://user-images.githubusercontent.com/50090692/156815192-11a251fb-32ee-4888-b79c-aa64c97b407d.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/156815192-11a251fb-32ee-4888-b79c-aa64c97b407d.png" width="40%" height="40%" />
 
 ## Getting Started
 
