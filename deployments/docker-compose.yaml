@@ -209,7 +209,7 @@ services:
       - 14268:14268
       - 16686:16686
   redis-node-0:
-    image: docker.io/bitnami/redis-cluster:6.2.7
+    image: docker.io/bitnami/redis-cluster:7.0
     restart: always
     volumes:
       - redis-cluster_data-0:/bitnami/redis/data
@@ -218,7 +218,7 @@ services:
       - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
 
   redis-node-1:
-    image: docker.io/bitnami/redis-cluster:6.2.7
+    image: docker.io/bitnami/redis-cluster:7.0
     restart: always
     volumes:
       - redis-cluster_data-1:/bitnami/redis/data
@@ -227,7 +227,7 @@ services:
       - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
 
   redis-node-2:
-    image: docker.io/bitnami/redis-cluster:6.2.7
+    image: docker.io/bitnami/redis-cluster:7.0
     restart: always
     volumes:
       - redis-cluster_data-2:/bitnami/redis/data
@@ -236,7 +236,7 @@ services:
       - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
 
   redis-node-3:
-    image: docker.io/bitnami/redis-cluster:6.2.7
+    image: docker.io/bitnami/redis-cluster:7.0
     restart: always
     volumes:
       - redis-cluster_data-3:/bitnami/redis/data
@@ -245,7 +245,7 @@ services:
       - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
 
   redis-node-4:
-    image: docker.io/bitnami/redis-cluster:6.2.7
+    image: docker.io/bitnami/redis-cluster:7.0
     restart: always
     volumes:
       - redis-cluster_data-4:/bitnami/redis/data
@@ -254,7 +254,7 @@ services:
       - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
 
   redis-node-5:
-    image: docker.io/bitnami/redis-cluster:6.2.7
+    image: docker.io/bitnami/redis-cluster:7.0
     restart: always
     volumes:
       - redis-cluster_data-5:/bitnami/redis/data
