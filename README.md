@@ -1,5 +1,6 @@
 # Go Random Chat
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/minghsu0107/go-random-chat?label=Version&sort=semver)
+![CI status api](https://github.com/minghsu0107/go-random-chat/actions/workflows/docker-api-dev.yml/badge.svg)
 
 Modern real-time random chat with high performance and linear scalability, written in go. 
 
