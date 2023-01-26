@@ -6,8 +6,7 @@ definitions:
         type: string
     type: object
   gin.H:
-    additionalProperties:
-      type: any
+    additionalProperties: {}
     type: object
 info:
   contact:
@@ -17,7 +16,7 @@ info:
   title: Uploader Service Swagger API
   version: "2.0"
 paths:
-  /uploader/file:
+  /uploader/files:
     post:
       consumes:
       - multipart/form-data

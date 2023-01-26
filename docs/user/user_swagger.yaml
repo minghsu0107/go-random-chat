@@ -132,7 +132,7 @@ paths:
       description: OAuth Google callback endpoint
       responses:
         "307":
-          description: ""
+          description: Temporary Redirect
         "500":
           description: Internal Server Error
           schema:
@@ -145,7 +145,7 @@ paths:
       description: OAuth Google login endpoint
       responses:
         "307":
-          description: ""
+          description: Temporary Redirect
       summary: OAuth Google login
       tags:
       - user

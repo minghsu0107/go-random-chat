@@ -11,7 +11,7 @@
     },
     "basePath": "/api",
     "paths": {
-        "/uploader/file": {
+        "/uploader/files": {
             "post": {
                 "description": "Upload files to S3 bucket",
                 "consumes": [
@@ -84,9 +84,7 @@
         },
         "gin.H": {
             "type": "object",
-            "additionalProperties": {
-                "type": "any"
-            }
+            "additionalProperties": {}
         }
     }
 }

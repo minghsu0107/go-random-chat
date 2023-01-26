@@ -168,7 +168,7 @@
                 "summary": "OAuth Google callback",
                 "responses": {
                     "307": {
-                        "description": ""
+                        "description": "Temporary Redirect"
                     },
                     "500": {
                         "description": "Internal Server Error",
@@ -188,7 +188,7 @@
                 "summary": "OAuth Google login",
                 "responses": {
                     "307": {
-                        "description": ""
+                        "description": "Temporary Redirect"
                     }
                 }
             }
