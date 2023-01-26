@@ -1,8 +1,9 @@
-# Go Random Chat (Kafka version)
+# Go Random Chat
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/minghsu0107/go-random-chat?label=Version&sort=semver)
 
-Modern real-time random chat with high performance and linear scalability, written in go.
+Modern real-time random chat with high performance and linear scalability, written in go. 
 
+Kafka is used for message Pub/Sub. Please checkout [this branch](https://github.com/minghsu0107/go-random-chat/tree/redis) for the Redis Pub/Sub version.
 ## Screenshots
 <img src="https://user-images.githubusercontent.com/50090692/202243227-022dfe85-c36c-49d0-a46d-7db1d2bae16f.png" alt="" data-canonical-src="https://user-images.githubusercontent.com/50090692/202243227-022dfe85-c36c-49d0-a46d-7db1d2bae16f.png" width="50%" height="50%" />
 
