@@ -35,6 +35,11 @@ type ChannelService interface {
 	DeleteChannel(ctx context.Context, channelID uint64) error
 }
 
+type ForwardService interface {
+	RegisterChannelSession(ctx context.Context, channelID, userID uint64, subscriber string) error
+	RemoveChannelSession(ctx context.Context, channelID, userID uint64) error
+}
+
 type MessageServiceImpl struct {
 	msgRepo  MessageRepoCache
 	userRepo UserRepoCache
@@ -235,4 +240,19 @@ func (svc *ChannelServiceImpl) DeleteChannel(ctx context.Context, channelID uint
 		return fmt.Errorf("error delete channel %d: %w", channelID, err)
 	}
 	return nil
+}
+
+type ForwardServiceImpl struct {
+	forwardRepo ForwardRepo
+}
+
+func NewForwardService(forwardRepo ForwardRepo) ForwardService {
+	return &ForwardServiceImpl{forwardRepo}
+}
+
+func (svc *ForwardServiceImpl) RegisterChannelSession(ctx context.Context, channelID, userID uint64, subscriber string) error {
+	return svc.forwardRepo.RegisterChannelSession(ctx, channelID, userID, subscriber)
+}
+func (svc *ForwardServiceImpl) RemoveChannelSession(ctx context.Context, channelID, userID uint64) error {
+	return svc.forwardRepo.RemoveChannelSession(ctx, channelID, userID)
 }

@@ -38,6 +38,7 @@ type HttpServer struct {
 	userSvc       UserService
 	msgSvc        MessageService
 	chanSvc       ChannelService
+	forwardSvc    ForwardService
 	serveSwag     bool
 }
 
@@ -68,7 +69,7 @@ func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) 
 	return svr
 }
 
-func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine, mc MelodyChatConn, msgSubscriber *MessageSubscriber, userSvc UserService, msgSvc MessageService, chanSvc ChannelService) common.HttpServer {
+func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine, mc MelodyChatConn, msgSubscriber *MessageSubscriber, userSvc UserService, msgSvc MessageService, chanSvc ChannelService, forwardSvc ForwardService) common.HttpServer {
 	initJWT(config)
 
 	return &HttpServer{
@@ -81,6 +82,7 @@ func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config,
 		userSvc:       userSvc,
 		msgSvc:        msgSvc,
 		chanSvc:       chanSvc,
+		forwardSvc:    forwardSvc,
 		serveSwag:     config.Chat.Http.Server.Swag,
 	}
 }
@@ -99,6 +101,8 @@ func initJWT(config *config.Config) {
 
 // @BasePath  /api
 func (r *HttpServer) RegisterRoutes() {
+	r.msgSubscriber.RegisterHandler()
+
 	chatGroup := r.svr.Group("/api/chat")
 	{
 		chatGroup.GET("", r.StartChat)

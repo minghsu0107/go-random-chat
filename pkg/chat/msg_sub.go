@@ -4,25 +4,28 @@ import (
 	"context"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/minghsu0107/go-random-chat/pkg/config"
 	"github.com/minghsu0107/go-random-chat/pkg/infra"
 	"gopkg.in/olahol/melody.v1"
 )
 
 type MessageSubscriber struct {
-	router *message.Router
-	sub    message.Subscriber
-	m      MelodyChatConn
+	subscriberID string
+	router       *message.Router
+	sub          message.Subscriber
+	m            MelodyChatConn
 }
 
-func NewMessageSubscriber(name string, sub message.Subscriber, m MelodyChatConn) (*MessageSubscriber, error) {
+func NewMessageSubscriber(name string, config *config.Config, sub message.Subscriber, m MelodyChatConn) (*MessageSubscriber, error) {
 	router, err := infra.NewBrokerRouter(name)
 	if err != nil {
 		return nil, err
 	}
 	return &MessageSubscriber{
-		router: router,
-		sub:    sub,
-		m:      m,
+		subscriberID: config.Chat.Subscriber.Id,
+		router:       router,
+		sub:          sub,
+		m:            m,
 	}, nil
 }
 
@@ -37,14 +40,13 @@ func (s *MessageSubscriber) HandleMessage(msg *message.Message) error {
 func (s *MessageSubscriber) RegisterHandler() {
 	s.router.AddNoPublisherHandler(
 		"randomchat_message_handler",
-		messagePubSubTopic,
+		s.subscriberID,
 		s.sub,
 		s.HandleMessage,
 	)
 }
 
 func (s *MessageSubscriber) Run() error {
-	s.RegisterHandler()
 	return s.router.Run(context.Background())
 }
 

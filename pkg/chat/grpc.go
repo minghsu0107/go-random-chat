@@ -71,3 +71,20 @@ func NewUserClientConn(config *config.Config) (*UserClientConn, error) {
 	}
 	return UserConn, nil
 }
+
+var ForwarderConn *ForwarderClientConn
+
+type ForwarderClientConn struct {
+	Conn *grpc.ClientConn
+}
+
+func NewForwarderClientConn(config *config.Config) (*ForwarderClientConn, error) {
+	conn, err := transport.InitializeGrpcClient(config.Chat.Grpc.Client.Forwarder.Endpoint)
+	if err != nil {
+		return nil, err
+	}
+	ForwarderConn = &ForwarderClientConn{
+		Conn: conn,
+	}
+	return ForwarderConn, nil
+}

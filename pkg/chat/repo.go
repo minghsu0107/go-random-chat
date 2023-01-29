@@ -13,11 +13,12 @@ import (
 
 	"github.com/go-kit/kit/endpoint"
 	"github.com/minghsu0107/go-random-chat/pkg/transport"
+	forwarderpb "github.com/minghsu0107/go-random-chat/proto/forwarder"
 	userpb "github.com/minghsu0107/go-random-chat/proto/user"
 )
 
 var (
-	messagePubSubTopic = "rc_msg"
+	MessagePubTopic = "rc.msg.pub"
 )
 
 type UserRepo interface {
@@ -36,6 +37,11 @@ type MessageRepo interface {
 type ChannelRepo interface {
 	CreateChannel(ctx context.Context, channelID uint64) (*Channel, error)
 	DeleteChannel(ctx context.Context, channelID uint64) error
+}
+
+type ForwardRepo interface {
+	RegisterChannelSession(ctx context.Context, channelID, userID uint64, subscriber string) error
+	RemoveChannelSession(ctx context.Context, channelID, userID uint64) error
 }
 
 type UserRepoImpl struct {
@@ -136,7 +142,7 @@ func (repo *MessageRepoImpl) MarkMessageSeen(ctx context.Context, channelID, mes
 	return nil
 }
 func (repo *MessageRepoImpl) PublishMessage(ctx context.Context, msg *Message) error {
-	return repo.p.Publish(messagePubSubTopic, message.NewMessage(
+	return repo.p.Publish(MessagePubTopic, message.NewMessage(
 		watermill.NewUUID(),
 		msg.Encode(),
 	))
@@ -198,6 +204,53 @@ func (repo *ChannelRepoImpl) CreateChannel(ctx context.Context, channelID uint64
 func (repo *ChannelRepoImpl) DeleteChannel(ctx context.Context, channelID uint64) error {
 	if err := repo.s.Query("DELETE FROM channels WHERE id = ?", channelID).
 		WithContext(ctx).Exec(); err != nil {
+		return err
+	}
+	return nil
+}
+
+type ForwardRepoImpl struct {
+	registerChannelSession endpoint.Endpoint
+	removeChannelSession   endpoint.Endpoint
+}
+
+func NewForwardRepo(forwarderConn *ForwarderClientConn) ForwardRepo {
+	return &ForwardRepoImpl{
+		registerChannelSession: transport.NewGrpcEndpoint(
+			forwarderConn.Conn,
+			"forwarder",
+			"forwarder.ForwardService",
+			"RegisterChannelSession",
+			&forwarderpb.RegisterChannelSessionResponse{},
+		),
+		removeChannelSession: transport.NewGrpcEndpoint(
+			forwarderConn.Conn,
+			"forwarder",
+			"forwarder.ForwardService",
+			"RemoveChannelSession",
+			&forwarderpb.RemoveChannelSessionResponse{},
+		),
+	}
+}
+
+func (repo *ForwardRepoImpl) RegisterChannelSession(ctx context.Context, channelID, userID uint64, subscriber string) error {
+	_, err := repo.registerChannelSession(ctx, &forwarderpb.RegisterChannelSessionRequest{
+		ChannelId:  channelID,
+		UserId:     userID,
+		Subscriber: subscriber,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repo *ForwardRepoImpl) RemoveChannelSession(ctx context.Context, channelID, userID uint64) error {
+	_, err := repo.removeChannelSession(ctx, &forwarderpb.RemoveChannelSessionRequest{
+		ChannelId: channelID,
+		UserId:    userID,
+	})
+	if err != nil {
 		return err
 	}
 	return nil
