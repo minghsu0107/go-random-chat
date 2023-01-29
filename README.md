@@ -19,7 +19,7 @@ Kafka is used for message Pub/Sub. Checkout [this branch](https://github.com/min
   - `user`: user account server
   - `match`: user matching server
   - `chat`: messaging server
-    - `forwarder`: message forwarding server that maps message receivers to specific `chat` servers
+  - `forwarder`: message forwarding server that maps message receivers to specific `chat` servers
   - `uploader`: file uploader
 - Use gRPC for inter-service communication
   - with retry, timeout, and circuit breaker
