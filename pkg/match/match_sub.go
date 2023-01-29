@@ -47,7 +47,6 @@ func (s *MatchSubscriber) RegisterHandler() {
 }
 
 func (s *MatchSubscriber) Run() error {
-	s.RegisterHandler()
 	return s.router.Run(context.Background())
 }
 
