@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	matchPubSubTopic = "rc_match"
+	matchPubSubTopic = "rc.match"
 	userWaitList     = "rc:userwait"
 )
 
