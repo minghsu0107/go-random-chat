@@ -73,6 +73,7 @@ sudo ./run.sh start
 
 Check cassandra connection:
 ```
+docker exec deployments-cassandra-1 bash -c "cat /opt/bitnami/cassandra/logs/cassandra.log"
 docker exec deployments-cassandra-1 bash -c "cqlsh -u ming -p cassandrapass"
 ```
 This will spin up all services declared in `docker-compose.yaml`. Visit `http://localhost` and you will see the application home page.
