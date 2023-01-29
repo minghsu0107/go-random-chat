@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package forwarder;
+
+option go_package = "proto/forwarder;forwarder";
+
+message RegisterChannelSessionRequest {
+    uint64 channel_id = 1;
+    uint64 user_id = 2;
+    string subscriber = 3;
+}
+
+message RegisterChannelSessionResponse {
+}
+
+message RemoveChannelSessionRequest {
+    uint64 channel_id = 1;
+    uint64 user_id = 2;
+}
+
+message RemoveChannelSessionResponse {
+}
+
+service ForwardService {
+    rpc RegisterChannelSession (RegisterChannelSessionRequest) returns (RegisterChannelSessionResponse) {};
+    rpc RemoveChannelSession (RemoveChannelSessionRequest) returns (RemoveChannelSessionResponse) {};
+}
