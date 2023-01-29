@@ -10,6 +10,7 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/chat"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
+	"github.com/minghsu0107/go-random-chat/pkg/forwarder"
 	"github.com/minghsu0107/go-random-chat/pkg/infra"
 	"github.com/minghsu0107/go-random-chat/pkg/match"
 	"github.com/minghsu0107/go-random-chat/pkg/uploader"
@@ -46,7 +47,7 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	messageSubscriber, err := chat.NewMessageSubscriber(name, subscriber, melodyChatConn)
+	messageSubscriber, err := chat.NewMessageSubscriber(name, configConfig, subscriber, melodyChatConn)
 	if err != nil {
 		return nil, err
 	}
@@ -80,11 +81,50 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	channelRepo := chat.NewChannelRepo(session)
 	channelRepoCache := chat.NewChannelRepoCache(redisCache, channelRepo)
 	channelService := chat.NewChannelService(channelRepoCache, userRepoCache, idGenerator)
-	httpServer := chat.NewHttpServer(name, httpLogrus, configConfig, engine, melodyChatConn, messageSubscriber, userService, messageService, channelService)
+	forwarderClientConn, err := chat.NewForwarderClientConn(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	forwardRepo := chat.NewForwardRepo(forwarderClientConn)
+	forwardService := chat.NewForwardService(forwardRepo)
+	httpServer := chat.NewHttpServer(name, httpLogrus, configConfig, engine, melodyChatConn, messageSubscriber, userService, messageService, channelService, forwardService)
 	grpcLogrus := common.NewGrpcLogrus()
 	grpcServer := chat.NewGrpcServer(grpcLogrus, configConfig, userService, channelService)
 	router := chat.NewRouter(httpServer, grpcServer)
 	infraCloser := chat.NewInfraCloser()
+	observabilityInjector := common.NewObservabilityInjector(configConfig)
+	server := common.NewServer(name, router, infraCloser, observabilityInjector)
+	return server, nil
+}
+
+func InitializeForwarderServer(name string) (*common.Server, error) {
+	grpcLogrus := common.NewGrpcLogrus()
+	configConfig, err := config.NewConfig()
+	if err != nil {
+		return nil, err
+	}
+	universalClient, err := infra.NewRedisClient(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	redisCache := infra.NewRedisCache(universalClient)
+	publisher, err := infra.NewKafkaPublisher(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	forwardRepo := forwarder.NewForwardRepo(redisCache, publisher)
+	forwardService := forwarder.NewForwardService(forwardRepo)
+	subscriber, err := infra.NewKafkaSubscriber(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	messageSubscriber, err := forwarder.NewMessageSubscriber(name, subscriber, forwardService)
+	if err != nil {
+		return nil, err
+	}
+	grpcServer := forwarder.NewGrpcServer(grpcLogrus, configConfig, forwardService, messageSubscriber)
+	router := forwarder.NewRouter(grpcServer)
+	infraCloser := forwarder.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)
 	server := common.NewServer(name, router, infraCloser, observabilityInjector)
 	return server, nil
