@@ -1,12 +1,15 @@
 package config
 
 import (
+	"os"
+
 	"github.com/spf13/viper"
 )
 
 type Config struct {
 	Web           *WebConfig           `mapstructure:"web"`
 	Chat          *ChatConfig          `mapstructure:"chat"`
+	Forwarder     *ForwarderConfig     `mapstructure:"forwarder"`
 	Match         *MatchConfig         `mapstructure:"match"`
 	Uploader      *UploaderConfig      `mapstructure:"uploader"`
 	User          *UserConfig          `mapstructure:"user"`
@@ -40,7 +43,13 @@ type ChatConfig struct {
 			User struct {
 				Endpoint string
 			}
+			Forwarder struct {
+				Endpoint string
+			}
 		}
+	}
+	Subscriber struct {
+		Id string
 	}
 	Message struct {
 		MaxNum        int64
@@ -50,6 +59,14 @@ type ChatConfig struct {
 	JWT struct {
 		Secret           string
 		ExpirationSecond int64
+	}
+}
+
+type ForwarderConfig struct {
+	Grpc struct {
+		Server struct {
+			Port string
+		}
 	}
 }
 
@@ -171,6 +188,8 @@ func setDefault() {
 	viper.SetDefault("chat.http.server.swag", false)
 	viper.SetDefault("chat.grpc.server.port", "4000")
 	viper.SetDefault("chat.grpc.client.user.endpoint", "localhost:4001")
+	viper.SetDefault("chat.grpc.client.forwarder.endpoint", "localhost:4002")
+	viper.SetDefault("chat.subscriber.id", os.Getenv("HOSTNAME"))
 	viper.SetDefault("chat.message.maxNum", 5000)
 	viper.SetDefault("chat.message.paginationNum", 5000)
 	viper.SetDefault("chat.message.maxSizeByte", 4096)
@@ -208,6 +227,8 @@ func setDefault() {
 	viper.SetDefault("user.auth.cookie.maxAge", 86400)
 	viper.SetDefault("user.auth.cookie.path", "/")
 	viper.SetDefault("user.auth.cookie.domain", "localhost")
+
+	viper.SetDefault("forwarder.grpc.server.port", "4002")
 
 	viper.SetDefault("kafka.addrs", "localhost:9092")
 	viper.SetDefault("kafka.version", "1.0.0")

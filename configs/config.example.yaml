@@ -14,6 +14,10 @@ chat:
     client:
       user:
         endpoint: "localhost:4001"
+      forwarder:
+        endpoint: "localhost:4002"
+  subscriber:
+    id: mychatserver
   message:
     maxNum: 5000
     paginationNum: 5000
@@ -21,6 +25,10 @@ chat:
   jwt:
     secret: mysecret
     expirationSecond: 86400
+forwarder:
+  grpc:
+    server:
+      port: "4002" 
 match:
   http:
     server:
