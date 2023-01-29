@@ -269,6 +269,9 @@ func (r *HttpServer) initializeChatSession(sess *melody.Session, channelID, user
 	if err := r.userSvc.AddOnlineUser(ctx, channelID, userID); err != nil {
 		return err
 	}
+	if err := r.forwardSvc.RegisterChannelSession(ctx, channelID, userID, r.msgSubscriber.subscriberID); err != nil {
+		return err
+	}
 	sess.Set(sessCidKey, channelID)
 	return nil
 }
@@ -331,6 +334,11 @@ func (r *HttpServer) HandleChatOnClose(sess *melody.Session, i int, s string) er
 	}
 	channelID := authResult.ChannelID
 	err = r.userSvc.DeleteOnlineUser(context.Background(), channelID, userID)
+	if err != nil {
+		r.logger.Error(err)
+		return err
+	}
+	err = r.forwardSvc.RemoveChannelSession(context.Background(), channelID, userID)
 	if err != nil {
 		r.logger.Error(err)
 		return err

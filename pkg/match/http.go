@@ -105,6 +105,8 @@ func (r *HttpServer) CookieAuth() gin.HandlerFunc {
 
 // @BasePath  /api
 func (r *HttpServer) RegisterRoutes() {
+	r.matchSubscriber.RegisterHandler()
+
 	matchGroup := r.svr.Group("/api/match")
 	{
 		cookieAuthGroup := matchGroup.Group("")

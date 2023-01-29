@@ -9,6 +9,7 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/chat"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
+	"github.com/minghsu0107/go-random-chat/pkg/forwarder"
 	"github.com/minghsu0107/go-random-chat/pkg/infra"
 	"github.com/minghsu0107/go-random-chat/pkg/match"
 	"github.com/minghsu0107/go-random-chat/pkg/uploader"
@@ -46,10 +47,12 @@ func InitializeChatServer(name string) (*common.Server, error) {
 		infra.NewCassandraSession,
 
 		chat.NewUserClientConn,
+		chat.NewForwarderClientConn,
 
 		chat.NewUserRepo,
 		chat.NewMessageRepo,
 		chat.NewChannelRepo,
+		chat.NewForwardRepo,
 
 		chat.NewUserRepoCache,
 		chat.NewMessageRepoCache,
@@ -62,6 +65,7 @@ func InitializeChatServer(name string) (*common.Server, error) {
 		chat.NewUserService,
 		chat.NewMessageService,
 		chat.NewChannelService,
+		chat.NewForwardService,
 
 		chat.NewMelodyChatConn,
 
@@ -70,6 +74,32 @@ func InitializeChatServer(name string) (*common.Server, error) {
 		chat.NewGrpcServer,
 		chat.NewRouter,
 		chat.NewInfraCloser,
+		common.NewServer,
+	)
+	return &common.Server{}, nil
+}
+
+func InitializeForwarderServer(name string) (*common.Server, error) {
+	wire.Build(
+		config.NewConfig,
+		common.NewObservabilityInjector,
+		common.NewGrpcLogrus,
+
+		infra.NewRedisClient,
+		infra.NewRedisCache,
+
+		infra.NewKafkaPublisher,
+		infra.NewKafkaSubscriber,
+
+		forwarder.NewForwardRepo,
+
+		forwarder.NewForwardService,
+
+		forwarder.NewMessageSubscriber,
+
+		forwarder.NewGrpcServer,
+		forwarder.NewRouter,
+		forwarder.NewInfraCloser,
 		common.NewServer,
 	)
 	return &common.Server{}, nil
