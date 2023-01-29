@@ -16,6 +16,9 @@ scrape_configs:
   - job_name: 'chat_monitor'
     static_configs:
     - targets: ['deployments-random-chat-1:8080','deployments-random-chat-2:8080','deployments-random-chat-3:8080']
+  - job_name: 'forwarder_monitor'
+    static_configs:
+    - targets: ['deployments-forwarder-1:8080']
   - job_name: 'uploader_monitor'
     static_configs:
     - targets: ['deployments-uploader-1:8080']
