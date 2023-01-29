@@ -49,6 +49,7 @@ services:
       CHAT_HTTP_SERVER_SWAG: "true"
       CHAT_GRPC_SERVER_PORT: "4000"
       CHAT_GRPC_CLIENT_USER_ENDPOINT: "reverse-proxy:80"
+      CHAT_GRPC_CLIENT_FORWARDER_ENDPOINT: "reverse-proxy:80"
       CHAT_MESSAGE_MAXNUM: "5000"
       CHAT_MESSAGE_PAGINATIONNUM: "5000"
       CHAT_MESSAGE_MAXSIZEBYTE: "4096"
@@ -77,6 +78,32 @@ services:
       - "traefik.http.routers.random-chat-grpc.service=random-chat-grpc"
       - "traefik.http.services.random-chat-grpc.loadbalancer.server.port=4000"
       - "traefik.http.services.random-chat-grpc.loadbalancer.server.scheme=h2c"
+    depends_on:
+      - zookeeper
+      - kafka
+  forwarder:
+    image: minghsu0107/random-chat-api:kafka
+    restart: always
+    expose:
+      - "4000"
+    command:
+      - forwarder
+    environment:
+      FORWARDER_GRPC_SERVER_PORT: "4000"
+      KAFKA_ADDRS: kafka:9092
+      KAFKA_VERSION: "3.0.1"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_ADDRS: redis-node-0:6379,redis-node-1:6379,redis-node-2:6379,redis-node-3:6379,redis-node-4:6379,redis-node-5:6379
+      REDIS_EXPIRATIONHOUR: "24"
+      OBSERVABILITY_PROMETHEUS_PORT: "8080"
+      OBSERVABILITY_TRACING_JAEGERURL: http://jaeger:14268/api/traces
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.forwarder-grpc.rule=Headers(`content-type`,`application/grpc`) && Headers(`service-id`, `forwarder`)"
+      - "traefik.http.routers.forwarder-grpc.entrypoints=web"
+      - "traefik.http.routers.forwarder-grpc.service=forwarder-grpc"
+      - "traefik.http.services.forwarder-grpc.loadbalancer.server.port=4000"
+      - "traefik.http.services.forwarder-grpc.loadbalancer.server.scheme=h2c"
     depends_on:
       - zookeeper
       - kafka
