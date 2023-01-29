@@ -1,4 +1,6 @@
 #!/bin/sh
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
+
 export REDIS_PASSWORD=pass.123
 export JWT_SECRET=mysecret
 export USER_OAUTH_GOOGLE_CLIENTID=xxx.apps.googleusercontent.com
