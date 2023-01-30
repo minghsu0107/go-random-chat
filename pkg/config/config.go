@@ -189,7 +189,7 @@ func setDefault() {
 	viper.SetDefault("chat.grpc.server.port", "4000")
 	viper.SetDefault("chat.grpc.client.user.endpoint", "localhost:4001")
 	viper.SetDefault("chat.grpc.client.forwarder.endpoint", "localhost:4002")
-	viper.SetDefault("chat.subscriber.id", os.Getenv("HOSTNAME"))
+	viper.SetDefault("chat.subscriber.id", "rc.msg."+os.Getenv("HOSTNAME"))
 	viper.SetDefault("chat.message.maxNum", 5000)
 	viper.SetDefault("chat.message.paginationNum", 5000)
 	viper.SetDefault("chat.message.maxSizeByte", 4096)
