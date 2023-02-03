@@ -1,7 +1,6 @@
 package infra
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -74,11 +73,7 @@ func NewBrokerRouter(name string) (*message.Router, error) {
 		return nil, err
 	}
 
-	registry, ok := prom.DefaultGatherer.(*prom.Registry)
-	if !ok {
-		return nil, fmt.Errorf("prometheus type casting error")
-	}
-	metricsBuilder := metrics.NewPrometheusMetricsBuilder(registry, name, "pubsub")
+	metricsBuilder := metrics.NewPrometheusMetricsBuilder(prom.DefaultRegisterer, name, "pubsub")
 	metricsBuilder.AddPrometheusRouterMetrics(router)
 
 	router.AddMiddleware(
