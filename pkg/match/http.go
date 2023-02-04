@@ -143,7 +143,11 @@ func (r *HttpServer) Run() {
 	}()
 }
 func (r *HttpServer) GracefulStop(ctx context.Context) error {
-	err := r.httpServer.Shutdown(ctx)
+	err := MelodyMatch.Close()
+	if err != nil {
+		return err
+	}
+	err = r.httpServer.Shutdown(ctx)
 	if err != nil {
 		return err
 	}
