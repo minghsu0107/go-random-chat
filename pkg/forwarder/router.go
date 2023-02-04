@@ -19,6 +19,5 @@ func (r *Router) Run() {
 	r.grpcServer.Run()
 }
 func (r *Router) GracefulStop(ctx context.Context) error {
-	r.grpcServer.GracefulStop()
-	return nil
+	return r.grpcServer.GracefulStop()
 }

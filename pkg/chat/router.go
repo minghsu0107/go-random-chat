@@ -23,6 +23,8 @@ func (r *Router) Run() {
 	r.grpcServer.Run()
 }
 func (r *Router) GracefulStop(ctx context.Context) error {
-	r.grpcServer.GracefulStop()
+	if err := r.grpcServer.GracefulStop(); err != nil {
+		return err
+	}
 	return r.httpServer.GracefulStop(ctx)
 }

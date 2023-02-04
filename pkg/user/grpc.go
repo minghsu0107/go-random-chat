@@ -48,6 +48,7 @@ func (srv *GrpcServer) Run() {
 	}()
 }
 
-func (srv *GrpcServer) GracefulStop() {
+func (srv *GrpcServer) GracefulStop() error {
 	srv.s.GracefulStop()
+	return nil
 }

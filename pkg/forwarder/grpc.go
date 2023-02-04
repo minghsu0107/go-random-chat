@@ -58,7 +58,7 @@ func (srv *GrpcServer) Run() {
 	}()
 }
 
-func (srv *GrpcServer) GracefulStop() {
+func (srv *GrpcServer) GracefulStop() error {
 	srv.s.GracefulStop()
-	srv.msgSubscriber.GracefulStop()
+	return srv.msgSubscriber.GracefulStop()
 }

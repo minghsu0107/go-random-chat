@@ -19,7 +19,7 @@ type HttpServer interface {
 type GrpcServer interface {
 	Register()
 	Run()
-	GracefulStop()
+	GracefulStop() error
 }
 
 type Router interface {
