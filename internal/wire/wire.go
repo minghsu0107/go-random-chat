@@ -43,6 +43,7 @@ func InitializeChatServer(name string) (*common.Server, error) {
 
 		infra.NewKafkaPublisher,
 		infra.NewKafkaSubscriber,
+		infra.NewBrokerRouter,
 
 		infra.NewCassandraSession,
 
@@ -90,6 +91,7 @@ func InitializeForwarderServer(name string) (*common.Server, error) {
 
 		infra.NewKafkaPublisher,
 		infra.NewKafkaSubscriber,
+		infra.NewBrokerRouter,
 
 		forwarder.NewForwardRepo,
 
@@ -116,6 +118,7 @@ func InitializeMatchServer(name string) (*common.Server, error) {
 
 		infra.NewKafkaPublisher,
 		infra.NewKafkaSubscriber,
+		infra.NewBrokerRouter,
 
 		match.NewChatClientConn,
 		match.NewUserClientConn,

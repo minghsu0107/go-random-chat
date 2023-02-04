@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/minghsu0107/go-random-chat/pkg/infra"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/olahol/melody.v1"
 )
@@ -16,11 +15,7 @@ type MatchSubscriber struct {
 	sub     message.Subscriber
 }
 
-func NewMatchSubscriber(name string, m MelodyMatchConn, userSvc UserService, sub message.Subscriber) (*MatchSubscriber, error) {
-	router, err := infra.NewBrokerRouter(name)
-	if err != nil {
-		return nil, err
-	}
+func NewMatchSubscriber(name string, router *message.Router, m MelodyMatchConn, userSvc UserService, sub message.Subscriber) (*MatchSubscriber, error) {
 	return &MatchSubscriber{
 		m:       m,
 		router:  router,

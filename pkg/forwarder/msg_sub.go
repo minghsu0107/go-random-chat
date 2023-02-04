@@ -5,7 +5,6 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/minghsu0107/go-random-chat/pkg/chat"
-	"github.com/minghsu0107/go-random-chat/pkg/infra"
 )
 
 type MessageSubscriber struct {
@@ -14,11 +13,7 @@ type MessageSubscriber struct {
 	forwardSvc ForwardService
 }
 
-func NewMessageSubscriber(name string, sub message.Subscriber, forwardSvc ForwardService) (*MessageSubscriber, error) {
-	router, err := infra.NewBrokerRouter(name)
-	if err != nil {
-		return nil, err
-	}
+func NewMessageSubscriber(name string, router *message.Router, sub message.Subscriber, forwardSvc ForwardService) (*MessageSubscriber, error) {
 	return &MessageSubscriber{
 		router:     router,
 		sub:        sub,

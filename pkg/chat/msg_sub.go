@@ -5,7 +5,6 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
-	"github.com/minghsu0107/go-random-chat/pkg/infra"
 	"gopkg.in/olahol/melody.v1"
 )
 
@@ -16,11 +15,7 @@ type MessageSubscriber struct {
 	m            MelodyChatConn
 }
 
-func NewMessageSubscriber(name string, config *config.Config, sub message.Subscriber, m MelodyChatConn) (*MessageSubscriber, error) {
-	router, err := infra.NewBrokerRouter(name)
-	if err != nil {
-		return nil, err
-	}
+func NewMessageSubscriber(name string, router *message.Router, config *config.Config, sub message.Subscriber, m MelodyChatConn) (*MessageSubscriber, error) {
 	return &MessageSubscriber{
 		subscriberID: config.Chat.Subscriber.Id,
 		router:       router,

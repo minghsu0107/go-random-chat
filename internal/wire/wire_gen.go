@@ -43,11 +43,15 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	}
 	engine := chat.NewGinServer(name, httpLogrus, configConfig)
 	melodyChatConn := chat.NewMelodyChatConn(configConfig)
+	router, err := infra.NewBrokerRouter(name)
+	if err != nil {
+		return nil, err
+	}
 	subscriber, err := infra.NewKafkaSubscriber(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	messageSubscriber, err := chat.NewMessageSubscriber(name, configConfig, subscriber, melodyChatConn)
+	messageSubscriber, err := chat.NewMessageSubscriber(name, router, configConfig, subscriber, melodyChatConn)
 	if err != nil {
 		return nil, err
 	}
@@ -90,10 +94,10 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	httpServer := chat.NewHttpServer(name, httpLogrus, configConfig, engine, melodyChatConn, messageSubscriber, userService, messageService, channelService, forwardService)
 	grpcLogrus := common.NewGrpcLogrus()
 	grpcServer := chat.NewGrpcServer(grpcLogrus, configConfig, userService, channelService)
-	router := chat.NewRouter(httpServer, grpcServer)
+	commonRouter := chat.NewRouter(httpServer, grpcServer)
 	infraCloser := chat.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)
-	server := common.NewServer(name, router, infraCloser, observabilityInjector)
+	server := common.NewServer(name, commonRouter, infraCloser, observabilityInjector)
 	return server, nil
 }
 
@@ -114,19 +118,23 @@ func InitializeForwarderServer(name string) (*common.Server, error) {
 	}
 	forwardRepo := forwarder.NewForwardRepo(redisCache, publisher)
 	forwardService := forwarder.NewForwardService(forwardRepo)
+	router, err := infra.NewBrokerRouter(name)
+	if err != nil {
+		return nil, err
+	}
 	subscriber, err := infra.NewKafkaSubscriber(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	messageSubscriber, err := forwarder.NewMessageSubscriber(name, subscriber, forwardService)
+	messageSubscriber, err := forwarder.NewMessageSubscriber(name, router, subscriber, forwardService)
 	if err != nil {
 		return nil, err
 	}
 	grpcServer := forwarder.NewGrpcServer(grpcLogrus, configConfig, forwardService, messageSubscriber)
-	router := forwarder.NewRouter(grpcServer)
+	commonRouter := forwarder.NewRouter(grpcServer)
 	infraCloser := forwarder.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)
-	server := common.NewServer(name, router, infraCloser, observabilityInjector)
+	server := common.NewServer(name, commonRouter, infraCloser, observabilityInjector)
 	return server, nil
 }
 
@@ -138,6 +146,10 @@ func InitializeMatchServer(name string) (*common.Server, error) {
 	}
 	engine := match.NewGinServer(name, httpLogrus, configConfig)
 	melodyMatchConn := match.NewMelodyMatchConn()
+	router, err := infra.NewBrokerRouter(name)
+	if err != nil {
+		return nil, err
+	}
 	userClientConn, err := match.NewUserClientConn(configConfig)
 	if err != nil {
 		return nil, err
@@ -152,7 +164,7 @@ func InitializeMatchServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	matchSubscriber, err := match.NewMatchSubscriber(name, melodyMatchConn, userService, subscriber)
+	matchSubscriber, err := match.NewMatchSubscriber(name, router, melodyMatchConn, userService, subscriber)
 	if err != nil {
 		return nil, err
 	}
@@ -169,10 +181,10 @@ func InitializeMatchServer(name string) (*common.Server, error) {
 	channelRepo := match.NewChannelRepo(chatClientConn)
 	matchingService := match.NewMatchingService(matchingRepo, channelRepo)
 	httpServer := match.NewHttpServer(name, httpLogrus, configConfig, engine, melodyMatchConn, matchSubscriber, userService, matchingService)
-	router := match.NewRouter(httpServer)
+	commonRouter := match.NewRouter(httpServer)
 	infraCloser := match.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)
-	server := common.NewServer(name, router, infraCloser, observabilityInjector)
+	server := common.NewServer(name, commonRouter, infraCloser, observabilityInjector)
 	return server, nil
 }
 
