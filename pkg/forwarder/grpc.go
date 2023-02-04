@@ -60,4 +60,5 @@ func (srv *GrpcServer) Run() {
 
 func (srv *GrpcServer) GracefulStop() {
 	srv.s.GracefulStop()
+	srv.msgSubscriber.GracefulStop()
 }

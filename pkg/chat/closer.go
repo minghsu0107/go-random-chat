@@ -12,6 +12,12 @@ func NewInfraCloser() common.InfraCloser {
 }
 
 func (closer *InfraCloser) Close() error {
+	if err := ForwarderConn.Conn.Close(); err != nil {
+		return err
+	}
+	if err := UserConn.Conn.Close(); err != nil {
+		return err
+	}
 	infra.CassandraSession.Close()
 	return infra.RedisClient.Close()
 }
