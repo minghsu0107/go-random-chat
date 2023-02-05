@@ -69,10 +69,10 @@ func (cache *UserRepoCacheImpl) IsChannelUserExist(ctx context.Context, channelI
 	}
 
 	mutex := cache.r.GetMutex(common.Join("mutex:", key))
-	if err := mutex.Lock(); err != nil {
+	if err := mutex.LockContext(ctx); err != nil {
 		return false, err
 	}
-	defer mutex.Unlock()
+	defer mutex.UnlockContext(ctx)
 	channelExists, userExists, err = cache.r.HGetIfKeyExists(ctx, key, strconv.FormatUint(userID, 10), &dummy)
 	if err != nil {
 		return false, err
@@ -120,10 +120,10 @@ func (cache *UserRepoCacheImpl) GetChannelUserIDs(ctx context.Context, channelID
 	}
 
 	mutex := cache.r.GetMutex(common.Join("mutex:", key))
-	if err := mutex.Lock(); err != nil {
+	if err := mutex.LockContext(ctx); err != nil {
 		return nil, err
 	}
-	defer mutex.Unlock()
+	defer mutex.UnlockContext(ctx)
 	userMap, err = cache.r.HGetAll(ctx, key)
 	if err != nil {
 		return nil, err
