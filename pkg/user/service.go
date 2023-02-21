@@ -29,7 +29,7 @@ type UserServiceImpl struct {
 	sf       common.IDGenerator
 }
 
-func NewUserService(userRepo UserRepo, sf common.IDGenerator) UserService {
+func NewUserServiceImpl(userRepo UserRepo, sf common.IDGenerator) *UserServiceImpl {
 	return &UserServiceImpl{userRepo, sf}
 }
 

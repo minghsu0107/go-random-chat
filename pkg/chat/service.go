@@ -46,7 +46,7 @@ type MessageServiceImpl struct {
 	sf       common.IDGenerator
 }
 
-func NewMessageService(msgRepo MessageRepoCache, userRepo UserRepoCache, sf common.IDGenerator) MessageService {
+func NewMessageServiceImpl(msgRepo MessageRepoCache, userRepo UserRepoCache, sf common.IDGenerator) *MessageServiceImpl {
 	return &MessageServiceImpl{msgRepo, userRepo, sf}
 }
 func (svc *MessageServiceImpl) BroadcastTextMessage(ctx context.Context, channelID, userID uint64, payload string) error {
@@ -165,7 +165,7 @@ type UserServiceImpl struct {
 	userRepo UserRepoCache
 }
 
-func NewUserService(userRepo UserRepoCache) UserService {
+func NewUserServiceImpl(userRepo UserRepoCache) *UserServiceImpl {
 	return &UserServiceImpl{userRepo}
 }
 func (svc *UserServiceImpl) AddUserToChannel(ctx context.Context, channelID, userID uint64) error {
@@ -221,7 +221,7 @@ type ChannelServiceImpl struct {
 	sf       common.IDGenerator
 }
 
-func NewChannelService(chanRepo ChannelRepoCache, userRepo UserRepoCache, sf common.IDGenerator) ChannelService {
+func NewChannelServiceImpl(chanRepo ChannelRepoCache, userRepo UserRepoCache, sf common.IDGenerator) *ChannelServiceImpl {
 	return &ChannelServiceImpl{chanRepo, userRepo, sf}
 }
 func (svc *ChannelServiceImpl) CreateChannel(ctx context.Context) (*Channel, error) {
@@ -246,7 +246,7 @@ type ForwardServiceImpl struct {
 	forwardRepo ForwardRepo
 }
 
-func NewForwardService(forwardRepo ForwardRepo) ForwardService {
+func NewForwardServiceImpl(forwardRepo ForwardRepo) *ForwardServiceImpl {
 	return &ForwardServiceImpl{forwardRepo}
 }
 

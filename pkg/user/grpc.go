@@ -19,7 +19,7 @@ type GrpcServer struct {
 	userSvc  UserService
 }
 
-func NewGrpcServer(logger common.GrpcLogrus, config *config.Config, userSvc UserService) common.GrpcServer {
+func NewGrpcServer(logger common.GrpcLogrus, config *config.Config, userSvc UserService) *GrpcServer {
 	srv := &GrpcServer{
 		grpcPort: config.User.Grpc.Server.Port,
 		logger:   logger,

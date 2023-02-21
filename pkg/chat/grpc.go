@@ -20,7 +20,7 @@ type GrpcServer struct {
 	chanSvc  ChannelService
 }
 
-func NewGrpcServer(logger common.GrpcLogrus, config *config.Config, userSvc UserService, chanSvc ChannelService) common.GrpcServer {
+func NewGrpcServer(logger common.GrpcLogrus, config *config.Config, userSvc UserService, chanSvc ChannelService) *GrpcServer {
 	srv := &GrpcServer{
 		grpcPort: config.Chat.Grpc.Server.Port,
 		logger:   logger,

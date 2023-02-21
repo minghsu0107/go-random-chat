@@ -124,7 +124,7 @@ func NewRedisClient(config *config.Config) (redis.UniversalClient, error) {
 }
 
 // NewRedisCache is the factory of redis cache
-func NewRedisCache(client redis.UniversalClient) RedisCache {
+func NewRedisCacheImpl(client redis.UniversalClient) *RedisCacheImpl {
 	pool := goredis.NewPool(client)
 	rs := redsync.New(pool)
 

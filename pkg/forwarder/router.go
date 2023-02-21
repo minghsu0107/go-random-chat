@@ -10,7 +10,7 @@ type Router struct {
 	grpcServer common.GrpcServer
 }
 
-func NewRouter(grpcServer common.GrpcServer) common.Router {
+func NewRouter(grpcServer common.GrpcServer) *Router {
 	return &Router{grpcServer}
 }
 

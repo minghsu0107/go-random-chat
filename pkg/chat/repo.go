@@ -49,7 +49,7 @@ type UserRepoImpl struct {
 	getUser endpoint.Endpoint
 }
 
-func NewUserRepo(s *gocql.Session, userConn *UserClientConn) UserRepo {
+func NewUserRepoImpl(s *gocql.Session, userConn *UserClientConn) *UserRepoImpl {
 	return &UserRepoImpl{
 		s: s,
 		getUser: transport.NewGrpcEndpoint(
@@ -104,7 +104,7 @@ type MessageRepoImpl struct {
 	pagination  int
 }
 
-func NewMessageRepo(config *config.Config, s *gocql.Session, p message.Publisher) MessageRepo {
+func NewMessageRepoImpl(config *config.Config, s *gocql.Session, p message.Publisher) *MessageRepoImpl {
 	return &MessageRepoImpl{s, p, config.Chat.Message.MaxNum, config.Chat.Message.PaginationNum}
 }
 
@@ -183,7 +183,7 @@ type ChannelRepoImpl struct {
 	s *gocql.Session
 }
 
-func NewChannelRepo(s *gocql.Session) ChannelRepo {
+func NewChannelRepoImpl(s *gocql.Session) *ChannelRepoImpl {
 	return &ChannelRepoImpl{s}
 }
 
@@ -214,7 +214,7 @@ type ForwardRepoImpl struct {
 	removeChannelSession   endpoint.Endpoint
 }
 
-func NewForwardRepo(forwarderConn *ForwarderClientConn) ForwardRepo {
+func NewForwardRepoImpl(forwarderConn *ForwarderClientConn) *ForwardRepoImpl {
 	return &ForwardRepoImpl{
 		registerChannelSession: transport.NewGrpcEndpoint(
 			forwarderConn.Conn,

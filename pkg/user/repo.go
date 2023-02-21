@@ -26,7 +26,7 @@ type UserRepoImpl struct {
 	r infra.RedisCache
 }
 
-func NewUserRepo(r infra.RedisCache) UserRepo {
+func NewUserRepoImpl(r infra.RedisCache) *UserRepoImpl {
 	return &UserRepoImpl{r}
 }
 

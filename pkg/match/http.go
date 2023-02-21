@@ -65,7 +65,7 @@ func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) 
 	return svr
 }
 
-func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine, mm MelodyMatchConn, matchSubscriber *MatchSubscriber, userSvc UserService, matchSvc MatchingService) common.HttpServer {
+func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine, mm MelodyMatchConn, matchSubscriber *MatchSubscriber, userSvc UserService, matchSvc MatchingService) *HttpServer {
 	return &HttpServer{
 		name:            name,
 		logger:          logger,

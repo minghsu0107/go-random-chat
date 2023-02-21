@@ -40,7 +40,7 @@ type UserRepoCacheImpl struct {
 	userRepo UserRepo
 }
 
-func NewUserRepoCache(r infra.RedisCache, userRepo UserRepo) UserRepoCache {
+func NewUserRepoCacheImpl(r infra.RedisCache, userRepo UserRepo) *UserRepoCacheImpl {
 	return &UserRepoCacheImpl{r, userRepo}
 }
 func (cache *UserRepoCacheImpl) AddUserToChannel(ctx context.Context, channelID uint64, userID uint64) error {
@@ -182,7 +182,7 @@ type MessageRepoCacheImpl struct {
 	messageRepo MessageRepo
 }
 
-func NewMessageRepoCache(messageRepo MessageRepo) MessageRepoCache {
+func NewMessageRepoCacheImpl(messageRepo MessageRepo) *MessageRepoCacheImpl {
 	return &MessageRepoCacheImpl{messageRepo}
 }
 
@@ -204,7 +204,7 @@ type ChannelRepoCacheImpl struct {
 	channelRepo ChannelRepo
 }
 
-func NewChannelRepoCache(r infra.RedisCache, channelRepo ChannelRepo) ChannelRepoCache {
+func NewChannelRepoCacheImpl(r infra.RedisCache, channelRepo ChannelRepo) *ChannelRepoCacheImpl {
 	return &ChannelRepoCacheImpl{r, channelRepo}
 }
 

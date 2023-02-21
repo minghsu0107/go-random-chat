@@ -10,7 +10,7 @@ type Router struct {
 	httpServer common.HttpServer
 }
 
-func NewRouter(httpServer common.HttpServer) common.Router {
+func NewRouter(httpServer common.HttpServer) *Router {
 	return &Router{httpServer}
 }
 

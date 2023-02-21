@@ -70,7 +70,7 @@ func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) 
 	return svr
 }
 
-func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine, channelUploadRateLimiter ChannelUploadRateLimiter) common.HttpServer {
+func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine, channelUploadRateLimiter ChannelUploadRateLimiter) *HttpServer {
 	s3Endpoint := config.Uploader.S3.Endpoint
 	s3Bucket := config.Uploader.S3.Bucket
 	creds := credentials.NewStaticCredentialsProvider(config.Uploader.S3.AccessKey, config.Uploader.S3.SecretKey, "")

@@ -49,7 +49,7 @@ func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) 
 	return svr
 }
 
-func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine, userSvc UserService) common.HttpServer {
+func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine, userSvc UserService) *HttpServer {
 	return &HttpServer{
 		name:      name,
 		logger:    logger,

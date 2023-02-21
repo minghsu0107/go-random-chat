@@ -16,7 +16,7 @@ type ForwardServiceImpl struct {
 	forwardRepo ForwardRepo
 }
 
-func NewForwardService(forwardRepo ForwardRepo) ForwardService {
+func NewForwardServiceImpl(forwardRepo ForwardRepo) *ForwardServiceImpl {
 	return &ForwardServiceImpl{forwardRepo}
 }
 

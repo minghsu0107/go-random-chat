@@ -36,7 +36,7 @@ func NewGinServer(name string, logger common.HttpLogrus) *gin.Engine {
 	return svr
 }
 
-func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine) common.HttpServer {
+func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine) *HttpServer {
 	return &HttpServer{
 		name:     name,
 		logger:   logger,

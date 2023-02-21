@@ -11,7 +11,7 @@ type Router struct {
 	grpcServer common.GrpcServer
 }
 
-func NewRouter(httpServer common.HttpServer, grpcServer common.GrpcServer) common.Router {
+func NewRouter(httpServer common.HttpServer, grpcServer common.GrpcServer) *Router {
 	return &Router{httpServer, grpcServer}
 }
 

@@ -39,7 +39,7 @@ type ChannelRepoImpl struct {
 	createChannel endpoint.Endpoint
 }
 
-func NewChannelRepo(chatConn *ChatClientConn) ChannelRepo {
+func NewChannelRepoImpl(chatConn *ChatClientConn) *ChannelRepoImpl {
 	return &ChannelRepoImpl{
 		createChannel: transport.NewGrpcEndpoint(
 			chatConn.Conn,
@@ -65,7 +65,7 @@ type UserRepoImpl struct {
 	addUserToChannel   endpoint.Endpoint
 }
 
-func NewUserRepo(userConn *UserClientConn, chatConn *ChatClientConn) UserRepo {
+func NewUserRepoImpl(userConn *UserClientConn, chatConn *ChatClientConn) *UserRepoImpl {
 	return &UserRepoImpl{
 		getUserByID: transport.NewGrpcEndpoint(
 			userConn.Conn,
@@ -135,7 +135,7 @@ type MatchingRepoImpl struct {
 	p message.Publisher
 }
 
-func NewMatchingRepo(r infra.RedisCache, p message.Publisher) MatchingRepo {
+func NewMatchingRepoImpl(r infra.RedisCache, p message.Publisher) *MatchingRepoImpl {
 	return &MatchingRepoImpl{r, p}
 }
 func (repo *MatchingRepoImpl) PopOrPushWaitList(ctx context.Context, userID uint64) (bool, uint64, error) {

@@ -21,7 +21,7 @@ type UserServiceImpl struct {
 	userRepo UserRepo
 }
 
-func NewUserService(userRepo UserRepo) UserService {
+func NewUserServiceImpl(userRepo UserRepo) *UserServiceImpl {
 	return &UserServiceImpl{userRepo}
 }
 
@@ -53,7 +53,7 @@ type MatchingServiceImpl struct {
 	chanRepo  ChannelRepo
 }
 
-func NewMatchingService(matchRepo MatchingRepo, chanRepo ChannelRepo) MatchingService {
+func NewMatchingServiceImpl(matchRepo MatchingRepo, chanRepo ChannelRepo) *MatchingServiceImpl {
 	return &MatchingServiceImpl{matchRepo, chanRepo}
 }
 func (svc *MatchingServiceImpl) Match(ctx context.Context, userID uint64) (*MatchResult, error) {

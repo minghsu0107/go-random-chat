@@ -59,7 +59,7 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	redisCache := infra.NewRedisCache(universalClient)
+	redisCacheImpl := infra.NewRedisCacheImpl(universalClient)
 	session, err := infra.NewCassandraSession(configConfig)
 	if err != nil {
 		return nil, err
@@ -68,36 +68,36 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	userRepo := chat.NewUserRepo(session, userClientConn)
-	userRepoCache := chat.NewUserRepoCache(redisCache, userRepo)
-	userService := chat.NewUserService(userRepoCache)
+	userRepoImpl := chat.NewUserRepoImpl(session, userClientConn)
+	userRepoCacheImpl := chat.NewUserRepoCacheImpl(redisCacheImpl, userRepoImpl)
+	userServiceImpl := chat.NewUserServiceImpl(userRepoCacheImpl)
 	publisher, err := infra.NewKafkaPublisher(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	messageRepo := chat.NewMessageRepo(configConfig, session, publisher)
-	messageRepoCache := chat.NewMessageRepoCache(messageRepo)
+	messageRepoImpl := chat.NewMessageRepoImpl(configConfig, session, publisher)
+	messageRepoCacheImpl := chat.NewMessageRepoCacheImpl(messageRepoImpl)
 	idGenerator, err := common.NewSonyFlake()
 	if err != nil {
 		return nil, err
 	}
-	messageService := chat.NewMessageService(messageRepoCache, userRepoCache, idGenerator)
-	channelRepo := chat.NewChannelRepo(session)
-	channelRepoCache := chat.NewChannelRepoCache(redisCache, channelRepo)
-	channelService := chat.NewChannelService(channelRepoCache, userRepoCache, idGenerator)
+	messageServiceImpl := chat.NewMessageServiceImpl(messageRepoCacheImpl, userRepoCacheImpl, idGenerator)
+	channelRepoImpl := chat.NewChannelRepoImpl(session)
+	channelRepoCacheImpl := chat.NewChannelRepoCacheImpl(redisCacheImpl, channelRepoImpl)
+	channelServiceImpl := chat.NewChannelServiceImpl(channelRepoCacheImpl, userRepoCacheImpl, idGenerator)
 	forwarderClientConn, err := chat.NewForwarderClientConn(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	forwardRepo := chat.NewForwardRepo(forwarderClientConn)
-	forwardService := chat.NewForwardService(forwardRepo)
-	httpServer := chat.NewHttpServer(name, httpLogrus, configConfig, engine, melodyChatConn, messageSubscriber, userService, messageService, channelService, forwardService)
+	forwardRepoImpl := chat.NewForwardRepoImpl(forwarderClientConn)
+	forwardServiceImpl := chat.NewForwardServiceImpl(forwardRepoImpl)
+	httpServer := chat.NewHttpServer(name, httpLogrus, configConfig, engine, melodyChatConn, messageSubscriber, userServiceImpl, messageServiceImpl, channelServiceImpl, forwardServiceImpl)
 	grpcLogrus := common.NewGrpcLogrus()
-	grpcServer := chat.NewGrpcServer(grpcLogrus, configConfig, userService, channelService)
-	commonRouter := chat.NewRouter(httpServer, grpcServer)
+	grpcServer := chat.NewGrpcServer(grpcLogrus, configConfig, userServiceImpl, channelServiceImpl)
+	chatRouter := chat.NewRouter(httpServer, grpcServer)
 	infraCloser := chat.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)
-	server := common.NewServer(name, commonRouter, infraCloser, observabilityInjector)
+	server := common.NewServer(name, chatRouter, infraCloser, observabilityInjector)
 	return server, nil
 }
 
@@ -111,13 +111,13 @@ func InitializeForwarderServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	redisCache := infra.NewRedisCache(universalClient)
+	redisCacheImpl := infra.NewRedisCacheImpl(universalClient)
 	publisher, err := infra.NewKafkaPublisher(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	forwardRepo := forwarder.NewForwardRepo(redisCache, publisher)
-	forwardService := forwarder.NewForwardService(forwardRepo)
+	forwardRepoImpl := forwarder.NewForwardRepoImpl(redisCacheImpl, publisher)
+	forwardServiceImpl := forwarder.NewForwardServiceImpl(forwardRepoImpl)
 	router, err := infra.NewBrokerRouter(name)
 	if err != nil {
 		return nil, err
@@ -126,15 +126,15 @@ func InitializeForwarderServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	messageSubscriber, err := forwarder.NewMessageSubscriber(name, router, subscriber, forwardService)
+	messageSubscriber, err := forwarder.NewMessageSubscriber(name, router, subscriber, forwardServiceImpl)
 	if err != nil {
 		return nil, err
 	}
-	grpcServer := forwarder.NewGrpcServer(grpcLogrus, configConfig, forwardService, messageSubscriber)
-	commonRouter := forwarder.NewRouter(grpcServer)
+	grpcServer := forwarder.NewGrpcServer(grpcLogrus, configConfig, forwardServiceImpl, messageSubscriber)
+	forwarderRouter := forwarder.NewRouter(grpcServer)
 	infraCloser := forwarder.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)
-	server := common.NewServer(name, commonRouter, infraCloser, observabilityInjector)
+	server := common.NewServer(name, forwarderRouter, infraCloser, observabilityInjector)
 	return server, nil
 }
 
@@ -158,13 +158,13 @@ func InitializeMatchServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	userRepo := match.NewUserRepo(userClientConn, chatClientConn)
-	userService := match.NewUserService(userRepo)
+	userRepoImpl := match.NewUserRepoImpl(userClientConn, chatClientConn)
+	userServiceImpl := match.NewUserServiceImpl(userRepoImpl)
 	subscriber, err := infra.NewKafkaSubscriber(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	matchSubscriber, err := match.NewMatchSubscriber(name, router, melodyMatchConn, userService, subscriber)
+	matchSubscriber, err := match.NewMatchSubscriber(name, router, melodyMatchConn, userServiceImpl, subscriber)
 	if err != nil {
 		return nil, err
 	}
@@ -172,19 +172,19 @@ func InitializeMatchServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	redisCache := infra.NewRedisCache(universalClient)
+	redisCacheImpl := infra.NewRedisCacheImpl(universalClient)
 	publisher, err := infra.NewKafkaPublisher(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	matchingRepo := match.NewMatchingRepo(redisCache, publisher)
-	channelRepo := match.NewChannelRepo(chatClientConn)
-	matchingService := match.NewMatchingService(matchingRepo, channelRepo)
-	httpServer := match.NewHttpServer(name, httpLogrus, configConfig, engine, melodyMatchConn, matchSubscriber, userService, matchingService)
-	commonRouter := match.NewRouter(httpServer)
+	matchingRepoImpl := match.NewMatchingRepoImpl(redisCacheImpl, publisher)
+	channelRepoImpl := match.NewChannelRepoImpl(chatClientConn)
+	matchingServiceImpl := match.NewMatchingServiceImpl(matchingRepoImpl, channelRepoImpl)
+	httpServer := match.NewHttpServer(name, httpLogrus, configConfig, engine, melodyMatchConn, matchSubscriber, userServiceImpl, matchingServiceImpl)
+	matchRouter := match.NewRouter(httpServer)
 	infraCloser := match.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)
-	server := common.NewServer(name, commonRouter, infraCloser, observabilityInjector)
+	server := common.NewServer(name, matchRouter, infraCloser, observabilityInjector)
 	return server, nil
 }
 
@@ -219,16 +219,16 @@ func InitializeUserServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	redisCache := infra.NewRedisCache(universalClient)
-	userRepo := user.NewUserRepo(redisCache)
+	redisCacheImpl := infra.NewRedisCacheImpl(universalClient)
+	userRepoImpl := user.NewUserRepoImpl(redisCacheImpl)
 	idGenerator, err := common.NewSonyFlake()
 	if err != nil {
 		return nil, err
 	}
-	userService := user.NewUserService(userRepo, idGenerator)
-	httpServer := user.NewHttpServer(name, httpLogrus, configConfig, engine, userService)
+	userServiceImpl := user.NewUserServiceImpl(userRepoImpl, idGenerator)
+	httpServer := user.NewHttpServer(name, httpLogrus, configConfig, engine, userServiceImpl)
 	grpcLogrus := common.NewGrpcLogrus()
-	grpcServer := user.NewGrpcServer(grpcLogrus, configConfig, userService)
+	grpcServer := user.NewGrpcServer(grpcLogrus, configConfig, userServiceImpl)
 	router := user.NewRouter(httpServer, grpcServer)
 	infraCloser := user.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)

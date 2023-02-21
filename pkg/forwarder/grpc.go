@@ -20,7 +20,7 @@ type GrpcServer struct {
 	msgSubscriber *MessageSubscriber
 }
 
-func NewGrpcServer(logger common.GrpcLogrus, config *config.Config, forwardSvc ForwardService, msgSubscriber *MessageSubscriber) common.GrpcServer {
+func NewGrpcServer(logger common.GrpcLogrus, config *config.Config, forwardSvc ForwardService, msgSubscriber *MessageSubscriber) *GrpcServer {
 	srv := &GrpcServer{
 		grpcPort:      config.Forwarder.Grpc.Server.Port,
 		logger:        logger,

@@ -29,7 +29,7 @@ type ForwardRepoImpl struct {
 	p message.Publisher
 }
 
-func NewForwardRepo(r infra.RedisCache, p message.Publisher) ForwardRepo {
+func NewForwardRepoImpl(r infra.RedisCache, p message.Publisher) *ForwardRepoImpl {
 	return &ForwardRepoImpl{r, p}
 }
 
