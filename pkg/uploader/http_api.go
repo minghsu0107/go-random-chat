@@ -32,13 +32,13 @@ func (r *HttpServer) UploadFiles(c *gin.Context) {
 		return
 	}
 	if err := c.Request.ParseMultipartForm(r.maxMemory); err != nil {
-		r.logger.Errorf("parse multipart form error: ", err)
+		r.logger.Errorf("error parsing multipart form into memory: %v", err)
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
 	form, err := c.MultipartForm()
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Errorf("parse multipart form error: %v", err)
 		response(c, http.StatusBadRequest, ErrReceiveFile)
 		return
 	}
@@ -49,7 +49,7 @@ func (r *HttpServer) UploadFiles(c *gin.Context) {
 	for _, fileHeader := range fileHeaders {
 		f, err := fileHeader.Open()
 		if err != nil {
-			r.logger.Error(err)
+			r.logger.Errorf("error opening multipart file header: %v", err)
 			response(c, http.StatusBadRequest, ErrOpenFile)
 			return
 		}
@@ -57,7 +57,7 @@ func (r *HttpServer) UploadFiles(c *gin.Context) {
 		extension := filepath.Ext(fileHeader.Filename)
 		newFileName := newObjectKey(channelID, extension)
 		if err := r.putFileToS3(c.Request.Context(), r.s3Bucket, newFileName, f); err != nil {
-			r.logger.Error(err)
+			r.logger.Errorf("error putting file to S3: %v", err)
 			response(c, http.StatusInternalServerError, ErrUploadFile)
 			return
 		}
