@@ -1,6 +1,6 @@
 module github.com/minghsu0107/go-random-chat
 
-go 1.18
+go 1.20
 
 require (
 	github.com/Shopify/sarama v1.32.0
