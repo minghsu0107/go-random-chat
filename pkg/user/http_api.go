@@ -162,7 +162,7 @@ func (r *HttpServer) OAuthGoogleCallback(c *gin.Context) {
 
 	token, err := r.googleOauthConfig.Exchange(c.Request.Context(), c.Request.FormValue("code"))
 	if err != nil {
-		r.logger.Errorf("code exchange wrong: %w", err)
+		r.logger.Errorf("code exchange wrong: %v", err)
 		c.Redirect(http.StatusTemporaryRedirect, "/")
 		return
 	}
