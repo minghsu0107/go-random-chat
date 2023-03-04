@@ -131,7 +131,12 @@ func (r *HttpServer) GetUserMe(c *gin.Context) {
 // @Success 307
 // @Router /user/oauth2/google/login [get]
 func (r *HttpServer) OAuthGoogleLogin(c *gin.Context) {
-	oauthState := common.GenerateStateOauthCookie(c, r.oauthCookieConfig.MaxAge, r.oauthCookieConfig.Path, r.oauthCookieConfig.Domain)
+	oauthState, err := common.GenerateStateOauthCookie(c, r.oauthCookieConfig.MaxAge, r.oauthCookieConfig.Path, r.oauthCookieConfig.Domain)
+	if err != nil {
+		r.logger.Error(err)
+		response(c, http.StatusInternalServerError, common.ErrServer)
+		return
+	}
 	u := r.googleOauthConfig.AuthCodeURL(oauthState)
 	c.Redirect(http.StatusTemporaryRedirect, u)
 }

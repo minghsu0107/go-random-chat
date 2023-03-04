@@ -45,7 +45,9 @@ func (svc *UserServiceImpl) GetGoogleUser(ctx context.Context, accessToken strin
 	if err != nil {
 		return nil, fmt.Errorf("failed getting user info: %w", err)
 	}
-	defer response.Body.Close()
+	defer func() {
+		err = response.Body.Close()
+	}()
 	contents, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed read google user response: %w", err)

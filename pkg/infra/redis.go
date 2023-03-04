@@ -119,7 +119,9 @@ func NewRedisClient(config *config.Config) (redis.UniversalClient, error) {
 	if err == redis.Nil || err != nil {
 		return nil, err
 	}
-	redisotel.InstrumentTracing(RedisClient)
+	if err = redisotel.InstrumentTracing(RedisClient); err != nil {
+		return nil, err
+	}
 	return RedisClient, nil
 }
 
@@ -142,7 +144,9 @@ func (rc *RedisCacheImpl) Get(ctx context.Context, key string, dst interface{}) 
 	} else if err != nil {
 		return false, err
 	} else {
-		json.Unmarshal([]byte(val), dst)
+		if err = json.Unmarshal([]byte(val), dst); err != nil {
+			return false, err
+		}
 	}
 	return true, nil
 }
@@ -170,7 +174,9 @@ func (rc *RedisCacheImpl) HGet(ctx context.Context, key, field string, dst inter
 	} else if err != nil {
 		return false, err
 	} else {
-		json.Unmarshal([]byte(val), dst)
+		if err = json.Unmarshal([]byte(val), dst); err != nil {
+			return false, err
+		}
 	}
 	return true, nil
 }
@@ -254,7 +260,9 @@ func (rc *RedisCacheImpl) HGetIfKeyExists(ctx context.Context, key, field string
 	} else if val == "" {
 		return false, false, nil
 	} else {
-		json.Unmarshal([]byte(val), dst)
+		if err = json.Unmarshal([]byte(val), dst); err != nil {
+			return false, false, err
+		}
 	}
 	return true, true, nil
 }

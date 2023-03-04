@@ -31,7 +31,11 @@ func (r *HttpServer) UploadFiles(c *gin.Context) {
 		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
 		return
 	}
-	c.Request.ParseMultipartForm(r.maxMemory)
+	if err := c.Request.ParseMultipartForm(r.maxMemory); err != nil {
+		r.logger.Error(err)
+		response(c, http.StatusInternalServerError, common.ErrServer)
+		return
+	}
 	form, err := c.MultipartForm()
 	if err != nil {
 		r.logger.Error(err)

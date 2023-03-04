@@ -14,12 +14,15 @@ const (
 	SessionIdCookieName  string = "sid"
 )
 
-func GenerateStateOauthCookie(c *gin.Context, maxAge int, path, domain string) string {
+func GenerateStateOauthCookie(c *gin.Context, maxAge int, path, domain string) (string, error) {
 	b := make([]byte, 16)
-	rand.Read(b)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", fmt.Errorf("generate oauth state cookie error: %w", err)
+	}
 	state := base64.URLEncoding.EncodeToString(b)
 	c.SetCookie(OAuthStateCookieName, state, maxAge, path, domain, false, true)
-	return state
+	return state, nil
 }
 
 func SetAuthCookie(c *gin.Context, sessonId string, maxAge int, path, domain string) {
@@ -29,11 +32,11 @@ func SetAuthCookie(c *gin.Context, sessonId string, maxAge int, path, domain str
 func GetCookie(c *gin.Context, name string) (string, error) {
 	cookie, err := c.Request.Cookie(name)
 	if err != nil {
-		return "", fmt.Errorf("get oauth google state cookie error: %w", err)
+		return "", fmt.Errorf("get oauth state cookie error: %w", err)
 	}
 	unescapedCookie, err := url.QueryUnescape(cookie.Value)
 	if err != nil {
-		return "", fmt.Errorf("unescape oauth google state cookie error: %w", err)
+		return "", fmt.Errorf("unescape oauth state cookie error: %w", err)
 	}
 	return unescapedCookie, nil
 }

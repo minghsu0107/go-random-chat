@@ -64,7 +64,11 @@ func (r *HttpServer) StartChat(c *gin.Context) {
 		return
 	}
 
-	r.mc.HandleRequest(c.Writer, c.Request)
+	if err := r.mc.HandleRequest(c.Writer, c.Request); err != nil {
+		r.logger.Error(err)
+		response(c, http.StatusInternalServerError, common.ErrServer)
+		return
+	}
 }
 
 // @Summary Forward auth

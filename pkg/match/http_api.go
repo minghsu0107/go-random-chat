@@ -35,7 +35,11 @@ func (r *HttpServer) Match(c *gin.Context) {
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
-	r.mm.HandleRequest(c.Writer, c.Request)
+	if err := r.mm.HandleRequest(c.Writer, c.Request); err != nil {
+		r.logger.Error(err)
+		response(c, http.StatusInternalServerError, common.ErrServer)
+		return
+	}
 }
 
 func (r *HttpServer) HandleMatchOnConnect(sess *melody.Session) {
