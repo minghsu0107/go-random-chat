@@ -32,7 +32,7 @@ func (r *HttpServer) UploadFiles(c *gin.Context) {
 		return
 	}
 	if err := c.Request.ParseMultipartForm(r.maxMemory); err != nil {
-		r.logger.Error(err)
+		r.logger.Errorf("parse multipart form error: ", err)
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}

@@ -65,7 +65,7 @@ func (r *HttpServer) StartChat(c *gin.Context) {
 	}
 
 	if err := r.mc.HandleRequest(c.Writer, c.Request); err != nil {
-		r.logger.Error(err)
+		r.logger.Errorf("upgrade websocket error: %v", err)
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}

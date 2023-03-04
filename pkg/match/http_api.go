@@ -36,7 +36,7 @@ func (r *HttpServer) Match(c *gin.Context) {
 		return
 	}
 	if err := r.mm.HandleRequest(c.Writer, c.Request); err != nil {
-		r.logger.Error(err)
+		r.logger.Errorf("upgrade websocket error: %v", err)
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
