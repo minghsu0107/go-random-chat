@@ -23,8 +23,8 @@ jobs:
         with:
           go-version: 1.20
       
-      - name: Format
-        run: if [ "$(gofmt -s -l . | wc -l | xargs)" -gt 0 ]; then exit 1; fi
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
       
       - name: Go Test
         run: make test
