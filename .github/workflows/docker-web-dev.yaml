@@ -18,6 +18,17 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v2
       
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.20
+      
+      - name: Format
+        run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
+      
+      - name: Go Test
+        run: make test
+      
       - name: Log in to Docker Hub
         uses: docker/login-action@v1
         with:
