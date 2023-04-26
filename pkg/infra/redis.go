@@ -112,7 +112,7 @@ func NewRedisClient(config *config.Config) (redis.UniversalClient, error) {
 		PoolSize:       config.Redis.PoolSize,
 		ReadTimeout:    time.Duration(config.Redis.ReadTimeoutMilliSecond) * time.Millisecond,
 		WriteTimeout:   time.Duration(config.Redis.WriteTimeoutMilliSecond) * time.Millisecond,
-		PoolTimeout:    60 * time.Second,
+		PoolTimeout:    5 * time.Second,
 	})
 	ctx := context.Background()
 	_, err := RedisClient.Ping(ctx).Result()
