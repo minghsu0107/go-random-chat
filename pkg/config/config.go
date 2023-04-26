@@ -244,8 +244,8 @@ func setDefault() {
 	viper.SetDefault("redis.expirationHour", 24)
 	viper.SetDefault("redis.minIdleConn", 16)
 	viper.SetDefault("redis.poolSize", 64)
-	viper.SetDefault("redis.readTimeoutMilliSecond", 500)
-	viper.SetDefault("redis.writeTimeoutMilliSecond", 500)
+	viper.SetDefault("redis.readTimeoutMilliSecond", 3000)
+	viper.SetDefault("redis.writeTimeoutMilliSecond", 3000)
 
 	viper.SetDefault("observability.prometheus.port", "8080")
 	viper.SetDefault("observability.tracing.jaegerUrl", "")
