@@ -6,8 +6,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/go-redsync/redsync/v4"
-	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 	"github.com/redis/go-redis/extra/redisotel/v9"
@@ -41,13 +39,11 @@ type RedisCache interface {
 	ZRemOne(ctx context.Context, key string, member interface{}) error
 	HGetIfKeyExists(ctx context.Context, key, field string, dst interface{}) (bool, bool, error)
 	ExecPipeLine(ctx context.Context, cmds *[]RedisCmd) error
-	GetMutex(name string) *redsync.Mutex
 }
 
 // RedisCacheImpl is the redis cache client type
 type RedisCacheImpl struct {
 	client redis.UniversalClient
-	rs     *redsync.Redsync
 }
 
 // RedisOpType is the redis operation type
@@ -127,13 +123,7 @@ func NewRedisClient(config *config.Config) (redis.UniversalClient, error) {
 
 // NewRedisCache is the factory of redis cache
 func NewRedisCacheImpl(client redis.UniversalClient) *RedisCacheImpl {
-	pool := goredis.NewPool(client)
-	rs := redsync.New(pool)
-
-	return &RedisCacheImpl{
-		client: client,
-		rs:     rs,
-	}
+	return &RedisCacheImpl{client}
 }
 
 // Get returns true if the key already exists and set dst to the corresponding value
@@ -315,8 +305,4 @@ func (rc *RedisCacheImpl) ExecPipeLine(ctx context.Context, cmds *[]RedisCmd) er
 		}
 	}
 	return nil
-}
-
-func (rc *RedisCacheImpl) GetMutex(name string) *redsync.Mutex {
-	return rc.rs.NewMutex(name, redsync.WithExpiry(3*time.Second))
 }

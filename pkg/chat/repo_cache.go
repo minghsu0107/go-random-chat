@@ -68,24 +68,6 @@ func (cache *UserRepoCacheImpl) IsChannelUserExist(ctx context.Context, channelI
 		return true, nil
 	}
 
-	mutex := cache.r.GetMutex(common.Join("mutex:", key))
-	if err := mutex.LockContext(ctx); err != nil {
-		return false, err
-	}
-	defer func() {
-		_, err = mutex.UnlockContext(ctx)
-	}()
-	channelExists, userExists, err = cache.r.HGetIfKeyExists(ctx, key, strconv.FormatUint(userID, 10), &dummy)
-	if err != nil {
-		return false, err
-	}
-	if channelExists {
-		if !userExists {
-			return false, nil
-		}
-		return true, nil
-	}
-
 	channelUserIDs, err := cache.userRepo.GetChannelUserIDs(ctx, channelID)
 	if err != nil {
 		return false, err
@@ -99,7 +81,7 @@ func (cache *UserRepoCacheImpl) IsChannelUserExist(ctx context.Context, channelI
 		args = append(args, channelUserID, 1)
 	}
 	if err := cache.r.HSet(ctx, key, args...); err != nil {
-		return false, err
+		return channelUserExist, err
 	}
 	return channelUserExist, nil
 }
@@ -121,28 +103,6 @@ func (cache *UserRepoCacheImpl) GetChannelUserIDs(ctx context.Context, channelID
 		return userIDs, nil
 	}
 
-	mutex := cache.r.GetMutex(common.Join("mutex:", key))
-	if err := mutex.LockContext(ctx); err != nil {
-		return nil, err
-	}
-	defer func() {
-		_, err = mutex.UnlockContext(ctx)
-	}()
-	userMap, err = cache.r.HGetAll(ctx, key)
-	if err != nil {
-		return nil, err
-	}
-	if len(userMap) > 0 {
-		for userIDStr := range userMap {
-			userID, err := strconv.ParseUint(userIDStr, 10, 64)
-			if err != nil {
-				return nil, err
-			}
-			userIDs = append(userIDs, userID)
-		}
-		return userIDs, nil
-	}
-
 	userIDs, err = cache.userRepo.GetChannelUserIDs(ctx, channelID)
 	if err != nil {
 		return nil, err
@@ -152,7 +112,7 @@ func (cache *UserRepoCacheImpl) GetChannelUserIDs(ctx context.Context, channelID
 		args = append(args, userID, 1)
 	}
 	if err := cache.r.HSet(ctx, key, args...); err != nil {
-		return nil, err
+		return userIDs, err
 	}
 	return userIDs, nil
 }

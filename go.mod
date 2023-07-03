@@ -13,7 +13,6 @@ require (
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-kit/kit v0.12.0
-	github.com/go-redsync/redsync/v4 v4.7.2-0.20230126115057-70d9afc1145f
 	github.com/gocql/gocql v1.2.0
 	github.com/golang-jwt/jwt/v4 v4.3.0
 	github.com/google/uuid v1.3.0
@@ -22,7 +21,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/prometheus/client_golang v1.14.0
 	github.com/redis/go-redis/extra/redisotel/v9 v9.0.0-rc.4
-	github.com/redis/go-redis/v9 v9.0.0-rc.4
+	github.com/redis/go-redis/v9 v9.0.5
 	github.com/sirupsen/logrus v1.8.1
 	github.com/slok/go-http-metrics v0.10.0
 	github.com/sony/gobreaker v0.4.1
