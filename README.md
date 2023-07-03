@@ -68,9 +68,10 @@ Example setting:
 To run locally, execute the following command:
 ```bash
 cd deployments
-sudo ./run.sh start
+sudo ./run.sh add-host
+./run.sh start
 ```
-`run.sh` needs root permission to alias `minio` to `localhost` in `/etc/hosts`.
+`run.sh add-host` needs root permission to alias `minio` to `localhost` in `/etc/hosts`.
 
 Check cassandra connection:
 ```

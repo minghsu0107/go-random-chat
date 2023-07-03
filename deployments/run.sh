@@ -15,14 +15,15 @@ addHost() {
 }
 
 case "$1" in
+    "add-host")
+        addHost;;
     "start")
-        addHost
         docker-compose up -d --scale random-chat=3;;
     "stop")
         docker-compose stop;;
     "clean")
         docker-compose down -v;;
     *)
-        echo "command should be 'start', 'stop', or 'clean'"
+        echo "command should be 'add-host', 'start', 'stop', or 'clean'"
         exit 1;;
 esac
