@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/minghsu0107/go-random-chat/pkg/config"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -42,8 +43,19 @@ func (injector *ObservabilityInjector) Register(service string) error {
 	}
 	if injector.promPort != "" {
 		go func() {
+			promHttpSrv := &http.Server{Addr: fmt.Sprintf(":%s", injector.promPort)}
+			m := http.NewServeMux()
+			// Create HTTP handler for Prometheus metrics.
+			m.Handle("/metrics", promhttp.HandlerFor(
+				prometheus.DefaultGatherer,
+				promhttp.HandlerOpts{
+					// Opt into OpenMetrics e.g. to support exemplars.
+					EnableOpenMetrics: true,
+				},
+			))
+			promHttpSrv.Handler = m
 			log.Infof("starting prom metrics on  :%s", injector.promPort)
-			err := http.ListenAndServe(fmt.Sprintf(":%s", injector.promPort), promhttp.Handler())
+			err := promHttpSrv.ListenAndServe()
 			if err != nil {
 				log.Fatal(err)
 			}

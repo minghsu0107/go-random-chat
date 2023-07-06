@@ -96,8 +96,10 @@ func InitializeGrpcServer(name string, logger common.GrpcLogrus) *grpc.Server {
 	}
 	// Setup metric for panic recoveries
 	panicsTotal := promauto.NewCounter(prometheus.CounterOpts{
-		Name: "grpc_req_panics_recovered_total",
-		Help: "Total number of gRPC requests recovered from internal panic.",
+		Namespace:   name,
+		Name:        "grpc_req_panics_recovered_total",
+		Help:        "Total number of gRPC requests recovered from internal panic.",
+		ConstLabels: prometheus.Labels{"serviceID": name},
 	})
 	grpcPanicRecoveryHandler := func(p any) (err error) {
 		panicsTotal.Inc()
@@ -111,7 +113,6 @@ func InitializeGrpcServer(name string, logger common.GrpcLogrus) *grpc.Server {
 		return nil
 	}
 	logOpts := []logging.Option{
-		logging.WithLogOnEvents(logging.StartCall, logging.FinishCall),
 		logging.WithDurationField(logging.DurationToTimeMillisFields),
 		logging.WithFieldsFromContext(logTraceID),
 	}

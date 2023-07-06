@@ -225,7 +225,9 @@ services:
     restart: always
     volumes:
       - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml
-    command: --config.file=/etc/prometheus/prometheus.yaml
+    command: 
+      - --config.file=/etc/prometheus/prometheus.yaml
+      - --enable-feature=exemplar-storage
     ports:
       - 9090:9090
   jaeger:
