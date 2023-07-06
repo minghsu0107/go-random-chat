@@ -93,7 +93,7 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	forwardServiceImpl := chat.NewForwardServiceImpl(forwardRepoImpl)
 	httpServer := chat.NewHttpServer(name, httpLogrus, configConfig, engine, melodyChatConn, messageSubscriber, userServiceImpl, messageServiceImpl, channelServiceImpl, forwardServiceImpl)
 	grpcLogrus := common.NewGrpcLogrus()
-	grpcServer := chat.NewGrpcServer(grpcLogrus, configConfig, userServiceImpl, channelServiceImpl)
+	grpcServer := chat.NewGrpcServer(name, grpcLogrus, configConfig, userServiceImpl, channelServiceImpl)
 	chatRouter := chat.NewRouter(httpServer, grpcServer)
 	infraCloser := chat.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)
@@ -130,7 +130,7 @@ func InitializeForwarderServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	grpcServer := forwarder.NewGrpcServer(grpcLogrus, configConfig, forwardServiceImpl, messageSubscriber)
+	grpcServer := forwarder.NewGrpcServer(name, grpcLogrus, configConfig, forwardServiceImpl, messageSubscriber)
 	forwarderRouter := forwarder.NewRouter(grpcServer)
 	infraCloser := forwarder.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)
@@ -228,7 +228,7 @@ func InitializeUserServer(name string) (*common.Server, error) {
 	userServiceImpl := user.NewUserServiceImpl(userRepoImpl, idGenerator)
 	httpServer := user.NewHttpServer(name, httpLogrus, configConfig, engine, userServiceImpl)
 	grpcLogrus := common.NewGrpcLogrus()
-	grpcServer := user.NewGrpcServer(grpcLogrus, configConfig, userServiceImpl)
+	grpcServer := user.NewGrpcServer(name, grpcLogrus, configConfig, userServiceImpl)
 	router := user.NewRouter(httpServer, grpcServer)
 	infraCloser := user.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)

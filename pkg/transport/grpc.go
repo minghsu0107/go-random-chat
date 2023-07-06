@@ -2,8 +2,8 @@ package transport
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -13,13 +13,13 @@ import (
 	"github.com/go-kit/kit/sd"
 	"github.com/go-kit/kit/sd/lb"
 	grpctransport "github.com/go-kit/kit/transport/grpc"
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
-	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
-	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
-	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	log "github.com/sirupsen/logrus"
 	"github.com/sony/gobreaker"
 	"go.opentelemetry.io/otel/trace"
@@ -34,7 +34,32 @@ var (
 	ServiceIdHeader string = "Service-Id"
 )
 
-func InitializeGrpcServer(logger common.GrpcLogrus) *grpc.Server {
+func interceptorLogger(l log.FieldLogger) logging.Logger {
+	return logging.LoggerFunc(func(_ context.Context, lvl logging.Level, msg string, fields ...any) {
+		f := make(map[string]any, len(fields)/2)
+		i := logging.Fields(fields).Iterator()
+		if i.Next() {
+			k, v := i.At()
+			f[k] = v
+		}
+		l := l.WithFields(f)
+
+		switch lvl {
+		case logging.LevelDebug:
+			l.Debug(msg)
+		case logging.LevelInfo:
+			l.Info(msg)
+		case logging.LevelWarn:
+			l.Warn(msg)
+		case logging.LevelError:
+			l.Error(msg)
+		default:
+			panic(fmt.Sprintf("unknown level %v", lvl))
+		}
+	})
+}
+
+func InitializeGrpcServer(name string, logger common.GrpcLogrus) *grpc.Server {
 	opts := []grpc.ServerOption{
 		grpc.MaxRecvMsgSize(1024 * 1024 * 8), // increase to 8 MB (default: 4 MB)
 		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
@@ -50,49 +75,62 @@ func InitializeGrpcServer(logger common.GrpcLogrus) *grpc.Server {
 		}),
 	}
 
-	grpc_prometheus.EnableHandlingTimeHistogram()
-
-	recoveryFunc := func(p interface{}) (err error) {
-		return status.Errorf(codes.Unknown, "panic triggered: %v", p)
+	srvMetrics := grpcprom.NewServerMetrics(
+		grpcprom.WithServerCounterOptions(
+			func(o *prometheus.CounterOpts) {
+				o.Namespace = name
+			},
+			grpcprom.WithConstLabels(prometheus.Labels{"serviceID": name}),
+		),
+		grpcprom.WithServerHandlingTimeHistogram(
+			grpcprom.WithHistogramConstLabels(prometheus.Labels{"serviceID": name}),
+			grpcprom.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),
+		),
+	)
+	prometheus.MustRegister(srvMetrics)
+	exemplarFromContext := func(ctx context.Context) prometheus.Labels {
+		if span := trace.SpanContextFromContext(ctx); span.IsSampled() {
+			return prometheus.Labels{"traceID": span.TraceID().String()}
+		}
+		return nil
 	}
-	recoveryOpts := []grpc_recovery.Option{
-		grpc_recovery.WithRecoveryHandler(recoveryFunc),
+	// Setup metric for panic recoveries
+	panicsTotal := promauto.NewCounter(prometheus.CounterOpts{
+		Name: "grpc_req_panics_recovered_total",
+		Help: "Total number of gRPC requests recovered from internal panic.",
+	})
+	grpcPanicRecoveryHandler := func(p any) (err error) {
+		panicsTotal.Inc()
+		logger.Errorf("recovered from panic, stack: %s", string(debug.Stack()))
+		return status.Errorf(codes.Internal, "%s", p)
 	}
-	grpcOpts := []grpc_logrus.Option{
-		grpc_logrus.WithDurationField(func(duration time.Duration) (key string, value interface{}) {
-			return "grpc.time_ns", duration.Nanoseconds()
-		}),
+	logTraceID := func(ctx context.Context) logging.Fields {
+		if span := trace.SpanContextFromContext(ctx); span.IsSampled() {
+			return logging.Fields{"traceID", span.TraceID().String()}
+		}
+		return nil
 	}
-	logrusEntry := logger.Entry
-	//grpc_logrus.ReplaceGrpcLogger(logrusEntry)
+	logOpts := []logging.Option{
+		logging.WithLogOnEvents(logging.StartCall, logging.FinishCall),
+		logging.WithDurationField(logging.DurationToTimeMillisFields),
+		logging.WithFieldsFromContext(logTraceID),
+	}
 
 	opts = append(opts,
-		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
-			grpc_prometheus.StreamServerInterceptor,
+		grpc.ChainStreamInterceptor(
 			otelgrpc.StreamServerInterceptor(),
-			grpc_ctxtags.StreamServerInterceptor(grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor)),
-			grpc_logrus.StreamServerInterceptor(logrusEntry, grpcOpts...),
-			grpc_recovery.StreamServerInterceptor(recoveryOpts...),
-		)),
-		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
-			grpc_prometheus.UnaryServerInterceptor,
+			srvMetrics.StreamServerInterceptor(grpcprom.WithExemplarFromContext(exemplarFromContext)),
+			logging.StreamServerInterceptor(interceptorLogger(logger), logOpts...),
+			recovery.StreamServerInterceptor(recovery.WithRecoveryHandler(grpcPanicRecoveryHandler)),
+		),
+		grpc.ChainUnaryInterceptor(
 			otelgrpc.UnaryServerInterceptor(),
-			grpc_ctxtags.UnaryServerInterceptor(grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor)),
-			grpc_logrus.UnaryServerInterceptor(logrusEntry, grpcOpts...),
-			LogTraceUnary(),
-			grpc_recovery.UnaryServerInterceptor(recoveryOpts...),
-		)),
+			srvMetrics.UnaryServerInterceptor(grpcprom.WithExemplarFromContext(exemplarFromContext)),
+			logging.UnaryServerInterceptor(interceptorLogger(logger), logOpts...),
+			recovery.UnaryServerInterceptor(recovery.WithRecoveryHandler(grpcPanicRecoveryHandler)),
+		),
 	)
 	return grpc.NewServer(opts...)
-}
-
-// LogTraceUnary logs trace id from the incoming request context
-func LogTraceUnary() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-		b := trace.SpanFromContext(ctx).SpanContext().TraceID()
-		grpc_ctxtags.Extract(ctx).Set("traceID", hex.EncodeToString(b[:]))
-		return handler(ctx, req)
-	}
 }
 
 func InitializeGrpcClient(svcHost string) (*grpc.ClientConn, error) {
@@ -101,12 +139,12 @@ func InitializeGrpcClient(svcHost string) (*grpc.ClientConn, error) {
 
 	scheme := "dns"
 
-	retryOpts := []grpc_retry.CallOption{
+	retryOpts := []retry.CallOption{
 		// generate waits between 900ms to 1100ms
-		grpc_retry.WithBackoff(grpc_retry.BackoffLinearWithJitter(1*time.Second, 0.1)),
-		grpc_retry.WithMax(3),
-		grpc_retry.WithCodes(codes.Unavailable, codes.Aborted),
-		grpc_retry.WithPerRetryTimeout(3 * time.Second),
+		retry.WithBackoff(retry.BackoffLinearWithJitter(1*time.Second, 0.1)),
+		retry.WithMax(3),
+		retry.WithCodes(codes.Unavailable, codes.Aborted),
+		retry.WithPerRetryTimeout(3 * time.Second),
 	}
 
 	dialOpts := []grpc.DialOption{
@@ -123,14 +161,14 @@ func InitializeGrpcClient(svcHost string) (*grpc.ClientConn, error) {
 			Timeout:             time.Second,      // wait 1 second for ping ack before considering the connection dead
 			PermitWithoutStream: true,             // send pings even without active streams
 		}),
-		grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
+		grpc.WithChainStreamInterceptor(
 			otelgrpc.StreamClientInterceptor(),
-			grpc_retry.StreamClientInterceptor(retryOpts...),
-		)),
-		grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
+			retry.StreamClientInterceptor(retryOpts...),
+		),
+		grpc.WithChainUnaryInterceptor(
 			otelgrpc.UnaryClientInterceptor(),
-			grpc_retry.UnaryClientInterceptor(retryOpts...),
-		)),
+			retry.UnaryClientInterceptor(retryOpts...),
+		),
 		//grpc.WithBlock(),
 	)
 

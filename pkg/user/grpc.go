@@ -5,7 +5,6 @@ import (
 
 	"google.golang.org/grpc"
 
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 	"github.com/minghsu0107/go-random-chat/pkg/transport"
@@ -19,19 +18,18 @@ type GrpcServer struct {
 	userSvc  UserService
 }
 
-func NewGrpcServer(logger common.GrpcLogrus, config *config.Config, userSvc UserService) *GrpcServer {
+func NewGrpcServer(name string, logger common.GrpcLogrus, config *config.Config, userSvc UserService) *GrpcServer {
 	srv := &GrpcServer{
 		grpcPort: config.User.Grpc.Server.Port,
 		logger:   logger,
 		userSvc:  userSvc,
 	}
-	srv.s = transport.InitializeGrpcServer(srv.logger)
+	srv.s = transport.InitializeGrpcServer(name, srv.logger)
 	return srv
 }
 
 func (srv *GrpcServer) Register() {
 	userpb.RegisterUserServiceServer(srv.s, srv)
-	grpc_prometheus.Register(srv.s)
 }
 
 func (srv *GrpcServer) Run() {

@@ -5,7 +5,6 @@ import (
 
 	"google.golang.org/grpc"
 
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 	"github.com/minghsu0107/go-random-chat/pkg/transport"
@@ -20,14 +19,14 @@ type GrpcServer struct {
 	msgSubscriber *MessageSubscriber
 }
 
-func NewGrpcServer(logger common.GrpcLogrus, config *config.Config, forwardSvc ForwardService, msgSubscriber *MessageSubscriber) *GrpcServer {
+func NewGrpcServer(name string, logger common.GrpcLogrus, config *config.Config, forwardSvc ForwardService, msgSubscriber *MessageSubscriber) *GrpcServer {
 	srv := &GrpcServer{
 		grpcPort:      config.Forwarder.Grpc.Server.Port,
 		logger:        logger,
 		forwardSvc:    forwardSvc,
 		msgSubscriber: msgSubscriber,
 	}
-	srv.s = transport.InitializeGrpcServer(srv.logger)
+	srv.s = transport.InitializeGrpcServer(name, srv.logger)
 	return srv
 }
 
@@ -35,7 +34,6 @@ func (srv *GrpcServer) Register() {
 	srv.msgSubscriber.RegisterHandler()
 
 	forwarderpb.RegisterForwardServiceServer(srv.s, srv)
-	grpc_prometheus.Register(srv.s)
 }
 
 func (srv *GrpcServer) Run() {
