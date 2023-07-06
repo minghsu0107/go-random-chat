@@ -24,9 +24,9 @@ func InitLogging() {
 }
 
 func NewHttpLogrus() HttpLogrus {
-	return HttpLogrus{log.WithField("type", "http")}
+	return HttpLogrus{log.WithField("protocol", "http")}
 }
 
 func NewGrpcLogrus() GrpcLogrus {
-	return GrpcLogrus{log.WithField("type", "grpc")}
+	return GrpcLogrus{log.WithField("protocol", "grpc")}
 }
