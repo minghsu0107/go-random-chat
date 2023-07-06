@@ -111,12 +111,17 @@ func InitializeGrpcServer(name string, logger common.GrpcLogrus) *grpc.Server {
 		}
 		return nil
 	}
+	logOpts := []logging.Option{
+		logging.WithLogOnEvents(logging.StartCall, logging.FinishCall),
+		logging.WithDurationField(logging.DurationToTimeMillisFields),
+		logging.WithFieldsFromContext(logTraceID),
+	}
 
 	opts = append(opts,
 		grpc.ChainStreamInterceptor(
 			otelgrpc.StreamServerInterceptor(),
 			srvMetrics.StreamServerInterceptor(grpcprom.WithExemplarFromContext(exemplarFromContext)),
-			logging.StreamServerInterceptor(interceptorLogger(logger), logging.WithFieldsFromContext(logTraceID)),
+			logging.StreamServerInterceptor(interceptorLogger(logger), logOpts...),
 			recovery.StreamServerInterceptor(recovery.WithRecoveryHandler(grpcPanicRecoveryHandler)),
 		),
 		grpc.ChainUnaryInterceptor(
