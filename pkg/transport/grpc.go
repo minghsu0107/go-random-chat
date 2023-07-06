@@ -38,21 +38,20 @@ func interceptorLogger(l log.FieldLogger) logging.Logger {
 	return logging.LoggerFunc(func(_ context.Context, lvl logging.Level, msg string, fields ...any) {
 		f := make(map[string]any, len(fields)/2)
 		i := logging.Fields(fields).Iterator()
-		if i.Next() {
+		for i.Next() {
 			k, v := i.At()
 			f[k] = v
 		}
-		l := l.WithFields(f)
 
 		switch lvl {
 		case logging.LevelDebug:
-			l.Debug(msg)
+			l.WithFields(f).Debug(msg)
 		case logging.LevelInfo:
-			l.Info(msg)
+			l.WithFields(f).Info(msg)
 		case logging.LevelWarn:
-			l.Warn(msg)
+			l.WithFields(f).Warn(msg)
 		case logging.LevelError:
-			l.Error(msg)
+			l.WithFields(f).Error(msg)
 		default:
 			panic(fmt.Sprintf("unknown level %v", lvl))
 		}
