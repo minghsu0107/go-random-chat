@@ -221,7 +221,7 @@ services:
       exit 0;
       "
   prometheus:
-    image: prom/prometheus:v2.25.2
+    image: prom/prometheus:v2.45.0
     restart: always
     volumes:
       - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml
