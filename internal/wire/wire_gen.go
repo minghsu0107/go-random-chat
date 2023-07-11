@@ -21,8 +21,11 @@ import (
 // Injectors from wire.go:
 
 func InitializeWebServer(name string) (*common.Server, error) {
-	httpLogrus := common.NewHttpLogrus()
 	configConfig, err := config.NewConfig()
+	if err != nil {
+		return nil, err
+	}
+	httpLogrus, err := common.NewHttpLogrus(configConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -36,8 +39,11 @@ func InitializeWebServer(name string) (*common.Server, error) {
 }
 
 func InitializeChatServer(name string) (*common.Server, error) {
-	httpLogrus := common.NewHttpLogrus()
 	configConfig, err := config.NewConfig()
+	if err != nil {
+		return nil, err
+	}
+	httpLogrus, err := common.NewHttpLogrus(configConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +98,10 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	forwardRepoImpl := chat.NewForwardRepoImpl(forwarderClientConn)
 	forwardServiceImpl := chat.NewForwardServiceImpl(forwardRepoImpl)
 	httpServer := chat.NewHttpServer(name, httpLogrus, configConfig, engine, melodyChatConn, messageSubscriber, userServiceImpl, messageServiceImpl, channelServiceImpl, forwardServiceImpl)
-	grpcLogrus := common.NewGrpcLogrus()
+	grpcLogrus, err := common.NewGrpcLogrus(configConfig)
+	if err != nil {
+		return nil, err
+	}
 	grpcServer := chat.NewGrpcServer(name, grpcLogrus, configConfig, userServiceImpl, channelServiceImpl)
 	chatRouter := chat.NewRouter(httpServer, grpcServer)
 	infraCloser := chat.NewInfraCloser()
@@ -102,8 +111,11 @@ func InitializeChatServer(name string) (*common.Server, error) {
 }
 
 func InitializeForwarderServer(name string) (*common.Server, error) {
-	grpcLogrus := common.NewGrpcLogrus()
 	configConfig, err := config.NewConfig()
+	if err != nil {
+		return nil, err
+	}
+	grpcLogrus, err := common.NewGrpcLogrus(configConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -139,8 +151,11 @@ func InitializeForwarderServer(name string) (*common.Server, error) {
 }
 
 func InitializeMatchServer(name string) (*common.Server, error) {
-	httpLogrus := common.NewHttpLogrus()
 	configConfig, err := config.NewConfig()
+	if err != nil {
+		return nil, err
+	}
+	httpLogrus, err := common.NewHttpLogrus(configConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -189,8 +204,11 @@ func InitializeMatchServer(name string) (*common.Server, error) {
 }
 
 func InitializeUploaderServer(name string) (*common.Server, error) {
-	httpLogrus := common.NewHttpLogrus()
 	configConfig, err := config.NewConfig()
+	if err != nil {
+		return nil, err
+	}
+	httpLogrus, err := common.NewHttpLogrus(configConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -209,8 +227,11 @@ func InitializeUploaderServer(name string) (*common.Server, error) {
 }
 
 func InitializeUserServer(name string) (*common.Server, error) {
-	httpLogrus := common.NewHttpLogrus()
 	configConfig, err := config.NewConfig()
+	if err != nil {
+		return nil, err
+	}
+	httpLogrus, err := common.NewHttpLogrus(configConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +248,10 @@ func InitializeUserServer(name string) (*common.Server, error) {
 	}
 	userServiceImpl := user.NewUserServiceImpl(userRepoImpl, idGenerator)
 	httpServer := user.NewHttpServer(name, httpLogrus, configConfig, engine, userServiceImpl)
-	grpcLogrus := common.NewGrpcLogrus()
+	grpcLogrus, err := common.NewGrpcLogrus(configConfig)
+	if err != nil {
+		return nil, err
+	}
 	grpcServer := user.NewGrpcServer(name, grpcLogrus, configConfig, userServiceImpl)
 	router := user.NewRouter(httpServer, grpcServer)
 	infraCloser := user.NewInfraCloser()

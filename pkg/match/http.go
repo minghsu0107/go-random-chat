@@ -48,8 +48,6 @@ func NewMelodyMatchConn() MelodyMatchConn {
 }
 
 func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) *gin.Engine {
-	common.InitLogging()
-
 	svr := gin.New()
 	svr.Use(gin.Recovery())
 	svr.Use(common.CorsMiddleware())

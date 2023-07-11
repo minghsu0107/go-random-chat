@@ -21,8 +21,6 @@ type HttpServer struct {
 }
 
 func NewGinServer(name string, logger common.HttpLogrus) *gin.Engine {
-	common.InitLogging()
-
 	svr := gin.New()
 	svr.Use(gin.Recovery())
 	svr.Use(common.LoggingMiddleware(logger))
