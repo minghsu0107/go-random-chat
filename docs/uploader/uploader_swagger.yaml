@@ -86,7 +86,7 @@ paths:
         in: formData
         items:
           type: file
-        name: files[]
+        name: files
         required: true
         type: array
       - description: channel authorization

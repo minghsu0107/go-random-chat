@@ -145,7 +145,7 @@ function markMessagesAsSeen() {
 function uploadFiles(files) {
     let fd = new FormData()
     for (const file of files) {
-        fd.append('files[]', file, file.name);
+        fd.append('files', file, file.name);
     }
     fetch('/api/uploader/upload/files', {
         method: 'POST',
