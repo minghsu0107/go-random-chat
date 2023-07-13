@@ -43,9 +43,9 @@ paths:
     get:
       description: Get presigned url for downloading a file from S3
       parameters:
-      - description: object key
+      - description: base64-encoded object key
         in: query
-        name: object_key
+        name: okb64
         required: true
         type: string
       - description: channel authorization

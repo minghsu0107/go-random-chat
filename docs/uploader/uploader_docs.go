@@ -32,8 +32,8 @@ const docTemplateuploader = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "object key",
-                        "name": "object_key",
+                        "description": "base64-encoded object key",
+                        "name": "okb64",
                         "in": "query",
                         "required": true
                     },
