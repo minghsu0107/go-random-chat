@@ -94,7 +94,7 @@ const docTemplateuploader = `{
                         },
                         "collectionFormat": "multi",
                         "description": "files to upload",
-                        "name": "files",
+                        "name": "files[]",
                         "in": "formData",
                         "required": true
                     },

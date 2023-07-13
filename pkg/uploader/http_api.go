@@ -18,7 +18,7 @@ import (
 // @Description Upload files to S3 bucket (deprecated; use presigned urls instead)
 // @Tags uploader
 // @Accept mpfd
-// @param files formData []file true "files to upload" collectionFormat(multi)
+// @param files[] formData []file true "files to upload" collectionFormat(multi)
 // @Produce json
 // @param Authorization header string true "channel authorization"
 // @Success 201 {object} UploadedFilesPresenter
