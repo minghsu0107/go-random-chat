@@ -24,7 +24,7 @@ import (
 // @Failure 400 {object} common.ErrResponse
 // @Failure 401 {object} common.ErrResponse
 // @Failure 500 {object} common.ErrResponse
-// @Router /uploader/files [post]
+// @Router /uploader/upload/files [post]
 func (r *HttpServer) UploadFiles(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
@@ -91,12 +91,12 @@ func (r *HttpServer) putFileToS3(ctx context.Context, bucket, fileName string, f
 // @Produce json
 // @Param ext query string true "file extension"
 // @param Authorization header string true "channel authorization"
-// @Success 200 {object} PresignedUploadUrl
+// @Success 200 {object} PresignedUpload
 // @Failure 400 {object} common.ErrResponse
 // @Failure 401 {object} common.ErrResponse
 // @Failure 500 {object} common.ErrResponse
 // @Router /uploader/upload/presigned [get]
-func (r *HttpServer) GetPresignedUploadUrl(c *gin.Context) {
+func (r *HttpServer) GetPresignedUpload(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
 		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
@@ -127,12 +127,12 @@ func (r *HttpServer) GetPresignedUploadUrl(c *gin.Context) {
 // @Produce json
 // @Param object_key query string true "object key"
 // @param Authorization header string true "channel authorization"
-// @Success 200 {object} PresignedDownloadUrl
+// @Success 200 {object} PresignedDownload
 // @Failure 400 {object} common.ErrResponse
 // @Failure 401 {object} common.ErrResponse
 // @Failure 500 {object} common.ErrResponse
 // @Router /uploader/download/presigned [get]
-func (r *HttpServer) GetPresignedDownloadUrl(c *gin.Context) {
+func (r *HttpServer) GetPresignedDownload(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
 		response(c, http.StatusUnauthorized, common.ErrUnauthorized)

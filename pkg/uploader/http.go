@@ -136,11 +136,26 @@ func (r *HttpServer) ChannelUploadRateLimit() gin.HandlerFunc {
 func (r *HttpServer) RegisterRoutes() {
 	uploaderGroup := r.svr.Group("/api/uploader")
 	{
-		uploadFileGroup := uploaderGroup.Group("/files")
-		uploadFileGroup.Use(common.JWTForwardAuth())
-		uploadFileGroup.Use(r.ChannelUploadRateLimit())
+		uploadGroup := uploaderGroup.Group("/upload")
+		uploadGroup.Use(common.JWTForwardAuth())
 		{
-			uploadFileGroup.POST("", r.UploadFiles)
+			fileGroup := uploadGroup.Group("/files")
+			fileGroup.Use(r.ChannelUploadRateLimit())
+			{
+				fileGroup.POST("", r.UploadFiles)
+			}
+			presignedGroup := uploadGroup.Group("/presigned")
+			{
+				presignedGroup.GET("", r.GetPresignedUpload)
+			}
+		}
+		downloadGroup := uploaderGroup.Group("/download")
+		downloadGroup.Use(common.JWTForwardAuth())
+		{
+			presignedGroup := downloadGroup.Group("/presigned")
+			{
+				presignedGroup.GET("", r.GetPresignedDownload)
+			}
 		}
 	}
 	if r.serveSwag {

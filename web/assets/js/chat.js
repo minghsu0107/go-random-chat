@@ -147,7 +147,7 @@ function uploadFiles(files) {
     for (const file of files) {
         fd.append('files[]', file, file.name);
     }
-    fetch('/api/uploader/files', {
+    fetch('/api/uploader/upload/files', {
         method: 'POST',
         headers: new Headers({
             'Authorization': 'Bearer ' + ACCESS_TOKEN
