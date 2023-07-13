@@ -138,24 +138,15 @@ func (r *HttpServer) RegisterRoutes() {
 	{
 		uploadGroup := uploaderGroup.Group("/upload")
 		uploadGroup.Use(common.JWTForwardAuth())
+		uploadGroup.Use(r.ChannelUploadRateLimit())
 		{
-			fileGroup := uploadGroup.Group("/files")
-			fileGroup.Use(r.ChannelUploadRateLimit())
-			{
-				fileGroup.POST("", r.UploadFiles)
-			}
-			presignedGroup := uploadGroup.Group("/presigned")
-			{
-				presignedGroup.GET("", r.GetPresignedUpload)
-			}
+			uploadGroup.POST("/files", r.UploadFiles)
+			uploadGroup.GET("/presigned", r.GetPresignedUpload)
 		}
 		downloadGroup := uploaderGroup.Group("/download")
 		downloadGroup.Use(common.JWTForwardAuth())
 		{
-			presignedGroup := downloadGroup.Group("/presigned")
-			{
-				presignedGroup.GET("", r.GetPresignedDownload)
-			}
+			downloadGroup.GET("/presigned", r.GetPresignedDownload)
 		}
 	}
 	if r.serveSwag {
