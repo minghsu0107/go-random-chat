@@ -19,9 +19,63 @@ const docTemplateuploader = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/uploader/files": {
+        "/uploader/download/presigned": {
+            "get": {
+                "description": "Get presigned url for downloading a file from S3",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "uploader"
+                ],
+                "summary": "Get presigned download url",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "object key",
+                        "name": "object_key",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "channel authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/uploader.PresignedDownload"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/uploader/upload/files": {
             "post": {
-                "description": "Upload files to S3 bucket",
+                "description": "Upload files to S3 bucket (deprecated; use presigned urls instead)",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -31,7 +85,7 @@ const docTemplateuploader = `{
                 "tags": [
                     "uploader"
                 ],
-                "summary": "Upload files",
+                "summary": "Upload files (deprecated)",
                 "parameters": [
                     {
                         "type": "array",
@@ -56,7 +110,7 @@ const docTemplateuploader = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/uploader.UploadedFilesPresenter"
                         }
                     },
                     "400": {
@@ -71,8 +125,62 @@ const docTemplateuploader = `{
                             "$ref": "#/definitions/common.ErrResponse"
                         }
                     },
-                    "503": {
-                        "description": "Service Unavailable",
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/uploader/upload/presigned": {
+            "get": {
+                "description": "Get presigned url for uploading a file to S3",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "uploader"
+                ],
+                "summary": "Get presigned upload url",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "file extension",
+                        "name": "ext",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "channel authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/uploader.PresignedUpload"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/common.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/common.ErrResponse"
                         }
@@ -90,9 +198,46 @@ const docTemplateuploader = `{
                 }
             }
         },
-        "gin.H": {
+        "uploader.PresignedDownload": {
             "type": "object",
-            "additionalProperties": {}
+            "properties": {
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "uploader.PresignedUpload": {
+            "type": "object",
+            "properties": {
+                "object_key": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "uploader.UploadedFilePresenter": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "uploader.UploadedFilesPresenter": {
+            "type": "object",
+            "properties": {
+                "uploaded_files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/uploader.UploadedFilePresenter"
+                    }
+                }
+            }
         }
     }
 }`

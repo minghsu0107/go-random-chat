@@ -5,8 +5,31 @@ definitions:
       msg:
         type: string
     type: object
-  gin.H:
-    additionalProperties: {}
+  uploader.PresignedDownload:
+    properties:
+      url:
+        type: string
+    type: object
+  uploader.PresignedUpload:
+    properties:
+      object_key:
+        type: string
+      url:
+        type: string
+    type: object
+  uploader.UploadedFilePresenter:
+    properties:
+      name:
+        type: string
+      url:
+        type: string
+    type: object
+  uploader.UploadedFilesPresenter:
+    properties:
+      uploaded_files:
+        items:
+          $ref: '#/definitions/uploader.UploadedFilePresenter'
+        type: array
     type: object
 info:
   contact:
@@ -16,11 +39,47 @@ info:
   title: Uploader Service Swagger API
   version: "2.0"
 paths:
-  /uploader/files:
+  /uploader/download/presigned:
+    get:
+      description: Get presigned url for downloading a file from S3
+      parameters:
+      - description: object key
+        in: query
+        name: object_key
+        required: true
+        type: string
+      - description: channel authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/uploader.PresignedDownload'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.ErrResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.ErrResponse'
+      summary: Get presigned download url
+      tags:
+      - uploader
+  /uploader/upload/files:
     post:
       consumes:
       - multipart/form-data
-      description: Upload files to S3 bucket
+      description: Upload files to S3 bucket (deprecated; use presigned urls instead)
       parameters:
       - collectionFormat: multi
         description: files to upload
@@ -41,7 +100,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/uploader.UploadedFilesPresenter'
         "400":
           description: Bad Request
           schema:
@@ -50,11 +109,47 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/common.ErrResponse'
-        "503":
-          description: Service Unavailable
+        "500":
+          description: Internal Server Error
           schema:
             $ref: '#/definitions/common.ErrResponse'
-      summary: Upload files
+      summary: Upload files (deprecated)
+      tags:
+      - uploader
+  /uploader/upload/presigned:
+    get:
+      description: Get presigned url for uploading a file to S3
+      parameters:
+      - description: file extension
+        in: query
+        name: ext
+        required: true
+        type: string
+      - description: channel authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/uploader.PresignedUpload'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.ErrResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.ErrResponse'
+      summary: Get presigned upload url
       tags:
       - uploader
 swagger: "2.0"
