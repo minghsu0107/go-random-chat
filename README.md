@@ -35,7 +35,7 @@ Kafka is used for message Pub/Sub. Checkout [this branch](https://github.com/min
 - User matching with idempotency.
 - Chat channel authentication using JWT.
 - Store uploaded files in S3-compatible object storage.
-- Channel-level file access control using JWT and S3 presigned URLs.
+- Channel-level file access control using S3 presigned URLs.
 - Support uploading image from clipboard.
 - Use [Traefik FowardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) for file upload authentication.
 - Protect file upload api with distributed rate limiting (token bucket algorithm).
