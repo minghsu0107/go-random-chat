@@ -106,11 +106,12 @@ type UploaderConfig struct {
 		}
 	}
 	S3 struct {
-		Endpoint  string
-		Region    string
-		Bucket    string
-		AccessKey string
-		SecretKey string
+		Endpoint              string
+		Region                string
+		Bucket                string
+		AccessKey             string
+		SecretKey             string
+		PresignLifetimeSecond int64
 	}
 	RateLimit struct {
 		ChannelUpload RateLimitConfig
@@ -216,6 +217,7 @@ func setDefault() {
 	viper.SetDefault("uploader.s3.bucket", "myfilebucket")
 	viper.SetDefault("uploader.s3.accessKey", "")
 	viper.SetDefault("uploader.s3.secretKey", "")
+	viper.SetDefault("uploader.s3.presignLifetimeSecond", 86400)
 	viper.SetDefault("uploader.rateLimit.channelUpload.rps", 200)
 	viper.SetDefault("uploader.rateLimit.channelUpload.burst", 50)
 

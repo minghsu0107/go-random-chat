@@ -46,6 +46,7 @@ type HttpServer struct {
 	s3Bucket                 string
 	maxMemory                int64
 	uploader                 *manager.Uploader
+	presigner                *Presigner
 	httpPort                 string
 	httpServer               *http.Server
 	channelUploadRateLimiter ChannelUploadRateLimiter
@@ -86,6 +87,7 @@ func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config,
 		Region:                      config.Uploader.S3.Region,
 		RetryMaxAttempts:            3,
 	}
+	s3Client := s3.NewFromConfig(awsConfig)
 
 	return &HttpServer{
 		name:                     name,
@@ -94,7 +96,8 @@ func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config,
 		s3Endpoint:               s3Endpoint,
 		s3Bucket:                 s3Bucket,
 		maxMemory:                config.Uploader.Http.Server.MaxMemoryByte,
-		uploader:                 manager.NewUploader(s3.NewFromConfig(awsConfig)),
+		uploader:                 manager.NewUploader(s3Client),
+		presigner:                &Presigner{s3.NewPresignClient(s3Client), config.Uploader.S3.PresignLifetimeSecond},
 		httpPort:                 config.Uploader.Http.Server.Port,
 		channelUploadRateLimiter: channelUploadRateLimiter,
 		serveSwag:                config.Uploader.Http.Server.Swag,

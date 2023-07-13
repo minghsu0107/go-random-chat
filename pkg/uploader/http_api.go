@@ -13,17 +13,17 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 )
 
-// @Summary Upload files
-// @Description Upload files to S3 bucket
+// @Summary Upload files (deprecated)
+// @Description Upload files to S3 bucket (deprecated; use presigned urls instead)
 // @Tags uploader
 // @Accept mpfd
 // @param files formData []file true "files to upload" collectionFormat(multi)
 // @Produce json
 // @param Authorization header string true "channel authorization"
-// @Success 201 {object} gin.H
+// @Success 201 {object} UploadedFilesPresenter
 // @Failure 400 {object} common.ErrResponse
 // @Failure 401 {object} common.ErrResponse
-// @Failure 503 {object} common.ErrResponse
+// @Failure 500 {object} common.ErrResponse
 // @Router /uploader/files [post]
 func (r *HttpServer) UploadFiles(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
@@ -83,4 +83,82 @@ func (r *HttpServer) putFileToS3(ctx context.Context, bucket, fileName string, f
 		return err
 	}
 	return nil
+}
+
+// @Summary Get presigned upload url
+// @Description Get presigned url for uploading a file to S3
+// @Tags uploader
+// @Produce json
+// @Param ext query string true "file extension"
+// @param Authorization header string true "channel authorization"
+// @Success 200 {object} PresignedUploadUrl
+// @Failure 400 {object} common.ErrResponse
+// @Failure 401 {object} common.ErrResponse
+// @Failure 500 {object} common.ErrResponse
+// @Router /uploader/upload/presigned [get]
+func (r *HttpServer) GetPresignedUploadUrl(c *gin.Context) {
+	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
+	if !ok {
+		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
+		return
+	}
+	var req GetPresignedUploadRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response(c, http.StatusBadRequest, common.ErrInvalidParam)
+		return
+	}
+	objectKey := newObjectKey(channelID, filepath.Ext(req.Extension))
+	res, err := r.presigner.GetObject(c.Request.Context(), r.s3Bucket, objectKey)
+	if err != nil {
+		r.logger.Errorf("get presigned upload url failed: %v", err)
+		response(c, http.StatusInternalServerError, common.ErrServer)
+		return
+	}
+
+	c.JSON(http.StatusOK, &PresignedUpload{
+		ObjectKey: objectKey,
+		Url:       res.URL,
+	})
+}
+
+// @Summary Get presigned download url
+// @Description Get presigned url for downloading a file from S3
+// @Tags uploader
+// @Produce json
+// @Param object_key query string true "object key"
+// @param Authorization header string true "channel authorization"
+// @Success 200 {object} PresignedDownloadUrl
+// @Failure 400 {object} common.ErrResponse
+// @Failure 401 {object} common.ErrResponse
+// @Failure 500 {object} common.ErrResponse
+// @Router /uploader/download/presigned [get]
+func (r *HttpServer) GetPresignedDownloadUrl(c *gin.Context) {
+	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
+	if !ok {
+		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
+		return
+	}
+	var req GetPresignedDownloadRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response(c, http.StatusBadRequest, common.ErrInvalidParam)
+		return
+	}
+	targetChannelID, err := getChannelIDFromObjectKey(req.ObjectKey)
+	if err != nil {
+		response(c, http.StatusBadRequest, common.ErrInvalidParam)
+		return
+	}
+	if channelID != targetChannelID {
+		response(c, http.StatusUnauthorized, common.ErrUnauthorized)
+		return
+	}
+
+	res, err := r.presigner.GetObject(c.Request.Context(), r.s3Bucket, req.ObjectKey)
+	if err != nil {
+		r.logger.Errorf("get presigned download url failed: %v", err)
+		response(c, http.StatusInternalServerError, common.ErrServer)
+		return
+	}
+
+	c.JSON(http.StatusOK, &PresignedDownload{res.URL})
 }

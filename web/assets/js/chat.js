@@ -68,7 +68,7 @@ async function start() {
         var chatUrl = protocol + "//" + window.location.host + "/api/chat?uid=" + USER_ID + "&access_token=" + ACCESS_TOKEN
         connectWebSocket(chatUrl)
     }
-} 
+}
 start()
 
 var ONLINE_USERS = new Set()
@@ -140,6 +140,8 @@ function markMessagesAsSeen() {
         }
     }
 }
+
+/*
 function uploadFiles(files) {
     let fd = new FormData()
     for (const file of files) {
@@ -167,6 +169,40 @@ function uploadFiles(files) {
             console.log(`Error: ${err}`)
         });
 }
+*/
+
+function uploadFiles(files) {
+    for (const file of files) {
+        fetch(`/api/uploader/upload/presigned?ext=${getFileExtention(file.name)}`, {
+            method: 'GET',
+            headers: new Headers({
+                'Authorization': 'Bearer ' + ACCESS_TOKEN
+            })
+        })
+            .then(res => {
+                if (res.status !== 200) {
+                    throw Error(res.statusText)
+                }
+                return res.json()
+            })
+            .then(result => {
+                fetch(result.url, {
+                    method: 'PUT',
+                    body: file
+                })
+                    .then(() => {
+                        sendFileMessage(file.name, result.object_key)
+                    })
+                    .catch(err => {
+                        console.log(`Error: ${err}`)
+                    });
+            })
+            .catch(err => {
+                console.log(`Error: ${err}`)
+            });
+    }
+}
+
 upload.addEventListener("pointerdown", function (e) {
     upload.style.color = "black"
 })
@@ -175,8 +211,8 @@ upload.addEventListener("pointerup", function (e) {
 })
 document.addEventListener('paste', (e) => {
     const files = getFilesFromPasteEvent(e)
-    if (files.length <= 0) { 
-    	return
+    if (files.length <= 0) {
+        return
     }
     uploadFiles(files)
 })
@@ -484,9 +520,11 @@ async function processMessage(m) {
             var time1 = `${d1.getFullYear()}/${d1.getMonth() + 1}/${d1.getDate()} ${String(d1.getHours()).padStart(2, "0")}:${String(d1.getMinutes()).padStart(2, "0")}`
             let filepayload = JSON.parse(m.payload)
             if (m.user_id === USER_ID) {
-                msg = await getFileMessage(m.message_id, USER_ID, RIGHT, filepayload.file_name, filepayload.file_url, time1, m.seen)
+                // msg = await getFileMessage(m.message_id, USER_ID, RIGHT, filepayload.file_name, filepayload.file_url, time1, m.seen)
+                msg = await getFileMessage(m.message_id, USER_ID, RIGHT, filepayload.file_name, filepayload.object_key, time1, m.seen)
             } else {
-                msg = await getFileMessage(m.message_id, m.user_id, LEFT, filepayload.file_name, filepayload.file_url, time1, m.seen)
+                // msg = await getFileMessage(m.message_id, m.user_id, LEFT, filepayload.file_name, filepayload.file_url, time1, m.seen)
+                msg = await getFileMessage(m.message_id, m.user_id, LEFT, filepayload.file_name, filepayload.object_key, time1, m.seen)
             }
             break
     }
@@ -607,6 +645,7 @@ function sendActionMessage(action) {
     }))
 }
 
+/*
 function sendFileMessage(fileName, fileURL) {
     let payload = {
         "file_name": fileName,
@@ -618,8 +657,83 @@ function sendFileMessage(fileName, fileURL) {
         "payload": JSON.stringify(payload),
     }))
 }
+*/
+function sendFileMessage(fileName, objectKey) {
+    let payload = {
+        "file_name": fileName,
+        "object_key": objectKey
+    }
+    ws.send(JSON.stringify({
+        "event": EVENT_FILE,
+        "user_id": USER_ID,
+        "payload": JSON.stringify(payload),
+    }))
+}
 
+/*
 async function getFileMessage(messageID, userID, side, fileName, fileURL, time, seen) {
+    let extention = getFileExtention(fileURL)
+    let isImg = (extention === "jpg" || extention === "png" || extention === "jpeg")
+    let fileView = ""
+    if (isImg) {
+        fileView = `<img id="img-${messageID}" onload="this.style.visibility='visible'" src=${fileURL} loading="lazy" alt='' style="max-width:35%;border-radius: 15px;visibility: hidden;" onclick="showModal(this.src)"/>`
+    } else {
+        let color = "black"
+        if (side === RIGHT) {
+            color = "white"
+        }
+        fileView = `
+        <div class="msg-bubble">
+          <div class="msg-text">
+            <a href=${fileURL} download target="_blank" style="color: ${color}">
+              <div style="overflow-wrap: break-word;">${fileName}</div>
+            </a>
+          </div>
+        </div>
+        `
+    }
+    var msg = `
+    <div id="${messageID}" class="msg ${side}-msg">
+      <div class="msg-img" style="background-image: url(${await getUserPictureURL(userID)})"></div>
+      ${fileView}
+    `
+    if (side === RIGHT) {
+        var seenMsg = ""
+        if (seen) {
+            seenMsg = "seen"
+        }
+        msg += `<div style="margin-right: 10px; color: #a6a6a6"><div id="seen-${messageID}" class="msg-info-seen">${seenMsg}</div><div class="msg-info-time">${time.split(' ')[1]}</div></div>`
+    } else {
+        msg += `<div style="margin-left: 10px; color: #a6a6a6"><div class="msg-info-time">${time.split(' ')[1]}</div></div>`
+    }
+    msg += `</div>`
+    return msg
+}
+*/
+
+async function getFileURL(objectKey) {
+    let response = await fetch(`/api/uploader/download/presigned?object_key=${objectKey}`, {
+        method: 'GET',
+        headers: new Headers({
+            'Authorization': 'Bearer ' + ACCESS_TOKEN
+        })
+    })
+    let result
+    try {
+        if (response.status !== 200) {
+            throw Error(response.statusText)
+        }
+        result = await response.json()
+    } catch (err) {
+        console.log(`Error: ${err}`)
+        return ""
+    }
+
+    return result.url
+}
+
+async function getFileMessage(messageID, userID, side, fileName, objectKey, time, seen) {
+    let fileURL = await getFileURL(objectKey)
     let extention = getFileExtention(fileURL)
     let isImg = (extention === "jpg" || extention === "png" || extention === "jpeg")
     let fileView = ""
