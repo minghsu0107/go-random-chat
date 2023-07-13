@@ -100,7 +100,7 @@ func (r *HttpServer) ForwardAuth(c *gin.Context) {
 // @Failure 401 {object} common.ErrResponse
 // @Failure 404 {object} common.ErrResponse
 // @Failure 500 {object} common.ErrResponse
-// @Router /chat/chanusers [get]
+// @Router /chat/users [get]
 func (r *HttpServer) GetChannelUsers(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
@@ -131,7 +131,7 @@ func (r *HttpServer) GetChannelUsers(c *gin.Context) {
 // @Failure 401 {object} common.ErrResponse
 // @Failure 404 {object} common.ErrResponse
 // @Failure 500 {object} common.ErrResponse
-// @Router /chat/chanusers/online [get]
+// @Router /chat/users/online [get]
 func (r *HttpServer) GetOnlineUsers(c *gin.Context) {
 	channelID, ok := c.Request.Context().Value(common.ChannelKey).(uint64)
 	if !ok {
