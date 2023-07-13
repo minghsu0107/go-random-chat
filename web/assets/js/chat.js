@@ -712,7 +712,7 @@ async function getFileMessage(messageID, userID, side, fileName, fileURL, time, 
 */
 
 async function getFileURL(objectKey) {
-    let response = await fetch(`/api/uploader/download/presigned?object_key=${objectKey}`, {
+    let response = await fetch(`/api/uploader/download/presigned?okb64=${btoa(objectKey)}`, {
         method: 'GET',
         headers: new Headers({
             'Authorization': 'Bearer ' + ACCESS_TOKEN
@@ -734,7 +734,7 @@ async function getFileURL(objectKey) {
 
 async function getFileMessage(messageID, userID, side, fileName, objectKey, time, seen) {
     let fileURL = await getFileURL(objectKey)
-    let extention = getFileExtention(fileURL)
+    let extention = getFileExtention(objectKey)
     let isImg = (extention === "jpg" || extention === "png" || extention === "jpeg")
     let fileView = ""
     if (isImg) {

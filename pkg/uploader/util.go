@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unsafe"
 
 	"github.com/google/uuid"
 )
@@ -27,4 +28,8 @@ func joinStrs(strs ...string) string {
 		sb.WriteString(str)
 	}
 	return sb.String()
+}
+
+func byteSlice2String(bs []byte) string {
+	return *(*string)(unsafe.Pointer(&bs))
 }

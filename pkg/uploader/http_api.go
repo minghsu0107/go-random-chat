@@ -2,6 +2,7 @@ package uploader
 
 import (
 	"context"
+	b64 "encoding/base64"
 	"io"
 	"net/http"
 	"path/filepath"
@@ -107,8 +108,8 @@ func (r *HttpServer) GetPresignedUpload(c *gin.Context) {
 		response(c, http.StatusBadRequest, common.ErrInvalidParam)
 		return
 	}
-	objectKey := newObjectKey(channelID, filepath.Ext(req.Extension))
-	res, err := r.presigner.GetObject(c.Request.Context(), r.s3Bucket, objectKey)
+	objectKey := newObjectKey(channelID, common.Join(".", req.Extension))
+	res, err := r.presigner.PutObject(c.Request.Context(), r.s3Bucket, objectKey)
 	if err != nil {
 		r.logger.Errorf("get presigned upload url failed: %v", err)
 		response(c, http.StatusInternalServerError, common.ErrServer)
@@ -125,7 +126,7 @@ func (r *HttpServer) GetPresignedUpload(c *gin.Context) {
 // @Description Get presigned url for downloading a file from S3
 // @Tags uploader
 // @Produce json
-// @Param object_key query string true "object key"
+// @Param okb64 query string true "base64-encoded object key"
 // @param Authorization header string true "channel authorization"
 // @Success 200 {object} PresignedDownload
 // @Failure 400 {object} common.ErrResponse
@@ -143,7 +144,13 @@ func (r *HttpServer) GetPresignedDownload(c *gin.Context) {
 		response(c, http.StatusBadRequest, common.ErrInvalidParam)
 		return
 	}
-	targetChannelID, err := getChannelIDFromObjectKey(req.ObjectKey)
+	objectKeyByte, err := b64.URLEncoding.DecodeString(req.ObjectKeyBase64)
+	if err != nil {
+		response(c, http.StatusBadRequest, common.ErrInvalidParam)
+		return
+	}
+	objectKey := byteSlice2String(objectKeyByte)
+	targetChannelID, err := getChannelIDFromObjectKey(objectKey)
 	if err != nil {
 		response(c, http.StatusBadRequest, common.ErrInvalidParam)
 		return
@@ -153,7 +160,7 @@ func (r *HttpServer) GetPresignedDownload(c *gin.Context) {
 		return
 	}
 
-	res, err := r.presigner.GetObject(c.Request.Context(), r.s3Bucket, req.ObjectKey)
+	res, err := r.presigner.GetObject(c.Request.Context(), r.s3Bucket, objectKey)
 	if err != nil {
 		r.logger.Errorf("get presigned download url failed: %v", err)
 		response(c, http.StatusInternalServerError, common.ErrServer)

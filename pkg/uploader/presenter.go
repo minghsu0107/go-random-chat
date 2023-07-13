@@ -14,7 +14,7 @@ type GetPresignedUploadRequest struct {
 }
 
 type GetPresignedDownloadRequest struct {
-	ObjectKey string `form:"object_key" binding:"required"`
+	ObjectKeyBase64 string `form:"okb64" binding:"required"`
 }
 
 type PresignedUpload struct {
