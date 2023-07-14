@@ -210,7 +210,8 @@ services:
       MINIO_ROOT_USER: testaccesskey
       MINIO_ROOT_PASSWORD: testsecret
       MINIO_API_ROOT_ACCESS: "on"
-      MINIO_SERVER_URL: http://minio:9000 # advertised server url
+      # FQDN the MinIO Console should use for connecting to the MinIO Server
+      MINIO_SERVER_URL: http://minio:9000
     ports:
       - "9000:9000"
       - "9001:9001"
