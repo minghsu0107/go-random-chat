@@ -217,7 +217,7 @@ services:
       set -e;
       /usr/bin/mc config host add myminio http://minio:9000 testaccesskey testsecret;
       /usr/bin/mc mb myminio/myfilebucket;
-      /usr/bin/mc policy set public myminio/myfilebucket;
+      # /usr/bin/mc policy set public myminio/myfilebucket;
       exit 0;
       "
   prometheus:
