@@ -88,7 +88,7 @@ docker restart deployments-createbucket-1
 
 - Visit `http://localhost` for the application home page.
 - Visit `http://localhost:8080` for Traefik dashboard.
-- VIsit `http://localhost:9000` for Minio dashboard.
+- VIsit `http://localhost:9001` for Minio dashboard.
 - Visit `http://localhost:9090` for Prometheus dashboard.
 - Visit `http://localhost:16686` for Jaeger dashboard.
 - Visit `http://localhost/api/<svc>/swagger/index.html` for API documentation, where `<svc>` could be `user`, `match`, `chat`, or `uploader`.
