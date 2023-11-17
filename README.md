@@ -10,7 +10,8 @@ Kafka is used for message Pub/Sub. Checkout [this branch](https://github.com/min
 
 ### System architecture
 
-<img width="1028" alt="image" src="https://user-images.githubusercontent.com/50090692/215413040-5f7bbe14-bc9e-40b9-861c-a882e381386e.png">
+<img width="1028" alt="image" src="https://github.com/minghsu0107/go-random-chat/assets/50090692/81733303-b022-4069-91c0-1d0360bede7f">
+
 
 ### Features
 - Real-time communication and efficient websocket handling using [Melody](https://github.com/olahol/melody).
