@@ -29,15 +29,15 @@ Kafka is used for message Pub/Sub. Checkout [this branch](https://github.com/min
 - Graceful shutdown.
 - Observability using [Golang Prometheus client](https://github.com/prometheus/client_golang) for monitoring and [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go) for tracing.
 - At-least-once delivery for message Pub/Sub using [Kafka](https://kafka.apache.org).
-- Persist messages and chat channel metadata in [Cassandra](https://cassandra.apache.org), an open source NoSQL distributed database trusted by thousands of companies for scalability and high availability.
+- Persist messages and chat channel metadata in [Cassandra](https://cassandra.apache.org), an open source NoSQL distributed database for scalability and high availability.
 - Automatically generate RESTful API documentation with Swagger 2.0.
 - User login session management using http-only cookie.
 - Support Google OAuth2 login.
 - User matching with idempotency.
 - Chat channel authentication using JWT.
-- Store uploaded files in S3-compatible object storage.
+- S3-compatible object storage for uploaded files.
 - Channel-level file access control using S3 presigned URLs.
-- Support uploading image from clipboard.
+- Support uploading images from clipboard.
 - Use [Traefik FowardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) for file upload authentication.
 - Protect file upload api with distributed rate limiting (token bucket algorithm).
 - Message seen feature.
