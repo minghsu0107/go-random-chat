@@ -56,7 +56,7 @@ func LoggingMiddleware(logger HttpLog) gin.HandlerFunc {
 		// Stop timer
 		duration := getDurationInMillseconds(start)
 
-		attrs := []slog.Attr{
+		attrs := []any{
 			slog.Float64("duration_ms", duration),
 			slog.String("method", c.Request.Method),
 			slog.String("path", c.Request.RequestURI),
