@@ -56,20 +56,13 @@ func LoggingMiddleware(logger HttpLog) gin.HandlerFunc {
 		// Stop timer
 		duration := getDurationInMillseconds(start)
 
-		attrs := []any{
+		logger.Info("",
 			slog.Float64("duration_ms", duration),
 			slog.String("method", c.Request.Method),
 			slog.String("path", c.Request.RequestURI),
 			slog.Int("status", c.Writer.Status()),
 			slog.String("referrer", c.Request.Referer()),
-			slog.String("trace_id", getTraceID(c)),
-		}
-
-		if c.Writer.Status() >= 500 {
-			logger.Error(c.Errors.String(), attrs)
-		} else {
-			logger.Info("", attrs)
-		}
+			slog.String("trace_id", getTraceID(c)))
 	}
 }
 
