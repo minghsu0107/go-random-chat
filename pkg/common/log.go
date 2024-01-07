@@ -19,14 +19,14 @@ type GrpcLog struct {
 
 func init() {
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level:     slog.LevelError,
+		Level:     slog.LevelInfo,
 		AddSource: false,
 	})))
 }
 
 func NewHttpLog(config *config.Config) (HttpLog, error) {
 	logHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level:     slog.LevelError,
+		Level:     slog.LevelInfo,
 		AddSource: false,
 	}).WithAttrs([]slog.Attr{
 		slog.String("proto", "http"),
