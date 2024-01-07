@@ -3,6 +3,7 @@ package transport
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"runtime/debug"
 	"time"
 
@@ -20,7 +21,6 @@ import (
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	log "github.com/sirupsen/logrus"
 	"github.com/sony/gobreaker"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
@@ -34,31 +34,24 @@ var (
 	ServiceIdHeader string = "Service-Id"
 )
 
-func interceptorLogger(l log.FieldLogger) logging.Logger {
+func interceptorLogger(l common.GrpcLog) logging.Logger {
 	return logging.LoggerFunc(func(_ context.Context, lvl logging.Level, msg string, fields ...any) {
-		f := make(map[string]any, len(fields)/2)
-		i := logging.Fields(fields).Iterator()
-		for i.Next() {
-			k, v := i.At()
-			f[k] = v
-		}
-
 		switch lvl {
 		case logging.LevelDebug:
-			l.WithFields(f).Debug(msg)
+			l.Debug(msg, fields...)
 		case logging.LevelInfo:
-			l.WithFields(f).Info(msg)
+			l.Info(msg, fields...)
 		case logging.LevelWarn:
-			l.WithFields(f).Warn(msg)
+			l.Warn(msg, fields...)
 		case logging.LevelError:
-			l.WithFields(f).Error(msg)
+			l.Error(msg, fields...)
 		default:
 			panic(fmt.Sprintf("unknown level %v", lvl))
 		}
 	})
 }
 
-func InitializeGrpcServer(name string, logger common.GrpcLogrus) *grpc.Server {
+func InitializeGrpcServer(name string, logger common.GrpcLog) *grpc.Server {
 	opts := []grpc.ServerOption{
 		grpc.MaxRecvMsgSize(1024 * 1024 * 8), // increase to 8 MB (default: 4 MB)
 		grpc.KeepaliveEnforcementPolicy(keepalive.EnforcementPolicy{
@@ -102,7 +95,7 @@ func InitializeGrpcServer(name string, logger common.GrpcLogrus) *grpc.Server {
 	})
 	grpcPanicRecoveryHandler := func(p any) (err error) {
 		panicsTotal.Inc()
-		logger.Errorf("recovered from panic, stack: %s", string(debug.Stack()))
+		logger.Error("recovered from panic, stack: " + string(debug.Stack()))
 		return status.Errorf(codes.Internal, "%s", p)
 	}
 	logTraceID := func(ctx context.Context) logging.Fields {
@@ -175,7 +168,7 @@ func InitializeGrpcClient(svcHost string) (*grpc.ClientConn, error) {
 		//grpc.WithBlock(),
 	)
 
-	log.Infof("connecting to grpc host: %s", svcHost)
+	slog.Info("connecting to grpc host: " + svcHost)
 	conn, err := grpc.DialContext(
 		ctx,
 		fmt.Sprintf("%s:///%s", scheme, svcHost),

@@ -2,7 +2,9 @@ package web
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
@@ -14,13 +16,13 @@ import (
 
 type HttpServer struct {
 	name       string
-	logger     common.HttpLogrus
+	logger     common.HttpLog
 	svr        *gin.Engine
 	httpPort   string
 	httpServer *http.Server
 }
 
-func NewGinServer(name string, logger common.HttpLogrus) *gin.Engine {
+func NewGinServer(name string, logger common.HttpLog) *gin.Engine {
 	svr := gin.New()
 	svr.Use(gin.Recovery())
 	svr.Use(common.LoggingMiddleware(logger))
@@ -34,7 +36,7 @@ func NewGinServer(name string, logger common.HttpLogrus) *gin.Engine {
 	return svr
 }
 
-func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine) *HttpServer {
+func NewHttpServer(name string, logger common.HttpLog, config *config.Config, svr *gin.Engine) *HttpServer {
 	return &HttpServer{
 		name:     name,
 		logger:   logger,
@@ -61,10 +63,11 @@ func (r *HttpServer) Run() {
 			Addr:    addr,
 			Handler: common.NewOtelHttpHandler(r.svr, r.name+"_http"),
 		}
-		r.logger.Infoln("http server listening on ", addr)
+		r.logger.Info("http server listening", slog.String("addr", addr))
 		err := r.httpServer.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
-			r.logger.Fatal(err)
+			r.logger.Error(err.Error())
+			os.Exit(1)
 		}
 	}()
 }

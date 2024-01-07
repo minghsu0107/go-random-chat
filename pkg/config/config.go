@@ -17,7 +17,6 @@ type Config struct {
 	Cassandra     *CassandraConfig     `mapstructure:"cassandra"`
 	Redis         *RedisConfig         `mapstructure:"redis"`
 	Observability *ObservabilityConfig `mapstructure:"observability"`
-	Logging       *LoggingConfig       `mapstructure:"logging"`
 }
 
 type WebConfig struct {
@@ -182,10 +181,6 @@ type ObservabilityConfig struct {
 	}
 }
 
-type LoggingConfig struct {
-	Level string
-}
-
 func setDefault() {
 	viper.SetDefault("web.http.server.port", "5000")
 
@@ -256,8 +251,6 @@ func setDefault() {
 
 	viper.SetDefault("observability.prometheus.port", "8080")
 	viper.SetDefault("observability.tracing.jaegerUrl", "")
-
-	viper.SetDefault("logging.level", "info")
 }
 
 func NewConfig() (*Config, error) {

@@ -1,6 +1,6 @@
 module github.com/minghsu0107/go-random-chat
 
-go 1.20
+go 1.21
 
 require (
 	github.com/IBM/sarama v1.42.1
@@ -22,7 +22,6 @@ require (
 	github.com/prometheus/client_golang v1.16.0
 	github.com/redis/go-redis/extra/redisotel/v9 v9.0.5
 	github.com/redis/go-redis/v9 v9.2.0
-	github.com/sirupsen/logrus v1.9.3
 	github.com/slok/go-http-metrics v0.10.0
 	github.com/sony/gobreaker v0.5.0
 	github.com/sony/sonyflake v1.1.0

@@ -2,8 +2,11 @@ package forwarder
 
 import (
 	"net"
+	"os"
 
 	"google.golang.org/grpc"
+
+	"log/slog"
 
 	"github.com/minghsu0107/go-random-chat/pkg/common"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
@@ -13,13 +16,13 @@ import (
 
 type GrpcServer struct {
 	grpcPort      string
-	logger        common.GrpcLogrus
+	logger        common.GrpcLog
 	s             *grpc.Server
 	forwardSvc    ForwardService
 	msgSubscriber *MessageSubscriber
 }
 
-func NewGrpcServer(name string, logger common.GrpcLogrus, config *config.Config, forwardSvc ForwardService, msgSubscriber *MessageSubscriber) *GrpcServer {
+func NewGrpcServer(name string, logger common.GrpcLog, config *config.Config, forwardSvc ForwardService, msgSubscriber *MessageSubscriber) *GrpcServer {
 	srv := &GrpcServer{
 		grpcPort:      config.Forwarder.Grpc.Server.Port,
 		logger:        logger,
@@ -39,19 +42,22 @@ func (srv *GrpcServer) Register() {
 func (srv *GrpcServer) Run() {
 	go func() {
 		addr := "0.0.0.0:" + srv.grpcPort
-		srv.logger.Infoln("grpc server listening on  ", addr)
+		srv.logger.Info("grpc server listening", slog.String("addr", addr))
 		lis, err := net.Listen("tcp", addr)
 		if err != nil {
-			srv.logger.Fatal(err)
+			srv.logger.Error(err.Error())
+			os.Exit(1)
 		}
 		if err := srv.s.Serve(lis); err != nil {
-			srv.logger.Fatal(err)
+			srv.logger.Error(err.Error())
+			os.Exit(1)
 		}
 	}()
 	go func() {
 		err := srv.msgSubscriber.Run()
 		if err != nil {
-			srv.logger.Fatal(err)
+			srv.logger.Error(err.Error())
+			os.Exit(1)
 		}
 	}()
 }

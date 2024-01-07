@@ -1,7 +1,9 @@
 package user
 
 import (
+	"log/slog"
 	"net"
+	"os"
 
 	"google.golang.org/grpc"
 
@@ -13,12 +15,12 @@ import (
 
 type GrpcServer struct {
 	grpcPort string
-	logger   common.GrpcLogrus
+	logger   common.GrpcLog
 	s        *grpc.Server
 	userSvc  UserService
 }
 
-func NewGrpcServer(name string, logger common.GrpcLogrus, config *config.Config, userSvc UserService) *GrpcServer {
+func NewGrpcServer(name string, logger common.GrpcLog, config *config.Config, userSvc UserService) *GrpcServer {
 	srv := &GrpcServer{
 		grpcPort: config.User.Grpc.Server.Port,
 		logger:   logger,
@@ -35,13 +37,15 @@ func (srv *GrpcServer) Register() {
 func (srv *GrpcServer) Run() {
 	go func() {
 		addr := "0.0.0.0:" + srv.grpcPort
-		srv.logger.Infoln("grpc server listening on  ", addr)
+		srv.logger.Info("grpc server listening", slog.String("addr", addr))
 		lis, err := net.Listen("tcp", addr)
 		if err != nil {
-			srv.logger.Fatal(err)
+			srv.logger.Error(err.Error())
+			os.Exit(1)
 		}
 		if err := srv.s.Serve(lis); err != nil {
-			srv.logger.Fatal(err)
+			srv.logger.Error(err.Error())
+			os.Exit(1)
 		}
 	}()
 }

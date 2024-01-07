@@ -21,7 +21,7 @@ func InitializeWebServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
 		common.NewObservabilityInjector,
-		common.NewHttpLogrus,
+		common.NewHttpLog,
 
 		web.NewGinServer,
 
@@ -40,8 +40,8 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
 		common.NewObservabilityInjector,
-		common.NewHttpLogrus,
-		common.NewGrpcLogrus,
+		common.NewHttpLog,
+		common.NewGrpcLog,
 
 		infra.NewRedisClient,
 		infra.NewRedisCacheImpl,
@@ -106,7 +106,7 @@ func InitializeForwarderServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
 		common.NewObservabilityInjector,
-		common.NewGrpcLogrus,
+		common.NewGrpcLog,
 
 		infra.NewRedisClient,
 		infra.NewRedisCacheImpl,
@@ -139,7 +139,7 @@ func InitializeMatchServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
 		common.NewObservabilityInjector,
-		common.NewHttpLogrus,
+		common.NewHttpLog,
 
 		infra.NewRedisClient,
 		infra.NewRedisCacheImpl,
@@ -185,7 +185,7 @@ func InitializeUploaderServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
 		common.NewObservabilityInjector,
-		common.NewHttpLogrus,
+		common.NewHttpLog,
 
 		infra.NewRedisClient,
 
@@ -208,8 +208,8 @@ func InitializeUserServer(name string) (*common.Server, error) {
 	wire.Build(
 		config.NewConfig,
 		common.NewObservabilityInjector,
-		common.NewHttpLogrus,
-		common.NewGrpcLogrus,
+		common.NewHttpLog,
+		common.NewGrpcLog,
 
 		infra.NewRedisClient,
 		infra.NewRedisCacheImpl,

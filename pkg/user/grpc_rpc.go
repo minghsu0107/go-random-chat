@@ -17,7 +17,7 @@ func (srv *GrpcServer) GetUser(ctx context.Context, req *userpb.GetUserRequest) 
 				Exist: false,
 			}, nil
 		}
-		srv.logger.Error(err)
+		srv.logger.Error(err.Error())
 		return nil, status.Error(codes.Unavailable, err.Error())
 	}
 	return &userpb.GetUserResponse{
@@ -35,7 +35,7 @@ func (srv *GrpcServer) GetUserIdBySession(ctx context.Context, req *userpb.GetUs
 		if errors.Is(err, ErrSessionNotFound) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
-		srv.logger.Error(err)
+		srv.logger.Error(err.Error())
 		return nil, status.Error(codes.Unavailable, err.Error())
 	}
 	return &userpb.GetUserIdBySessionResponse{

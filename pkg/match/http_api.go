@@ -31,12 +31,12 @@ func (r *HttpServer) Match(c *gin.Context) {
 			response(c, http.StatusNotFound, ErrUserNotFound)
 			return
 		}
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
 	if err := r.mm.HandleRequest(c.Writer, c.Request); err != nil {
-		r.logger.Errorf("upgrade websocket error: %v", err)
+		r.logger.Error("upgrade websocket error: " + err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -50,20 +50,20 @@ func (r *HttpServer) HandleMatchOnConnect(sess *melody.Session) {
 	}
 	err := r.initializeMatchSession(sess, userID)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		return
 	}
 	ctx := context.Background()
 	matchResult, err := r.matchSvc.Match(ctx, userID)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		return
 	}
 	if !matchResult.Matched {
 		return
 	}
 	if err := r.matchSvc.BroadcastMatchResult(ctx, matchResult); err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		return
 	}
 }

@@ -25,12 +25,12 @@ func InitializeWebServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	httpLogrus, err := common.NewHttpLogrus(configConfig)
+	httpLog, err := common.NewHttpLog(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	engine := web.NewGinServer(name, httpLogrus)
-	httpServer := web.NewHttpServer(name, httpLogrus, configConfig, engine)
+	engine := web.NewGinServer(name, httpLog)
+	httpServer := web.NewHttpServer(name, httpLog, configConfig, engine)
 	router := web.NewRouter(httpServer)
 	infraCloser := web.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)
@@ -43,11 +43,11 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	httpLogrus, err := common.NewHttpLogrus(configConfig)
+	httpLog, err := common.NewHttpLog(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	engine := chat.NewGinServer(name, httpLogrus, configConfig)
+	engine := chat.NewGinServer(name, httpLog, configConfig)
 	melodyChatConn := chat.NewMelodyChatConn(configConfig)
 	router, err := infra.NewBrokerRouter(name)
 	if err != nil {
@@ -97,12 +97,12 @@ func InitializeChatServer(name string) (*common.Server, error) {
 	}
 	forwardRepoImpl := chat.NewForwardRepoImpl(forwarderClientConn)
 	forwardServiceImpl := chat.NewForwardServiceImpl(forwardRepoImpl)
-	httpServer := chat.NewHttpServer(name, httpLogrus, configConfig, engine, melodyChatConn, messageSubscriber, userServiceImpl, messageServiceImpl, channelServiceImpl, forwardServiceImpl)
-	grpcLogrus, err := common.NewGrpcLogrus(configConfig)
+	httpServer := chat.NewHttpServer(name, httpLog, configConfig, engine, melodyChatConn, messageSubscriber, userServiceImpl, messageServiceImpl, channelServiceImpl, forwardServiceImpl)
+	grpcLog, err := common.NewGrpcLog(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	grpcServer := chat.NewGrpcServer(name, grpcLogrus, configConfig, userServiceImpl, channelServiceImpl)
+	grpcServer := chat.NewGrpcServer(name, grpcLog, configConfig, userServiceImpl, channelServiceImpl)
 	chatRouter := chat.NewRouter(httpServer, grpcServer)
 	infraCloser := chat.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)
@@ -115,7 +115,7 @@ func InitializeForwarderServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	grpcLogrus, err := common.NewGrpcLogrus(configConfig)
+	grpcLog, err := common.NewGrpcLog(configConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func InitializeForwarderServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	grpcServer := forwarder.NewGrpcServer(name, grpcLogrus, configConfig, forwardServiceImpl, messageSubscriber)
+	grpcServer := forwarder.NewGrpcServer(name, grpcLog, configConfig, forwardServiceImpl, messageSubscriber)
 	forwarderRouter := forwarder.NewRouter(grpcServer)
 	infraCloser := forwarder.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)
@@ -155,11 +155,11 @@ func InitializeMatchServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	httpLogrus, err := common.NewHttpLogrus(configConfig)
+	httpLog, err := common.NewHttpLog(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	engine := match.NewGinServer(name, httpLogrus, configConfig)
+	engine := match.NewGinServer(name, httpLog, configConfig)
 	melodyMatchConn := match.NewMelodyMatchConn()
 	router, err := infra.NewBrokerRouter(name)
 	if err != nil {
@@ -195,7 +195,7 @@ func InitializeMatchServer(name string) (*common.Server, error) {
 	matchingRepoImpl := match.NewMatchingRepoImpl(redisCacheImpl, publisher)
 	channelRepoImpl := match.NewChannelRepoImpl(chatClientConn)
 	matchingServiceImpl := match.NewMatchingServiceImpl(matchingRepoImpl, channelRepoImpl)
-	httpServer := match.NewHttpServer(name, httpLogrus, configConfig, engine, melodyMatchConn, matchSubscriber, userServiceImpl, matchingServiceImpl)
+	httpServer := match.NewHttpServer(name, httpLog, configConfig, engine, melodyMatchConn, matchSubscriber, userServiceImpl, matchingServiceImpl)
 	matchRouter := match.NewRouter(httpServer)
 	infraCloser := match.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)
@@ -208,17 +208,17 @@ func InitializeUploaderServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	httpLogrus, err := common.NewHttpLogrus(configConfig)
+	httpLog, err := common.NewHttpLog(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	engine := uploader.NewGinServer(name, httpLogrus, configConfig)
+	engine := uploader.NewGinServer(name, httpLog, configConfig)
 	universalClient, err := infra.NewRedisClient(configConfig)
 	if err != nil {
 		return nil, err
 	}
 	channelUploadRateLimiter := uploader.NewChannelUploadRateLimiter(universalClient, configConfig)
-	httpServer := uploader.NewHttpServer(name, httpLogrus, configConfig, engine, channelUploadRateLimiter)
+	httpServer := uploader.NewHttpServer(name, httpLog, configConfig, engine, channelUploadRateLimiter)
 	router := uploader.NewRouter(httpServer)
 	infraCloser := uploader.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)
@@ -231,11 +231,11 @@ func InitializeUserServer(name string) (*common.Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	httpLogrus, err := common.NewHttpLogrus(configConfig)
+	httpLog, err := common.NewHttpLog(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	engine := user.NewGinServer(name, httpLogrus, configConfig)
+	engine := user.NewGinServer(name, httpLog, configConfig)
 	universalClient, err := infra.NewRedisClient(configConfig)
 	if err != nil {
 		return nil, err
@@ -247,12 +247,12 @@ func InitializeUserServer(name string) (*common.Server, error) {
 		return nil, err
 	}
 	userServiceImpl := user.NewUserServiceImpl(userRepoImpl, idGenerator)
-	httpServer := user.NewHttpServer(name, httpLogrus, configConfig, engine, userServiceImpl)
-	grpcLogrus, err := common.NewGrpcLogrus(configConfig)
+	httpServer := user.NewHttpServer(name, httpLog, configConfig, engine, userServiceImpl)
+	grpcLog, err := common.NewGrpcLog(configConfig)
 	if err != nil {
 		return nil, err
 	}
-	grpcServer := user.NewGrpcServer(name, grpcLogrus, configConfig, userServiceImpl)
+	grpcServer := user.NewGrpcServer(name, grpcLog, configConfig, userServiceImpl)
 	router := user.NewRouter(httpServer, grpcServer)
 	infraCloser := user.NewInfraCloser()
 	observabilityInjector := common.NewObservabilityInjector(configConfig)

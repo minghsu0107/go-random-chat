@@ -35,7 +35,7 @@ func (r *HttpServer) StartChat(c *gin.Context) {
 			response(c, http.StatusNotFound, ErrUserNotFound)
 			return
 		}
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -49,13 +49,13 @@ func (r *HttpServer) StartChat(c *gin.Context) {
 		return
 	}
 	if authResult.Expired {
-		r.logger.Error(common.ErrTokenExpired)
+		r.logger.Error(common.ErrTokenExpired.Error())
 		response(c, http.StatusUnauthorized, common.ErrTokenExpired)
 	}
 	channelID := authResult.ChannelID
 	exist, err := r.userSvc.IsChannelUserExist(c.Request.Context(), channelID, userID)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -65,7 +65,7 @@ func (r *HttpServer) StartChat(c *gin.Context) {
 	}
 
 	if err := r.mc.HandleRequest(c.Writer, c.Request); err != nil {
-		r.logger.Errorf("upgrade websocket error: %v", err)
+		r.logger.Error("upgrade websocket error: " + err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -109,7 +109,7 @@ func (r *HttpServer) GetChannelUsers(c *gin.Context) {
 	}
 	userIDs, err := r.userSvc.GetChannelUserIDs(c.Request.Context(), channelID)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -140,7 +140,7 @@ func (r *HttpServer) GetOnlineUsers(c *gin.Context) {
 	}
 	userIDs, err := r.userSvc.GetOnlineUserIDs(c.Request.Context(), channelID)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -173,7 +173,7 @@ func (r *HttpServer) ListMessages(c *gin.Context) {
 	pageState := c.Query("ps")
 	msgs, nextPageState, err := r.msgSvc.ListMessages(c.Request.Context(), channelID, pageState)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -214,7 +214,7 @@ func (r *HttpServer) DeleteChannel(c *gin.Context) {
 
 	exist, err := r.userSvc.IsChannelUserExist(c.Request.Context(), channelID, userID)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -225,13 +225,13 @@ func (r *HttpServer) DeleteChannel(c *gin.Context) {
 
 	err = r.msgSvc.BroadcastActionMessage(c.Request.Context(), channelID, userID, LeavedMessage)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
 	err = r.chanSvc.DeleteChannel(c.Request.Context(), channelID)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -243,7 +243,7 @@ func (r *HttpServer) DeleteChannel(c *gin.Context) {
 func (r *HttpServer) HandleChatOnConnect(sess *melody.Session) {
 	userID, err := strconv.ParseUint(sess.Request.URL.Query().Get("uid"), 10, 64)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		return
 	}
 	accessToken := sess.Request.URL.Query().Get("access_token")
@@ -251,19 +251,19 @@ func (r *HttpServer) HandleChatOnConnect(sess *melody.Session) {
 		AccessToken: accessToken,
 	})
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 	}
 	if authResult.Expired {
-		r.logger.Error(common.ErrTokenExpired)
+		r.logger.Error(common.ErrTokenExpired.Error())
 	}
 	channelID := authResult.ChannelID
 	err = r.initializeChatSession(sess, channelID, userID)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		return
 	}
 	if err := r.msgSvc.BroadcastConnectMessage(context.Background(), channelID, userID); err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		return
 	}
 }
@@ -283,45 +283,45 @@ func (r *HttpServer) initializeChatSession(sess *melody.Session, channelID, user
 func (r *HttpServer) HandleChatOnMessage(sess *melody.Session, data []byte) {
 	msgPresenter, err := DecodeToMessagePresenter(data)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		return
 	}
 	msg, err := msgPresenter.ToMessage(sess.Request.URL.Query().Get("access_token"))
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		return
 	}
 	switch msg.Event {
 	case EventText:
 		if err := r.msgSvc.BroadcastTextMessage(context.Background(), msg.ChannelID, msg.UserID, msg.Payload); err != nil {
-			r.logger.Error(err)
+			r.logger.Error(err.Error())
 		}
 	case EventAction:
 		if err := r.msgSvc.BroadcastActionMessage(context.Background(), msg.ChannelID, msg.UserID, Action(msg.Payload)); err != nil {
-			r.logger.Error(err)
+			r.logger.Error(err.Error())
 		}
 	case EventSeen:
 		messageID, err := strconv.ParseUint(msg.Payload, 10, 64)
 		if err != nil {
-			r.logger.Error(err)
+			r.logger.Error(err.Error())
 			return
 		}
 		if err := r.msgSvc.MarkMessageSeen(context.Background(), msg.ChannelID, msg.UserID, messageID); err != nil {
-			r.logger.Error(err)
+			r.logger.Error(err.Error())
 		}
 	case EventFile:
 		if err := r.msgSvc.BroadcastFileMessage(context.Background(), msg.ChannelID, msg.UserID, msg.Payload); err != nil {
-			r.logger.Error(err)
+			r.logger.Error(err.Error())
 		}
 	default:
-		r.logger.Errorf("invailid event type: %v", msg.Event)
+		r.logger.Error("invailid event type: " + strconv.Itoa(msg.Event))
 	}
 }
 
 func (r *HttpServer) HandleChatOnClose(sess *melody.Session, i int, s string) error {
 	userID, err := strconv.ParseUint(sess.Request.URL.Query().Get("uid"), 10, 64)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		return err
 	}
 	accessToken := sess.Request.URL.Query().Get("access_token")
@@ -329,22 +329,22 @@ func (r *HttpServer) HandleChatOnClose(sess *melody.Session, i int, s string) er
 		AccessToken: accessToken,
 	})
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		return err
 	}
 	if authResult.Expired {
-		r.logger.Error(common.ErrTokenExpired)
+		r.logger.Error(common.ErrTokenExpired.Error())
 		return common.ErrTokenExpired
 	}
 	channelID := authResult.ChannelID
 	err = r.userSvc.DeleteOnlineUser(context.Background(), channelID, userID)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		return err
 	}
 	err = r.forwardSvc.RemoveChannelSession(context.Background(), channelID, userID)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		return err
 	}
 	return r.msgSvc.BroadcastActionMessage(context.Background(), channelID, userID, OfflineMessage)

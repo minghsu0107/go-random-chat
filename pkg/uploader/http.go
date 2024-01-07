@@ -3,8 +3,11 @@ package uploader
 import (
 	"context"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
+
+	"log/slog"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials"
@@ -40,7 +43,7 @@ func NewChannelUploadRateLimiter(rc redis.UniversalClient, config *config.Config
 
 type HttpServer struct {
 	name                     string
-	logger                   common.HttpLogrus
+	logger                   common.HttpLog
 	svr                      *gin.Engine
 	s3Endpoint               string
 	s3Bucket                 string
@@ -53,7 +56,7 @@ type HttpServer struct {
 	serveSwag                bool
 }
 
-func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) *gin.Engine {
+func NewGinServer(name string, logger common.HttpLog, config *config.Config) *gin.Engine {
 	svr := gin.New()
 	svr.Use(gin.Recovery())
 	svr.Use(common.CorsMiddleware())
@@ -69,7 +72,7 @@ func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) 
 	return svr
 }
 
-func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine, channelUploadRateLimiter ChannelUploadRateLimiter) *HttpServer {
+func NewHttpServer(name string, logger common.HttpLog, config *config.Config, svr *gin.Engine, channelUploadRateLimiter ChannelUploadRateLimiter) *HttpServer {
 	s3Endpoint := config.Uploader.S3.Endpoint
 	s3Bucket := config.Uploader.S3.Bucket
 	creds := credentials.NewStaticCredentialsProvider(config.Uploader.S3.AccessKey, config.Uploader.S3.SecretKey, "")
@@ -113,7 +116,7 @@ func (r *HttpServer) ChannelUploadRateLimit() gin.HandlerFunc {
 		}
 		allow, err := r.channelUploadRateLimiter.Allow(c.Request.Context(), strconv.FormatUint(channelID, 10))
 		if err != nil {
-			r.logger.Error(err)
+			r.logger.Error(err.Error())
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
@@ -161,10 +164,11 @@ func (r *HttpServer) Run() {
 			Addr:    addr,
 			Handler: common.NewOtelHttpHandler(r.svr, r.name+"_http"),
 		}
-		r.logger.Infoln("http server listening on ", addr)
+		r.logger.Info("http server listening", slog.String("addr", addr))
 		err := r.httpServer.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
-			r.logger.Fatal(err)
+			r.logger.Error(err.Error())
+			os.Exit(1)
 		}
 	}()
 }

@@ -2,12 +2,13 @@ package common
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/minghsu0107/go-random-chat/pkg/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	propjaeger "go.opentelemetry.io/contrib/propagators/jaeger"
 	"go.opentelemetry.io/otel"
@@ -54,10 +55,11 @@ func (injector *ObservabilityInjector) Register(service string) error {
 				},
 			))
 			promHttpSrv.Handler = m
-			log.Infof("starting prom metrics on  :%s", injector.promPort)
+			slog.Info("starting prom metrics on  :" + injector.promPort)
 			err := promHttpSrv.ListenAndServe()
 			if err != nil {
-				log.Fatal(err)
+				slog.Error(err.Error())
+				os.Exit(1)
 			}
 		}()
 	}

@@ -29,13 +29,13 @@ func (r *HttpServer) CreateLocalUser(c *gin.Context) {
 		AuthType: LocalAuth,
 	})
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
 	sid, err := r.userSvc.SetUserSession(c.Request.Context(), user.ID)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -81,7 +81,7 @@ func (r *HttpServer) GetUser(c *gin.Context) {
 			response(c, http.StatusNotFound, ErrUserNotFound)
 			return
 		}
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -114,7 +114,7 @@ func (r *HttpServer) GetUserMe(c *gin.Context) {
 			response(c, http.StatusNotFound, ErrUserNotFound)
 			return
 		}
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -133,7 +133,7 @@ func (r *HttpServer) GetUserMe(c *gin.Context) {
 func (r *HttpServer) OAuthGoogleLogin(c *gin.Context) {
 	oauthState, err := common.GenerateStateOauthCookie(c, r.oauthCookieConfig.MaxAge, r.oauthCookieConfig.Path, r.oauthCookieConfig.Domain)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}
@@ -150,7 +150,7 @@ func (r *HttpServer) OAuthGoogleLogin(c *gin.Context) {
 func (r *HttpServer) OAuthGoogleCallback(c *gin.Context) {
 	oauthState, err := common.GetCookie(c, common.OAuthStateCookieName)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		c.Redirect(http.StatusTemporaryRedirect, "/")
 		return
 	}
@@ -162,13 +162,13 @@ func (r *HttpServer) OAuthGoogleCallback(c *gin.Context) {
 
 	token, err := r.googleOauthConfig.Exchange(c.Request.Context(), c.Request.FormValue("code"))
 	if err != nil {
-		r.logger.Errorf("code exchange wrong: %v", err)
+		r.logger.Error("code exchange wrong: " + err.Error())
 		c.Redirect(http.StatusTemporaryRedirect, "/")
 		return
 	}
 	googleUser, err := r.userSvc.GetGoogleUser(c.Request.Context(), token.AccessToken)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		c.Redirect(http.StatusTemporaryRedirect, "/")
 		return
 	}
@@ -179,13 +179,13 @@ func (r *HttpServer) OAuthGoogleCallback(c *gin.Context) {
 		AuthType: GoogleAuth,
 	})
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		c.Redirect(http.StatusTemporaryRedirect, "/")
 		return
 	}
 	sid, err := r.userSvc.SetUserSession(c.Request.Context(), user.ID)
 	if err != nil {
-		r.logger.Error(err)
+		r.logger.Error(err.Error())
 		response(c, http.StatusInternalServerError, common.ErrServer)
 		return
 	}

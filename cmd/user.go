@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	log "log/slog"
+	"os"
+
 	"github.com/minghsu0107/go-random-chat/internal/wire"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +14,8 @@ var userCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		server, err := wire.InitializeUserServer("user")
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err.Error())
+			os.Exit(1)
 		}
 		server.Serve()
 	},

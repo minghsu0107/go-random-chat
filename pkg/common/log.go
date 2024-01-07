@@ -4,45 +4,49 @@ import (
 	"io"
 	"os"
 
+	"log/slog"
+
 	"github.com/gin-gonic/gin"
 	"github.com/minghsu0107/go-random-chat/pkg/config"
-	log "github.com/sirupsen/logrus"
 )
 
-type HttpLogrus struct {
-	*log.Entry
+type HttpLog struct {
+	*slog.Logger
 }
-type GrpcLogrus struct {
-	*log.Entry
+type GrpcLog struct {
+	*slog.Logger
 }
 
-func NewHttpLogrus(config *config.Config) (HttpLogrus, error) {
+func init() {
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level:     slog.LevelError,
+		AddSource: false,
+	})))
+}
+
+func NewHttpLog(config *config.Config) (HttpLog, error) {
+	logHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level:     slog.LevelError,
+		AddSource: false,
+	}).WithAttrs([]slog.Attr{
+		slog.String("proto", "http"),
+	})
+	logger := slog.New(logHandler)
+
 	gin.SetMode(gin.ReleaseMode)
 	gin.DefaultWriter = io.Writer(os.Stderr)
 
-	if err := initLogging(config); err != nil {
-		return HttpLogrus{}, err
-	}
-
-	return HttpLogrus{log.WithField("protocol", "http")}, nil
+	return HttpLog{logger}, nil
 }
 
-func NewGrpcLogrus(config *config.Config) (GrpcLogrus, error) {
-	if err := initLogging(config); err != nil {
-		return GrpcLogrus{}, err
-	}
+func NewGrpcLog(config *config.Config) (GrpcLog, error) {
+	logHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level:     slog.LevelError,
+		AddSource: false,
+	}).WithAttrs([]slog.Attr{
+		slog.String("proto", "grpc"),
+	})
+	logger := slog.New(logHandler)
 
-	return GrpcLogrus{log.WithField("protocol", "grpc")}, nil
-}
-
-func initLogging(config *config.Config) error {
-	logrusLevel, err := log.ParseLevel(config.Logging.Level)
-	if err != nil {
-		return err
-	}
-	log.SetOutput(os.Stderr)
-	log.SetLevel(logrusLevel)
-	log.SetFormatter(&log.TextFormatter{FullTimestamp: true, DisableColors: true})
-
-	return nil
+	return GrpcLog{logger}, nil
 }

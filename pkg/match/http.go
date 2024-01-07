@@ -2,7 +2,9 @@ package match
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/minghsu0107/go-random-chat/pkg/common"
@@ -29,7 +31,7 @@ type MelodyMatchConn struct {
 
 type HttpServer struct {
 	name            string
-	logger          common.HttpLogrus
+	logger          common.HttpLog
 	svr             *gin.Engine
 	mm              MelodyMatchConn
 	httpPort        string
@@ -47,7 +49,7 @@ func NewMelodyMatchConn() MelodyMatchConn {
 	return MelodyMatch
 }
 
-func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) *gin.Engine {
+func NewGinServer(name string, logger common.HttpLog, config *config.Config) *gin.Engine {
 	svr := gin.New()
 	svr.Use(gin.Recovery())
 	svr.Use(common.CorsMiddleware())
@@ -63,7 +65,7 @@ func NewGinServer(name string, logger common.HttpLogrus, config *config.Config) 
 	return svr
 }
 
-func NewHttpServer(name string, logger common.HttpLogrus, config *config.Config, svr *gin.Engine, mm MelodyMatchConn, matchSubscriber *MatchSubscriber, userSvc UserService, matchSvc MatchingService) *HttpServer {
+func NewHttpServer(name string, logger common.HttpLog, config *config.Config, svr *gin.Engine, mm MelodyMatchConn, matchSubscriber *MatchSubscriber, userSvc UserService, matchSvc MatchingService) *HttpServer {
 	return &HttpServer{
 		name:            name,
 		logger:          logger,
@@ -127,16 +129,18 @@ func (r *HttpServer) Run() {
 			Addr:    addr,
 			Handler: common.NewOtelHttpHandler(r.svr, r.name+"_http"),
 		}
-		r.logger.Infoln("http server listening on ", addr)
+		r.logger.Info("http server listening", slog.String("addr", addr))
 		err := r.httpServer.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
-			r.logger.Fatal(err)
+			r.logger.Error(err.Error())
+			os.Exit(1)
 		}
 	}()
 	go func() {
 		err := r.matchSubscriber.Run()
 		if err != nil {
-			r.logger.Fatal(err)
+			r.logger.Error(err.Error())
+			os.Exit(1)
 		}
 	}()
 }

@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 type HTTPContextKey string
@@ -45,7 +45,7 @@ func CorsMiddleware() gin.HandlerFunc {
 	return cors.New(config)
 }
 
-func LoggingMiddleware(logger HttpLogrus) gin.HandlerFunc {
+func LoggingMiddleware(logger HttpLog) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Start timer
 		start := time.Now()
@@ -56,19 +56,19 @@ func LoggingMiddleware(logger HttpLogrus) gin.HandlerFunc {
 		// Stop timer
 		duration := getDurationInMillseconds(start)
 
-		entry := logger.WithFields(logrus.Fields{
-			"duration_ms": duration,
-			"method":      c.Request.Method,
-			"path":        c.Request.RequestURI,
-			"status":      c.Writer.Status(),
-			"referrer":    c.Request.Referer(),
-			"trace_id":    getTraceID(c),
-		})
+		attrs := []slog.Attr{
+			slog.Float64("duration_ms", duration),
+			slog.String("method", c.Request.Method),
+			slog.String("path", c.Request.RequestURI),
+			slog.Int("status", c.Writer.Status()),
+			slog.String("referrer", c.Request.Referer()),
+			slog.String("trace_id", getTraceID(c)),
+		}
 
 		if c.Writer.Status() >= 500 {
-			entry.Error(c.Errors.String())
+			logger.Error(c.Errors.String(), attrs)
 		} else {
-			entry.Info("")
+			logger.Info("", attrs)
 		}
 	}
 }

@@ -2,12 +2,11 @@ package common
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type HttpServer interface {
@@ -44,7 +43,8 @@ func NewServer(name string, router Router, infraCloser InfraCloser, obsInjector 
 
 func (s *Server) Serve() {
 	if err := s.obsInjector.Register(s.name); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 	s.router.Run()
 
@@ -65,20 +65,20 @@ func (s *Server) Serve() {
 func (s *Server) GracefulStop(ctx context.Context, done chan bool) {
 	err := s.router.GracefulStop(ctx)
 	if err != nil {
-		log.Error(err)
+		slog.Error(err.Error())
 	}
 
 	if TracerProvider != nil {
 		err = TracerProvider.Shutdown(ctx)
 		if err != nil {
-			log.Error(err)
+			slog.Error(err.Error())
 		}
 	}
 
 	if err = s.infraCloser.Close(); err != nil {
-		log.Error(err)
+		slog.Error(err.Error())
 	}
 
-	log.Info("gracefully shutdowned")
+	slog.Info("gracefully shutdowned")
 	done <- true
 }
