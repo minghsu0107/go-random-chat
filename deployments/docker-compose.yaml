@@ -342,6 +342,7 @@ services:
       - CASSANDRA_PASSWORD_SEEDER=yes
       - CASSANDRA_USER=ming
       - CASSANDRA_PASSWORD=cassandrapass
+  
 volumes:
   minio_data:
   cassandra_data:
