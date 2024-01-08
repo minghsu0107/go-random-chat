@@ -45,7 +45,7 @@ async function getUserInfo() {
             if (result.picture !== "") {
                 ID2PICTURE[USER_ID] = result.picture
             } else {
-                ID2PICTURE[USER_ID] = "https://avatars.dicebear.com/api/pixel-art/" + USER_ID + ".svg"
+                ID2PICTURE[USER_ID] = "https://api.dicebear.com/7.x/pixel-art/svg?seed=" + USER_ID
             }
         })
         .catch((error) => {
