@@ -56,7 +56,7 @@ services:
       CHAT_JWT_SECRET: ${JWT_SECRET}
       CHAT_JWT_EXPIRATIONSECOND: "86400"
       KAFKA_ADDRS: kafka:9092
-      KAFKA_VERSION: "3.0.1"
+      KAFKA_VERSION: "3.6.0"
       CASSANDRA_HOSTS: cassandra
       CASSANDRA_PORT: "9042"
       CASSANDRA_USER: ming
@@ -91,7 +91,7 @@ services:
     environment:
       FORWARDER_GRPC_SERVER_PORT: "4000"
       KAFKA_ADDRS: kafka:9092
-      KAFKA_VERSION: "3.0.1"
+      KAFKA_VERSION: "3.6.0"
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_ADDRS: redis-node-0:6379,redis-node-1:6379,redis-node-2:6379,redis-node-3:6379,redis-node-4:6379,redis-node-5:6379
       REDIS_EXPIRATIONHOUR: "24"
@@ -120,7 +120,7 @@ services:
       MATCH_GRPC_CLIENT_CHAT_ENDPOINT: "reverse-proxy:80"
       MATCH_GRPC_CLIENT_USER_ENDPOINT: "reverse-proxy:80"
       KAFKA_ADDRS: kafka:9092
-      KAFKA_VERSION: "3.0.1"
+      KAFKA_VERSION: "3.6.0"
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_ADDRS: redis-node-0:6379,redis-node-1:6379,redis-node-2:6379,redis-node-3:6379,redis-node-4:6379,redis-node-5:6379
       REDIS_EXPIRATIONHOUR: "24"
@@ -307,12 +307,12 @@ services:
       - 'REDIS_NODES=redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5'
       - 'REDIS_CLUSTER_CREATOR=yes'
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.0.1
+    image: confluentinc/cp-zookeeper:7.6.0
     restart: unless-stopped
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181   
   kafka:
-    image: confluentinc/cp-kafka:7.0.1
+    image: confluentinc/cp-kafka:7.6.0
     restart: unless-stopped
     environment:
       KAFKA_LOG_RETENTION_MINUTES: 1440 # save data for 24hrs
