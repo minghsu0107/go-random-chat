@@ -686,7 +686,7 @@ async function getFileMessage(messageID, userID, side, fileName, fileURL, time, 
         <div class="msg-bubble">
           <div class="msg-text">
             <a href=${fileURL} download target="_blank" style="color: ${color}">
-              <div style="overflow-wrap: break-word;">${fileName}</div>
+              <div style="overflow-wrap: break-word;">${escapeHtml(fileName)}</div>
             </a>
           </div>
         </div>
@@ -748,7 +748,7 @@ async function getFileMessage(messageID, userID, side, fileName, objectKey, time
         <div class="msg-bubble">
           <div class="msg-text">
             <a href=${fileURL} download target="_blank" style="color: ${color}">
-              <div style="overflow-wrap: break-word;">${fileName}</div>
+              <div style="overflow-wrap: break-word;">${escapeHtml(fileName)}</div>
             </a>
           </div>
         </div>
@@ -789,7 +789,7 @@ async function getTextMessage(messageID, userID, side, text, time, seen) {
 
       <div class="msg-bubble">
 
-        <div class="msg-text" style="overflow-wrap: break-word;">${urlify(text).replace(/(?:\r|\n|\r\n)/g, '<br>')}</div>
+        <div class="msg-text" style="overflow-wrap: break-word;">${urlify(escapeHtml(text)).replace(/(?:\r|\n|\r\n)/g, '<br>')}</div>
       </div>
     `
     if (side === RIGHT) {
@@ -845,6 +845,15 @@ function insertDummy() {
         let dummy = `<div class="msg-left" style="visibility: hidden;">dummy</div>`
         chatroom[0].insertAdjacentHTML("beforeend", dummy)
     }
+}
+
+function escapeHtml(s) {
+    return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;")
 }
 
 function urlify(text) {
